@@ -1,4 +1,4 @@
-import { CapitalGainsTaxRate } from '../models';
+import type { CapitalGainsTaxRate } from '../models';
 
 export const capitalGainsTaxRates: CapitalGainsTaxRate[] = [
   { year: 2024, rate: 0.15 },

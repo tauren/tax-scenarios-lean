@@ -1,4 +1,4 @@
-import { Scenario } from '../models';
+import type { Scenario } from '../models';
 import { initialAssets } from './initialAssets.data';
 
 export const templateScenarios: Scenario[] = [
