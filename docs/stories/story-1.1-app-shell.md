@@ -1,9 +1,13 @@
 ## Story 1.1: Initialize Basic Application Shell & "Active Plan" Naming
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As a user, I want a basic application shell to load in my browser, with a clear way to see and change the name of my current "Active Plan," so I can identify my work session.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for `appConfigService.ts` and initial configuration data
+- Architecture Documents: Required for `UserAppState` interface and other data models
 
 **Acceptance Criteria (ACs)**
 1.  When the application is loaded in a supported web browser, a basic UI shell is displayed. This shell includes placeholder areas for a header, main content, and footer.

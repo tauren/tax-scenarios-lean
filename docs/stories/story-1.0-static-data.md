@@ -1,6 +1,6 @@
 ## Story 1.0: Populate Initial Lean MVP Static Configuration Data
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As the project developer, I need a *small, lean initial set* of static `AppConfig` data – including a few CGT-focused `templateScenarios`, foundational `globalQualitativeConcepts`, and 1-2 relevant `globalSpecialTaxFeatures` – to be defined and integrated, so that early development and testing of core MVP functionality can proceed.

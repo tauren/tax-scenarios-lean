@@ -1,9 +1,16 @@
 ## Story 1.4: Implement `localStorage` Persistence for the Single Active Plan
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As a user, I want my entire "Active Plan" (including its name, global assets, and all scenario data) to be automatically saved to my browser's local storage as I make changes, and reloaded when I revisit the application, so that my work is preserved between sessions without manual save actions.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for `appConfigService.ts` and initial configuration data
+- Story 1.1: App Shell - Required for `UserAppState` interface and basic application structure
+- Story 1.2: Asset Management - Required for `initialAssets` in `UserAppState`
+- Story 1.3: Create Baseline - Required for `scenarios` in `UserAppState`
+- Architecture Documents: Required for `UserAppState` interface and persistence strategy
 
 **Acceptance Criteria (ACs)**
 1.  Any modification to the "Active Plan" data (`UserAppState` including its internal `activePlanInternalName` as defined in `architecture-lean-v1.2.md`) must trigger an automatic save of the entire current "Active Plan" state to a primary `localStorage` slot (e.g., `taxAnalyzer_activePlan`).

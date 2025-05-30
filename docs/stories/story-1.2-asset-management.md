@@ -1,9 +1,14 @@
 ## Story 1.2: Implement Global Asset Management
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As a user, I want to define and manage a global list of my financial assets (name, quantity, cost basis, acquisition date, optional type/FMV) within my Active Plan, so that this core asset information can be used consistently across all scenarios I create.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for `appConfigService.ts` and initial configuration data
+- Story 1.1: App Shell - Required for `UserAppState` interface and basic application structure
+- Architecture Documents: Required for `Asset` interface and other data models
 
 **Acceptance Criteria (ACs)**
 1.  A dedicated User Interface (UI) section exists for managing a global list of financial assets associated with the "Active Plan."

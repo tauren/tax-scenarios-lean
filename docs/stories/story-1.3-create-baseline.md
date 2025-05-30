@@ -1,9 +1,15 @@
 ## Story 1.3: Create Baseline Scenario & Input Core Data (CGT Focus)
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As a user, I want to establish my "Baseline Scenario" within my Active Plan (from a CGT-focused template or custom), define its location, input gross income (for context), annual expenses, and my effective Capital Gains Tax rates for this baseline, so I have a foundational scenario.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for `appConfigService.ts` and `templateScenarios` data
+- Story 1.1: App Shell - Required for `UserAppState` interface and basic application structure
+- Story 1.2: Asset Management - Required for `initialAssets` in `UserAppState`
+- Architecture Documents: Required for `Scenario`, `ScenarioIncomeSource`, `AnnualExpense`, and `CapitalGainsTaxRate` interfaces
 
 **Acceptance Criteria (ACs)**
 1.  Within the "Active Plan," the user can initiate the creation or definition of the "Baseline Scenario."

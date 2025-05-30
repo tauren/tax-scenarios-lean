@@ -1,9 +1,14 @@
 ## Story 1.7: Set Up CI/CD Pipeline for Automated Deployments
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As the project developer, I want a CI/CD pipeline configured (e.g., with Cloudflare Pages and GitHub Actions) so that automated builds and deployments of the application are triggered from the `main` branch, ensuring efficient and consistent releases.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for initial project setup
+- Story 1.1: App Shell - Required for basic application structure and build process
+- Architecture Documents: Required for deployment strategy and CI/CD requirements
 
 **Acceptance Criteria (ACs)**
 1.  The project's GitHub repository is successfully linked to the Cloudflare Pages service.

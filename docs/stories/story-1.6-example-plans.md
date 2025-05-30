@@ -4,10 +4,19 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
 
 ## Story 1.6: Display Example Scenario Links (CGT Focused)
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As a user, I want to see a list of links to pre-configured example scenarios (focused on CGT planning), which I can click to easily load and explore them, so I can quickly understand the tool's capabilities or start from a meaningful example.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for `appConfigService.ts` and `templateScenarios` data
+- Story 1.1: App Shell - Required for `UserAppState` interface and basic application structure
+- Story 1.2: Asset Management - Required for `initialAssets` in `UserAppState`
+- Story 1.3: Create Baseline - Required for `scenarios` in `UserAppState`
+- Story 1.4: LocalStorage - Required for persistence strategy
+- Story 1.5: Load from URL - Required for URL loading mechanism
+- Architecture Documents: Required for `UserAppState` interface and example plan structure
 
 **Acceptance Criteria (ACs)**
 1.  A dedicated UI section or component (e.g., on the "Get Started" screen - `GetStartedView.tsx` as per `front-end-spec-v0.1.md`, or a similar entry point if no active plan exists) displays a list of available example scenarios.
