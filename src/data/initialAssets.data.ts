@@ -1,4 +1,4 @@
-import type { Asset } from '../models';
+import type { Asset } from '@/models';
 
 export const initialAssets: Asset[] = [
   {

@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { App } from '../App';
-import { TempContent } from '../components/TempContent';
-import { AssetManagementView } from '../components/views/AssetManagementView';
+import { App } from '@/App';
+import { AssetManagementView } from '@/components/views/AssetManagementView';
 import { GetStartedView } from "@/views/GetStartedView";
 
 export const router = createBrowserRouter([

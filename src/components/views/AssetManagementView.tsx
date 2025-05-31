@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useUserAppState } from '../../store/userAppStateSlice';
-import type { Asset } from '../../types';
-import { AssetDialog } from '../dialogs/AssetDialog';
-import { DeleteConfirmationDialog } from '../dialogs/DeleteConfirmationDialog';
+import { useUserAppState } from '@/store/userAppStateSlice';
+import type { Asset } from '@/types';
+import { AssetDialog } from '@/components/dialogs/AssetDialog';
+import { DeleteConfirmationDialog } from '@/components/dialogs/DeleteConfirmationDialog';
 import { v4 as uuidv4 } from 'uuid';
-import { formatAssetType } from '../../utils/formatting';
+import { formatAssetType } from '@/utils/formatting';
 import { Button } from "@/components/ui/button";
 import {
   Table,

@@ -1,9 +1,9 @@
-import type { Asset, Scenario, CapitalGainsTaxRate, GlobalQualitativeConcept, SpecialTaxFeature } from '../models';
-import { initialAssets } from '../data/initialAssets.data';
-import { templateScenarios } from '../data/templateScenarios.data';
-import { capitalGainsTaxRates } from '../data/capitalGainsTaxRates.data';
-import { globalQualitativeConcepts } from '../data/globalQualitativeConcepts.data';
-import { specialTaxFeatures } from '../data/specialTaxFeatures.data';
+import type { Asset, Scenario, CapitalGainsTaxRate, GlobalQualitativeConcept, SpecialTaxFeature } from '@/models';
+import { initialAssets } from '@/data/initialAssets.data';
+import { templateScenarios } from '@/data/templateScenarios.data';
+import { capitalGainsTaxRates } from '@/data/capitalGainsTaxRates.data';
+import { globalQualitativeConcepts } from '@/data/globalQualitativeConcepts.data';
+import { specialTaxFeatures } from '@/data/specialTaxFeatures.data';
 import type { AppConfig } from '@/types/appConfig';
 
 // Service functions

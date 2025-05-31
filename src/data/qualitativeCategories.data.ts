@@ -1,4 +1,4 @@
-import type { QualitativeCategory } from '../models';
+import type { QualitativeCategory } from '@/models';
 
 export const qualitativeCategories: QualitativeCategory[] = [
   {

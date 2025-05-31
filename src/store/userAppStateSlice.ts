@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { UserAppState, UserAppStateSlice, Asset } from '../types';
+import type { UserAppStateSlice, Asset } from '@/types';
 
 export const useUserAppState = create<UserAppStateSlice>((set) => ({
   activePlanInternalName: 'Untitled Plan',

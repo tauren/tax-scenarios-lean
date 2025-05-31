@@ -1,4 +1,4 @@
-import type { Scenario } from '../models';
+import type { Scenario } from '@/models';
 
 export const templateScenarios: Scenario[] = [
   {

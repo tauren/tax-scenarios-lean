@@ -1,6 +1,6 @@
 import { Share2 } from 'lucide-react';
-import { useUserAppState } from '../../store/userAppStateSlice';
-import type { UserAppState } from '../../types';
+import { useUserAppState } from '@/store/userAppStateSlice';
+import type { UserAppState } from '@/types';
 
 export function Header() {
   const activePlanInternalName = useUserAppState((state: UserAppState) => state.activePlanInternalName);
