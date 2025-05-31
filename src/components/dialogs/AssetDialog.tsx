@@ -1,5 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import type { Asset } from '../../types';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
 
 interface AssetDialogProps {
   isOpen: boolean;
@@ -19,7 +37,6 @@ const initialFormData: Omit<Asset, 'id'> = {
 
 export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps) {
   const [formData, setFormData] = useState<Omit<Asset, 'id'>>(initialFormData);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (asset) {
@@ -42,12 +59,6 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
     onClose();
   };
 
-  const handleClickOutside = (e: React.MouseEvent) => {
-    if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
-
   const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>, field: keyof typeof formData) => {
     const value = e.target.value;
     if (value === '') {
@@ -60,114 +71,103 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      onClick={handleClickOutside}
-    >
-      <div 
-        ref={dialogRef}
-        className="bg-background rounded-lg p-6 w-full max-w-md border border-border"
-      >
-        <h2 className="text-xl font-semibold mb-4 text-foreground">
-          {asset ? (asset.id ? 'Edit Asset' : 'Duplicate Asset') : 'Add New Asset'}
-        </h2>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {asset ? (asset.id ? 'Edit Asset' : 'Duplicate Asset') : 'Add New Asset'}
+          </DialogTitle>
+        </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Asset Type</label>
-            <select
+          <div className="space-y-2">
+            <Label htmlFor="assetType">Asset Type</Label>
+            <Select
               value={formData.assetType}
-              onChange={(e) => setFormData({ ...formData, assetType: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
+              onValueChange={(value) => setFormData({ ...formData, assetType: value })}
             >
-              <option value="">Select a type</option>
-              <option value="stock">Stock</option>
-              <option value="crypto">Cryptocurrency</option>
-              <option value="real-estate">Real Estate</option>
-              <option value="other">Other</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="stock">Stock</SelectItem>
+                <SelectItem value="crypto">Cryptocurrency</SelectItem>
+                <SelectItem value="real-estate">Real Estate</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Quantity</label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="quantity">Quantity</Label>
+            <Input
+              id="quantity"
               type="number"
               value={formData.quantity === 0 ? '' : formData.quantity}
               onChange={(e) => handleNumberInput(e, 'quantity')}
-              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
               min="0"
               step="0.00000001"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Cost Basis per Unit</label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="costBasis">Cost Basis per Unit</Label>
+            <Input
+              id="costBasis"
               type="number"
               value={formData.costBasisPerUnit === 0 ? '' : formData.costBasisPerUnit}
               onChange={(e) => handleNumberInput(e, 'costBasisPerUnit')}
-              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
               min="0"
               step="0.00000001"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Acquisition Date</label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="acquisitionDate">Acquisition Date</Label>
+            <Input
+              id="acquisitionDate"
               type="date"
               value={formData.acquisitionDate.toISOString().split('T')[0]}
               onChange={(e) => setFormData({ ...formData, acquisitionDate: new Date(e.target.value) })}
-              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">FMV per Unit (Optional)</label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="fmv">FMV per Unit (Optional)</Label>
+            <Input
+              id="fmv"
               type="number"
               value={formData.fmvPerUnit === 0 ? '' : formData.fmvPerUnit}
               onChange={(e) => handleNumberInput(e, 'fmvPerUnit')}
-              className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
               min="0"
               step="0.00000001"
             />
           </div>
 
-          <div className="flex justify-end space-x-4 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-foreground hover:bg-muted border border-border rounded transition-colors"
-            >
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-foreground text-background border border-border rounded hover:bg-muted transition-colors"
-            >
+            </Button>
+            <Button type="submit">
               {asset ? (asset.id ? 'Save Changes' : 'Create Copy') : 'Add Asset'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 } 
