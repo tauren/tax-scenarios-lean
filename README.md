@@ -1,54 +1,73 @@
-# React + TypeScript + Vite
+# Tax Scenarios Analyzer MVP
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A tool for analyzing and comparing different tax scenarios across various locations, helping users make informed decisions about their financial planning.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Compare tax scenarios across different locations
+- Analyze capital gains tax implications
+- Evaluate qualitative factors affecting relocation decisions
+- Track and manage multiple scenarios
+- Share and collaborate on tax plans
 
-## Expanding the ESLint configuration
+## Developer Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Node.js (v20.x or LTS)
+- npm (comes with Node.js)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd tax-scenarios-lean
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Development
+
+To start the development server:
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The application will be available at `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Building for Production
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+To create a production build:
+```bash
+npm run build
 ```
+
+The built files will be in the `dist` directory.
+
+## Project Structure
+
+- `src/` - Source code
+  - `app/` - Application entry points and routing
+  - `components/` - React components
+  - `data/` - Static data and configurations
+  - `models/` - TypeScript interfaces and types
+  - `services/` - Business logic and data services
+  - `store/` - State management
+  - `styles/` - Global styles and Tailwind configuration
+- `docs/` - Project documentation
+- `research/` - Research data and findings
+- `prompts/` - AI prompts for data generation
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Shadcn UI
+- Zustand (State Management)
+- React Router DOM
