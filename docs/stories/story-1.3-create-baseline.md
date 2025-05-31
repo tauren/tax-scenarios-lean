@@ -1,6 +1,6 @@
 ## Story 1.3: Create Baseline Scenario & Input Core Data (CGT Focus)
 
-**Status:** Ready for Development
+**Status:** In Progress
 
 **Story**
 - As a user, I want to establish my "Baseline Scenario" within my Active Plan (from a CGT-focused template or custom), define its location, input gross income (for context), annual expenses, and my effective Capital Gains Tax rates for this baseline, so I have a foundational scenario.
@@ -82,9 +82,13 @@
 -   **CGT Rates:** For MVP, the `capitalGainsTaxRates` array in the `Scenario` model will hold one object with `shortTermRate` and `longTermRate`. The UI should reflect this simplicity for input.
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * Story prepared for development
+    * All prerequisites (Stories 1.0, 1.1, and 1.2) are completed
+    * Ready for implementation of baseline scenario creation functionality
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
     * Added Visual Reference - May 31, 2025 - Sarah (PO)
+    * Prepared for Development - May 31, 2025 - Story Agent
+    * Development Started - May 31, 2025 - Dev Agent
