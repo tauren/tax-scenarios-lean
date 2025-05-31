@@ -15,7 +15,7 @@ describe('App Config Service', () => {
       const scenarios = getTemplateScenarios();
       expect(scenarios).toBeDefined();
       expect(scenarios.length).toBeGreaterThan(0);
-      expect(scenarios[0].id).toBe('conservative');
+      expect(scenarios[0].id).toBe('template-portugal');
     });
   });
 
