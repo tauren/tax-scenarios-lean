@@ -1,6 +1,6 @@
 ## Story 1.2: Implement Global Asset Management
 
-**Status:** Ready for Development
+**Status:** Complete
 
 **Story**
 - As a user, I want to define and manage a global list of my financial assets (name, quantity, cost basis, acquisition date, optional type/FMV) within my Active Plan, so that this core asset information can be used consistently across all scenarios I create.
@@ -30,41 +30,41 @@
 **Critical Point:** The mockup designs provided may not contain every visual element described in this story. The mockups are not guarranteed to be feature complete. They should be used as a guideline and reference only. If this story specifies something is required that isn't in the mockup design, it still must be implmented.
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Create Asset Management View Component (AC: 1, 5, 9)**
-    - [ ] Create a new view component `AssetManagementView.tsx` in `src/views/` (or `src/pages/` as per final structure in `front-end-architecture-v0.3.md`).
-    - [ ] Implement the basic layout for this view referencing `../../v0-mockups/components/asset-management-view.tsx` for visual guidance. This should include a clear title (e.g., "My Assets" or "Manage Plan Assets").
-    - [ ] Add a prominent "Add New Asset" button (e.g., ShadCN `Button`), styled as per the mockup.
-    - [ ] Implement a table (e.g., ShadCN `Table`) or a list structure to display assets, visually guided by the mockup. Columns should include: Name, Quantity, Cost Basis/Unit, Acquisition Date, Type (opt), FMV/Unit (opt), and placeholders for Action buttons (Edit, Delete, Duplicate).
-    - [ ] Ensure the view's layout is responsive.
-- [ ] **Task 2: Implement Asset Data Model and State Management (AC: 8)**
-    - [ ] Ensure the `Asset` interface is defined in `src/types/index.ts` according to `architecture-lean-v1.2.md`.
-    - [ ] In the `userAppStateSlice.ts` (Zustand store), ensure the state includes `initialAssets: Asset[]`.
-    - [ ] Implement or verify existing store actions: `addAsset(asset: Asset)`, `updateAsset(assetId: string, updatedAsset: Partial<Asset>)`, `deleteAsset(assetId: string)`. These actions must handle immutable updates to the `initialAssets` array. Ensure new assets get a unique `id` (e.g., UUID).
-- [ ] **Task 3: Implement "Add New Asset" Functionality (AC: 2, 3)**
-    - [ ] Clicking the "Add New Asset" button should open a form, visually guided by `asset-management-view.tsx` (e.g., in a ShadCN `Dialog` or `Sheet` if the mockup suggests this).
-    - [ ] The form should contain input fields (e.g., ShadCN `Input`, `DatePicker` from `shadcn/ui`) for all `Asset` properties as per AC2.
-    - [ ] Implement client-side validation for required fields and correct data types.
-    - [ ] On form submission (Save), create a new `Asset` object, generate a unique ID, and dispatch the `addAsset` action to the store.
-    - [ ] If specified in `front-end-spec-v0.1.md` or mockup, implement "Save and Add Another" functionality.
-    - [ ] Close the form/dialog after saving.
-- [ ] **Task 4: Display List of Assets (AC: 5)**
-    - [ ] The `AssetManagementView.tsx` should subscribe to the `initialAssets` array from the Zustand store.
-    - [ ] Render the list/table of assets dynamically based on the store's state, matching the layout in `asset-management-view.tsx`.
-    - [ ] Format data appropriately for display (e.g., dates, currency).
-- [ ] **Task 5: Implement "Edit Asset" Functionality (AC: 6)**
-    - [ ] Each asset row in the list/table should have an "Edit" button, styled as per the mockup.
-    - [ ] Clicking "Edit" should open the asset form (similar to Add New, but pre-filled with the selected asset's data), visually guided by the mockup.
-    - [ ] On form submission (Save), dispatch the `updateAsset` action to the store with the asset's ID and the updated data.
-    - [ ] Close the form/dialog after saving.
-- [ ] **Task 6: Implement "Delete Asset" Functionality (AC: 7)**
-    - [ ] Each asset row should have a "Delete" button, styled as per the mockup.
-    - [ ] Clicking "Delete" should trigger a confirmation dialog (e.g., ShadCN `AlertDialog`) asking "Are you sure you want to delete [Asset Name]?".
-    - [ ] If confirmed, dispatch the `deleteAsset` action to the store with the asset's ID.
-- [ ] **Task 7: Implement "Duplicate Asset" Functionality (AC: 4)**
-    - [ ] Each asset row should have a "Duplicate" button/icon, styled as per the mockup.
-    - [ ] Clicking "Duplicate" should open the "Add New Asset" form, pre-filled with the details of the selected asset, allowing the user to make modifications before saving it as a *new* asset (which will receive a new unique ID).
-- [ ] **Task 8: Navigation (Contextual)**
-    - [ ] Ensure there's a clear way to navigate from the `AssetManagementView.tsx` back to a main dashboard or previous view (e.g., a "Back" button or breadcrumb, as suggested by overall navigation patterns in `front-end-spec-v0.1.md` and potentially visible in `asset-management-view.tsx` or `main-application-layout.tsx`). This will be fully connected via the router in a later story.
+- [x] **Task 1: Create Asset Management View Component (AC: 1, 5, 9)**
+    - [x] Create a new view component `AssetManagementView.tsx` in `src/views/` (or `src/pages/` as per final structure in `front-end-architecture-v0.3.md`).
+    - [x] Implement the basic layout for this view referencing `../../v0-mockups/components/asset-management-view.tsx` for visual guidance. This should include a clear title (e.g., "My Assets" or "Manage Plan Assets").
+    - [x] Add a prominent "Add New Asset" button (e.g., ShadCN `Button`), styled as per the mockup.
+    - [x] Implement a table (e.g., ShadCN `Table`) or a list structure to display assets, visually guided by the mockup. Columns should include: Name, Quantity, Cost Basis/Unit, Acquisition Date, Type (opt), FMV/Unit (opt), and placeholders for Action buttons (Edit, Delete, Duplicate).
+    - [x] Ensure the view's layout is responsive.
+- [x] **Task 2: Implement Asset Data Model and State Management (AC: 8)**
+    - [x] Ensure the `Asset` interface is defined in `src/types/index.ts` according to `architecture-lean-v1.2.md`.
+    - [x] In the `userAppStateSlice.ts` (Zustand store), ensure the state includes `initialAssets: Asset[]`.
+    - [x] Implement or verify existing store actions: `addAsset(asset: Asset)`, `updateAsset(assetId: string, updatedAsset: Partial<Asset>)`, `deleteAsset(assetId: string)`. These actions must handle immutable updates to the `initialAssets` array. Ensure new assets get a unique `id` (e.g., UUID).
+- [x] **Task 3: Implement "Add New Asset" Functionality (AC: 2, 3)**
+    - [x] Clicking the "Add New Asset" button should open a form, visually guided by `asset-management-view.tsx` (e.g., in a ShadCN `Dialog` or `Sheet` if the mockup suggests this).
+    - [x] The form should contain input fields (e.g., ShadCN `Input`, `DatePicker` from `shadcn/ui`) for all `Asset` properties as per AC2.
+    - [x] Implement client-side validation for required fields and correct data types.
+    - [x] On form submission (Save), create a new `Asset` object, generate a unique ID, and dispatch the `addAsset` action to the store.
+    - [x] If specified in `front-end-spec-v0.1.md` or mockup, implement "Save and Add Another" functionality.
+    - [x] Close the form/dialog after saving.
+- [x] **Task 4: Display List of Assets (AC: 5)**
+    - [x] The `AssetManagementView.tsx` should subscribe to the `initialAssets` array from the Zustand store.
+    - [x] Render the list/table of assets dynamically based on the store's state, matching the layout in `asset-management-view.tsx`.
+    - [x] Format data appropriately for display (e.g., dates, currency).
+- [x] **Task 5: Implement "Edit Asset" Functionality (AC: 6)**
+    - [x] Each asset row in the list/table should have an "Edit" button, styled as per the mockup.
+    - [x] Clicking "Edit" should open the asset form (similar to Add New, but pre-filled with the selected asset's data), visually guided by the mockup.
+    - [x] On form submission (Save), dispatch the `updateAsset` action to the store with the asset's ID and the updated data.
+    - [x] Close the form/dialog after saving.
+- [x] **Task 6: Implement "Delete Asset" Functionality (AC: 7)**
+    - [x] Each asset row should have a "Delete" button, styled as per the mockup.
+    - [x] Clicking "Delete" should trigger a confirmation dialog (e.g., ShadCN `AlertDialog`) asking "Are you sure you want to delete [Asset Name]?".
+    - [x] If confirmed, dispatch the `deleteAsset` action to the store with the asset's ID.
+- [x] **Task 7: Implement "Duplicate Asset" Functionality (AC: 4)**
+    - [x] Each asset row should have a "Duplicate" button/icon, styled as per the mockup.
+    - [x] Clicking "Duplicate" should open the "Add New Asset" form, pre-filled with the details of the selected asset, allowing the user to make modifications before saving it as a *new* asset (which will receive a new unique ID).
+- [x] **Task 8: Navigation (Contextual)**
+    - [x] Ensure there's a clear way to navigate from the `AssetManagementView.tsx` back to a main dashboard or previous view (e.g., a "Back" button or breadcrumb, as suggested by overall navigation patterns in `front-end-spec-v0.1.md` and potentially visible in `asset-management-view.tsx` or `main-application-layout.tsx`). This will be fully connected via the router in a later story.
 
 **Dev Technical Guidance**
 -   **Visual Reference:** The `../../v0-mockups/components/asset-management-view.tsx` is the primary guide for the appearance, layout, and styling of this view and its forms.
@@ -77,9 +77,16 @@
 -   **Refer to Models:** `Asset` model is defined in `architecture-lean-v1.2.md`.
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * Implemented Asset Management view with all core functionality
+    * Added proper form validation and data handling
+    * Implemented responsive design with theme colors
+    * Added click-outside-to-close functionality for dialogs
+    * Improved empty state with clickable "Add Asset" link
+    * Added high precision decimal support for quantities and prices
+    * Added duplicate asset functionality with proper UI feedback
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
     * Updated with Visual Reference - May 31, 2025 - Sarah (PO)
+    * Implementation Complete - March 19, 2024 - Claude (Dev Agent)

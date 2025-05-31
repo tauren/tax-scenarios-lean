@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { App } from '../App';
 import { TempContent } from '../components/TempContent';
+import { AssetManagementView } from '../components/views/AssetManagementView';
 
 export const router = createBrowserRouter([
   {
@@ -9,8 +10,12 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <TempContent />
-      }
-    ]
-  }
+        element: <TempContent />,
+      },
+      {
+        path: 'assets',
+        element: <AssetManagementView />,
+      },
+    ],
+  },
 ]); 
