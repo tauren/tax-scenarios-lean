@@ -33,7 +33,7 @@ export function ScenarioEditorView() {
   const { addScenario } = useUserAppState();
   const [scenario, setScenario] = useState<Partial<Scenario>>({
     name: '',
-    projectionPeriod: 30,
+    projectionPeriod: 10,
     residencyStartDate: new Date(),
     location: {
       country: '',
@@ -65,53 +65,96 @@ export function ScenarioEditorView() {
     // If we have a template from the previous view, use it
     const state = location.state as { template?: Scenario; isCustom?: boolean };
     if (state?.template) {
+      // Deep copy the template scenario
+      const templateCopy = JSON.parse(JSON.stringify(state.template)) as Scenario;
       setScenario({
-        ...state.template,
-        name: `Baseline: ${state.template.location.country}`,
+        ...templateCopy,
+        id: uuidv4(), // Ensure new ID
+        name: `Baseline: ${templateCopy.location.country}`,
+        projectionPeriod: templateCopy.projectionPeriod || 10,
+        residencyStartDate: templateCopy.residencyStartDate || new Date(),
+        location: {
+          country: templateCopy.location?.country || '',
+          state: templateCopy.location?.state || '',
+          city: templateCopy.location?.city || '',
+        },
+        tax: {
+          capitalGains: {
+            shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate || 0,
+            longTermRate: templateCopy.tax?.capitalGains?.longTermRate || 0,
+          },
+        },
+        incomeSources: templateCopy.incomeSources || [],
+        annualExpenses: templateCopy.annualExpenses || [],
+        oneTimeExpenses: templateCopy.oneTimeExpenses || [],
       });
     } else if (state?.isCustom) {
       setScenario({
         ...scenario,
+        id: uuidv4(), // Ensure new ID
         name: 'Custom Baseline',
       });
     }
   }, [location.state]);
 
+  const validateField = (field: keyof ValidationErrors, value: any): string | undefined => {
+    switch (field) {
+      case 'name':
+        return !value?.trim() ? 'Please enter a name for this scenario' : undefined;
+      case 'country':
+        return !value?.trim() ? 'Please select a country for this scenario' : undefined;
+      case 'projectionPeriod':
+        return !value || value <= 0 ? 'Projection period must be at least 1 year' : undefined;
+      case 'residencyStartDate':
+        return !value ? 'Please select a residency start date' : undefined;
+      case 'shortTermRate':
+        return value === undefined || value < 0 || value > 100 
+          ? 'Short term rate must be between 0% and 100%' 
+          : undefined;
+      case 'longTermRate':
+        return value === undefined || value < 0 || value > 100 
+          ? 'Long term rate must be between 0% and 100%' 
+          : undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const handleFieldBlur = (field: keyof ValidationErrors, value: any) => {
+    const error = validateField(field, value);
+    setErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  };
+
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
 
     if (!scenario.name?.trim()) {
-      newErrors.name = 'Scenario name is required';
+      newErrors.name = 'Please enter a name for this scenario';
     }
 
     if (!scenario.location?.country?.trim()) {
-      newErrors.country = 'Country is required';
+      newErrors.country = 'Please select a country for this scenario';
     }
 
     if (!scenario.projectionPeriod || scenario.projectionPeriod <= 0) {
-      newErrors.projectionPeriod = 'Projection period must be greater than 0';
+      newErrors.projectionPeriod = 'Projection period must be at least 1 year';
     }
 
     if (!scenario.residencyStartDate) {
-      newErrors.residencyStartDate = 'Residency start date is required';
+      newErrors.residencyStartDate = 'Please select a residency start date';
     }
 
     const shortTermRate = scenario.tax?.capitalGains?.shortTermRate;
     if (shortTermRate === undefined || shortTermRate < 0 || shortTermRate > 100) {
-      newErrors.shortTermRate = 'Short term rate must be between 0 and 100';
+      newErrors.shortTermRate = 'Short term rate must be between 0% and 100%';
     }
 
     const longTermRate = scenario.tax?.capitalGains?.longTermRate;
     if (longTermRate === undefined || longTermRate < 0 || longTermRate > 100) {
-      newErrors.longTermRate = 'Long term rate must be between 0 and 100';
-    }
-
-    if (!scenario.incomeSources?.length) {
-      newErrors.incomeSources = 'At least one income source is required';
-    }
-
-    if (!scenario.annualExpenses?.length) {
-      newErrors.annualExpenses = 'At least one annual expense is required';
+      newErrors.longTermRate = 'Long term rate must be between 0% and 100%';
     }
 
     setErrors(newErrors);
@@ -123,7 +166,29 @@ export function ScenarioEditorView() {
       return;
     }
 
-    addScenario(scenario as Scenario, { isBaseline: true });
+    // Ensure all required fields are present and properly typed
+    const scenarioToSave: Scenario = {
+      id: scenario.id || uuidv4(),
+      name: scenario.name || '',
+      projectionPeriod: scenario.projectionPeriod || 30,
+      residencyStartDate: scenario.residencyStartDate || new Date(),
+      location: {
+        country: scenario.location?.country || '',
+        state: scenario.location?.state || '',
+        city: scenario.location?.city || '',
+      },
+      tax: {
+        capitalGains: {
+          shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
+          longTermRate: scenario.tax?.capitalGains?.longTermRate || 0,
+        },
+      },
+      incomeSources: scenario.incomeSources || [],
+      annualExpenses: scenario.annualExpenses || [],
+      oneTimeExpenses: scenario.oneTimeExpenses || [],
+    };
+
+    addScenario(scenarioToSave, { isBaseline: true });
     navigate('/'); // Navigate back to main view
   };
 
@@ -230,40 +295,42 @@ export function ScenarioEditorView() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Section title="Basic Information">
-          <div className="grid grid-cols-2 gap-4">
-            <FormField id="scenario-name" label="Scenario Name" error={errors.name}>
-              <Input
-                id="scenario-name"
-                value={scenario.name}
-                onChange={(e) => setScenario({ ...scenario, name: e.target.value })}
-                placeholder="Enter scenario name"
-                className={errors.name ? 'border-destructive' : ''}
-              />
-            </FormField>
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Section title="Scenario Overview">
+          <FormField id="scenario-name" label="Scenario Name" error={errors.name}>
+            <Input
+              id="scenario-name"
+              value={scenario.name || ''}
+              onChange={(e) => setScenario({ ...scenario, name: e.target.value })}
+              onBlur={() => handleFieldBlur('name', scenario.name)}
+              placeholder="Enter a descriptive name for this scenario"
+              className={`text-lg ${errors.name ? 'border-destructive' : ''}`}
+            />
+          </FormField>
+        </Section>
 
+        <Section title="Location Details">
+          <div className="grid grid-cols-2 gap-4">
             <FormField id="country" label="Country" error={errors.country}>
               <Input
                 id="country"
-                value={scenario.location?.country}
+                value={scenario.location?.country || ''}
                 onChange={(e) =>
                   setScenario({
                     ...scenario,
                     location: { ...scenario.location!, country: e.target.value },
                   })
                 }
+                onBlur={() => handleFieldBlur('country', scenario.location?.country)}
                 placeholder="Enter country"
                 className={errors.country ? 'border-destructive' : ''}
               />
             </FormField>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <FormField id="state" label="State/Province (Optional)">
               <Input
                 id="state"
-                value={scenario.location?.state}
+                value={scenario.location?.state || ''}
                 onChange={(e) =>
                   setScenario({
                     ...scenario,
@@ -277,7 +344,7 @@ export function ScenarioEditorView() {
             <FormField id="city" label="City (Optional)">
               <Input
                 id="city"
-                value={scenario.location?.city}
+                value={scenario.location?.city || ''}
                 onChange={(e) =>
                   setScenario({
                     ...scenario,
@@ -288,7 +355,9 @@ export function ScenarioEditorView() {
               />
             </FormField>
           </div>
+        </Section>
 
+        <Section title="Projection Settings">
           <div className="grid grid-cols-2 gap-4">
             <FormField id="projection-period" label="Projection Period (Years)" error={errors.projectionPeriod}>
               <Input
@@ -299,6 +368,7 @@ export function ScenarioEditorView() {
                 onChange={(e) =>
                   setScenario({ ...scenario, projectionPeriod: e.target.value ? Number(e.target.value) : 0 })
                 }
+                onBlur={() => handleFieldBlur('projectionPeriod', scenario.projectionPeriod)}
                 className={errors.projectionPeriod ? 'border-destructive' : ''}
               />
             </FormField>
@@ -311,6 +381,7 @@ export function ScenarioEditorView() {
                 onChange={(e) =>
                   setScenario({ ...scenario, residencyStartDate: new Date(e.target.value) })
                 }
+                onBlur={() => handleFieldBlur('residencyStartDate', scenario.residencyStartDate)}
                 className={errors.residencyStartDate ? 'border-destructive' : ''}
               />
             </FormField>
@@ -339,6 +410,7 @@ export function ScenarioEditorView() {
                     },
                   })
                 }
+                onBlur={() => handleFieldBlur('shortTermRate', scenario.tax?.capitalGains?.shortTermRate)}
                 placeholder="Enter rate"
                 className={errors.shortTermRate ? 'border-destructive' : ''}
               />
@@ -364,6 +436,7 @@ export function ScenarioEditorView() {
                     },
                   })
                 }
+                onBlur={() => handleFieldBlur('longTermRate', scenario.tax?.capitalGains?.longTermRate)}
                 placeholder="Enter rate"
                 className={errors.longTermRate ? 'border-destructive' : ''}
               />
@@ -394,7 +467,7 @@ export function ScenarioEditorView() {
 
           <CardList>
             {scenario.incomeSources?.map((source) => (
-              <Card key={source.id}>
+              <Card key={source.id} className='py-0'>
                 <CardContent className="p-3">
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
@@ -442,7 +515,7 @@ export function ScenarioEditorView() {
 
           <CardList>
             {scenario.annualExpenses?.map((expense) => (
-              <Card key={expense.id}>
+              <Card key={expense.id} className='py-0'>
                 <CardContent className="p-3">
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
@@ -486,7 +559,7 @@ export function ScenarioEditorView() {
 
           <CardList>
             {scenario.oneTimeExpenses?.map((expense) => (
-              <Card key={expense.id}>
+              <Card key={expense.id} className='py-0'>
                 <CardContent className="p-3">
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
@@ -506,6 +579,20 @@ export function ScenarioEditorView() {
             ))}
           </CardList>
         </Section>
+      </div>
+
+      <div className="max-w-4xl mx-auto mt-8 flex justify-end space-x-4">
+        <Button
+          variant="outline"
+          onClick={() => navigate('/')}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSave}
+        >
+          Save Scenario
+        </Button>
       </div>
 
       <IncomeSourceDialog

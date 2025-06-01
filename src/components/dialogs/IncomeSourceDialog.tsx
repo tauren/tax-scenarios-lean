@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { v4 as uuidv4 } from 'uuid';
@@ -99,6 +100,11 @@ export function IncomeSourceDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{incomeSource ? 'Edit Income Source' : 'Add Income Source'}</DialogTitle>
+          <DialogDescription>
+            {incomeSource 
+              ? 'Update the details of this income source.'
+              : 'Add a new income source to your scenario.'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

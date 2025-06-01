@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -119,17 +120,24 @@ export function ExpenseDialog({
           <DialogTitle>
             {expense ? 'Edit' : 'Add'} {type === 'annual' ? 'Annual' : 'One-Time'} Expense
           </DialogTitle>
+          <DialogDescription>
+            {expense 
+              ? `Update the details of this ${type === 'annual' ? 'annual' : 'one-time'} expense.`
+              : `Add a new ${type === 'annual' ? 'annual' : 'one-time'} expense to your scenario.`}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Expense Name</Label>
+            <Label htmlFor="expense-name">Expense Name</Label>
             <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
               <PopoverTrigger asChild>
                 <Button
+                  id="expense-name"
                   variant="outline"
                   role="combobox"
                   aria-expanded={openCombobox}
+                  aria-controls="expense-categories"
                   className="w-full justify-between"
                 >
                   {formData.name || "Select or enter expense category..."}
@@ -137,7 +145,7 @@ export function ExpenseDialog({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
-                <Command>
+                <Command id="expense-categories">
                   <CommandInput 
                     placeholder="Search or enter expense category..."
                     value={formData.name || ''}
@@ -175,9 +183,9 @@ export function ExpenseDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="expense-amount">Amount</Label>
             <Input
-              id="amount"
+              id="expense-amount"
               type="number"
               min="0"
               step="0.01"
@@ -195,9 +203,9 @@ export function ExpenseDialog({
 
           {type === 'oneTime' && (
             <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
+              <Label htmlFor="expense-year">Year</Label>
               <Input
-                id="year"
+                id="expense-year"
                 type="number"
                 min={new Date().getFullYear()}
                 value={(formData as OneTimeExpense).year}
