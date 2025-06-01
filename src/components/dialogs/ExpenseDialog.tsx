@@ -4,6 +4,7 @@ import { EXPENSE_CATEGORIES } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/shared/form-field';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,6 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Command,
   CommandEmpty,
@@ -37,6 +37,12 @@ interface ExpenseDialogProps {
   onSave: (expense: AnnualExpense | OneTimeExpense) => void;
 }
 
+interface ValidationErrors {
+  name?: string;
+  amount?: string;
+  year?: string;
+}
+
 export function ExpenseDialog({
   open,
   onOpenChange,
@@ -49,7 +55,7 @@ export function ExpenseDialog({
     amount: 0,
     ...(type === 'oneTime' && { year: new Date().getFullYear() }),
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [openCombobox, setOpenCombobox] = useState(false);
 
   useEffect(() => {
@@ -67,28 +73,58 @@ export function ExpenseDialog({
         ...(type === 'oneTime' && { year: new Date().getFullYear() }),
       });
     }
+    setErrors({});
   }, [expense, type]);
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name?.trim()) {
-      newErrors.name = 'Name is required';
+  // Add validation on initial load and when form data changes
+  useEffect(() => {
+    if (open) {
+      validateForm();
     }
+  }, [open, formData]);
 
-    if (!formData.amount || formData.amount <= 0) {
-      newErrors.amount = 'Amount must be greater than 0';
+  const validateField = (field: keyof ValidationErrors, value: any): string | undefined => {
+    switch (field) {
+      case 'name':
+        return !value?.trim() ? 'Name is required' : undefined;
+      case 'amount':
+        return !value || value <= 0 ? 'Amount must be greater than 0' : undefined;
+      case 'year':
+        if (type !== 'oneTime') return undefined;
+        return !value || value < new Date().getFullYear() ? 'Year must be current year or later' : undefined;
+      default:
+        return undefined;
     }
+  };
 
-    if (type === 'oneTime') {
-      const oneTimeExpense = formData as OneTimeExpense;
-      if (!oneTimeExpense.year || oneTimeExpense.year < new Date().getFullYear()) {
-        newErrors.year = 'Year must be current year or later';
+  const handleFieldBlur = (field: keyof ValidationErrors, value: any) => {
+    const error = validateField(field, value);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[field] = error;
+      } else {
+        delete newErrors[field];
       }
-    }
+      return newErrors;
+    });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+    let isValid = true;
+
+    // Validate each field
+    Object.keys(formData).forEach((field) => {
+      const error = validateField(field as keyof ValidationErrors, formData[field as keyof typeof formData]);
+      if (error) {
+        newErrors[field as keyof ValidationErrors] = error;
+        isValid = false;
+      }
+    });
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isValid;
   };
 
   const handleSave = () => {
@@ -113,6 +149,8 @@ export function ExpenseDialog({
     onOpenChange(false);
   };
 
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -127,108 +165,149 @@ export function ExpenseDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="expense-name">Expense Name</Label>
-            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-              <PopoverTrigger asChild>
-                <Button
-                  id="expense-name"
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openCombobox}
-                  aria-controls="expense-categories"
-                  className="w-full justify-between"
-                >
-                  {formData.name || "Select or enter expense category..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command id="expense-categories">
-                  <CommandInput 
-                    placeholder="Search or enter expense category..."
-                    value={formData.name || ''}
-                    onValueChange={(value: string) => setFormData({ ...formData, name: value })}
-                  />
-                  <CommandEmpty>No category found.</CommandEmpty>
-                  <CommandGroup>
-                    {EXPENSE_CATEGORIES.map((category) => (
-                      <CommandItem
-                        key={category}
-                        value={category}
-                        onSelect={(value: string) => {
-                          setFormData({ ...formData, name: value });
-                          setOpenCombobox(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            formData.name === category ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {category}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {errors.name && (
-              <Alert variant="destructive" className="py-2">
-                <AlertDescription>{errors.name}</AlertDescription>
-              </Alert>
-            )}
-          </div>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (!hasErrors) {
+            handleSave();
+          }
+        }}>
+          <div className="space-y-4 py-4">
+            <FormField
+              id="expense-name"
+              label="Expense Name"
+              error={errors.name}
+            >
+              <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="expense-name"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCombobox}
+                    aria-controls="expense-categories"
+                    className={cn(
+                      "w-full justify-between",
+                      errors.name && "border-destructive"
+                    )}
+                    type="button"
+                  >
+                    {formData.name || "Select or enter expense category..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command id="expense-categories">
+                    <CommandInput 
+                      placeholder="Search or enter expense category..."
+                      value={formData.name || ''}
+                      onValueChange={(value: string) => {
+                        setFormData({ ...formData, name: value });
+                        handleFieldBlur('name', value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (openCombobox) {
+                            setOpenCombobox(false);
+                          } else {
+                            if (!hasErrors) {
+                              handleSave();
+                            }
+                          }
+                        }
+                      }}
+                    />
+                    <CommandEmpty>No category found.</CommandEmpty>
+                    <CommandGroup>
+                      {EXPENSE_CATEGORIES.map((category) => (
+                        <CommandItem
+                          key={category}
+                          value={category}
+                          onSelect={(value: string) => {
+                            setFormData({ ...formData, name: value });
+                            handleFieldBlur('name', value);
+                            setOpenCombobox(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.name === category ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {category}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="expense-amount">Amount</Label>
-            <Input
+            <FormField
               id="expense-amount"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value ? Number(e.target.value) : 0 })}
-              placeholder="0.00"
-              className={errors.amount ? 'border-destructive' : ''}
-            />
-            {errors.amount && (
-              <Alert variant="destructive" className="py-2">
-                <AlertDescription>{errors.amount}</AlertDescription>
-              </Alert>
+              label="Amount"
+              error={errors.amount}
+            >
+              <Input
+                id="expense-amount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.amount || ''}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value ? Number(e.target.value) : 0 })}
+                onBlur={() => handleFieldBlur('amount', formData.amount)}
+                placeholder="0.00"
+                className={errors.amount ? 'border-destructive' : ''}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!hasErrors) {
+                      handleSave();
+                    }
+                  }
+                }}
+              />
+            </FormField>
+
+            {type === 'oneTime' && (
+              <FormField
+                id="expense-year"
+                label="Year"
+                error={errors.year}
+              >
+                <Input
+                  id="expense-year"
+                  type="number"
+                  min={new Date().getFullYear()}
+                  value={(formData as OneTimeExpense).year}
+                  onChange={(e) =>
+                    setFormData({ ...formData, year: Number(e.target.value) })
+                  }
+                  onBlur={() => handleFieldBlur('year', (formData as OneTimeExpense).year)}
+                  className={errors.year ? 'border-destructive' : ''}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (!hasErrors) {
+                        handleSave();
+                      }
+                    }
+                  }}
+                />
+              </FormField>
             )}
           </div>
 
-          {type === 'oneTime' && (
-            <div className="space-y-2">
-              <Label htmlFor="expense-year">Year</Label>
-              <Input
-                id="expense-year"
-                type="number"
-                min={new Date().getFullYear()}
-                value={(formData as OneTimeExpense).year}
-                onChange={(e) =>
-                  setFormData({ ...formData, year: Number(e.target.value) })
-                }
-                className={errors.year ? 'border-destructive' : ''}
-              />
-              {errors.year && (
-                <Alert variant="destructive" className="py-2">
-                  <AlertDescription>{errors.year}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={hasErrors}>
+              Save
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

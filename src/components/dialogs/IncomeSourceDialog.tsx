@@ -3,6 +3,7 @@ import type { ScenarioIncomeSource } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/shared/form-field';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { v4 as uuidv4 } from 'uuid';
 
 interface IncomeSourceDialogProps {
@@ -19,6 +19,13 @@ interface IncomeSourceDialogProps {
   onOpenChange: (open: boolean) => void;
   incomeSource?: ScenarioIncomeSource;
   onSave: (incomeSource: ScenarioIncomeSource) => void;
+}
+
+interface ValidationErrors {
+  name?: string;
+  annualAmount?: string;
+  startYear?: string;
+  endYear?: string;
 }
 
 export function IncomeSourceDialog({
@@ -34,7 +41,7 @@ export function IncomeSourceDialog({
     startYear: new Date().getFullYear(),
     endYear: undefined,
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     if (incomeSource) {
@@ -52,29 +59,60 @@ export function IncomeSourceDialog({
         endYear: undefined,
       });
     }
+    setErrors({});
   }, [incomeSource, open]);
 
+  // Add validation on initial load and when form data changes
+  useEffect(() => {
+    if (open) {
+      validateForm();
+    }
+  }, [open, formData]);
+
+  const validateField = (field: keyof ValidationErrors, value: any): string | undefined => {
+    switch (field) {
+      case 'name':
+        return !value?.trim() ? 'Name is required' : undefined;
+      case 'annualAmount':
+        return !value || value <= 0 ? 'Annual amount must be greater than 0' : undefined;
+      case 'startYear':
+        return !value || value < new Date().getFullYear() ? 'Start year must be current year or later' : undefined;
+      case 'endYear':
+        if (!value) return undefined;
+        return value < formData.startYear! ? 'End year must be after start year' : undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const handleFieldBlur = (field: keyof ValidationErrors, value: any) => {
+    const error = validateField(field, value);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[field] = error;
+      } else {
+        delete newErrors[field];
+      }
+      return newErrors;
+    });
+  };
+
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: ValidationErrors = {};
+    let isValid = true;
 
-    if (!formData.name?.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.annualAmount || formData.annualAmount <= 0) {
-      newErrors.annualAmount = 'Annual amount must be greater than 0';
-    }
-
-    if (!formData.startYear) {
-      newErrors.startYear = 'Start year is required';
-    }
-
-    if (formData.endYear && formData.startYear && formData.endYear < formData.startYear) {
-      newErrors.endYear = 'End year must be after start year';
-    }
+    // Validate each field
+    Object.keys(formData).forEach((field) => {
+      const error = validateField(field as keyof ValidationErrors, formData[field as keyof typeof formData]);
+      if (error) {
+        newErrors[field as keyof ValidationErrors] = error;
+        isValid = false;
+      }
+    });
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isValid;
   };
 
   const handleSave = () => {
@@ -95,6 +133,8 @@ export function IncomeSourceDialog({
     onOpenChange(false);
   };
 
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -107,97 +147,104 @@ export function IncomeSourceDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Source Name</Label>
-            <Input
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (!hasErrors) {
+            handleSave();
+          }
+        }}>
+          <div className="space-y-4 py-4">
+            <FormField
               id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Salary, Rental"
-              className={errors.name ? 'border-destructive' : ''}
-            />
-            {errors.name && (
-              <Alert variant="destructive" className="py-2">
-                <AlertDescription>{errors.name}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as ScenarioIncomeSource['type'] })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2"
+              label="Source Name"
+              error={errors.name}
             >
-              <option value="EMPLOYMENT">Employment</option>
-              <option value="RENTAL_PROPERTY">Rental Property</option>
-              <option value="OTHER">Other</option>
-            </select>
-          </div>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onBlur={() => handleFieldBlur('name', formData.name)}
+                placeholder="e.g., Salary, Rental"
+                className={errors.name ? 'border-destructive' : ''}
+              />
+            </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="annualAmount">Annual Amount</Label>
-            <Input
+            <FormField
+              id="type"
+              label="Type"
+            >
+              <select
+                id="type"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as ScenarioIncomeSource['type'] })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2"
+              >
+                <option value="EMPLOYMENT">Employment</option>
+                <option value="RENTAL_PROPERTY">Rental Property</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </FormField>
+
+            <FormField
               id="annualAmount"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.annualAmount || ''}
-              onChange={(e) => setFormData({ ...formData, annualAmount: e.target.value ? Number(e.target.value) : 0 })}
-              placeholder="0.00"
-              className={errors.annualAmount ? 'border-destructive' : ''}
-            />
-            {errors.annualAmount && (
-              <Alert variant="destructive" className="py-2">
-                <AlertDescription>{errors.annualAmount}</AlertDescription>
-              </Alert>
-            )}
-          </div>
+              label="Annual Amount"
+              error={errors.annualAmount}
+            >
+              <Input
+                id="annualAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.annualAmount || ''}
+                onChange={(e) => setFormData({ ...formData, annualAmount: e.target.value ? Number(e.target.value) : 0 })}
+                onBlur={() => handleFieldBlur('annualAmount', formData.annualAmount)}
+                placeholder="0.00"
+                className={errors.annualAmount ? 'border-destructive' : ''}
+              />
+            </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="startYear">Start Year</Label>
-            <Input
+            <FormField
               id="startYear"
-              type="number"
-              min={new Date().getFullYear()}
-              value={formData.startYear}
-              onChange={(e) => setFormData({ ...formData, startYear: Number(e.target.value) })}
-              className={errors.startYear ? 'border-destructive' : ''}
-            />
-            {errors.startYear && (
-              <Alert variant="destructive" className="py-2">
-                <AlertDescription>{errors.startYear}</AlertDescription>
-              </Alert>
-            )}
-          </div>
+              label="Start Year"
+              error={errors.startYear}
+            >
+              <Input
+                id="startYear"
+                type="number"
+                min={new Date().getFullYear()}
+                value={formData.startYear}
+                onChange={(e) => setFormData({ ...formData, startYear: Number(e.target.value) })}
+                onBlur={() => handleFieldBlur('startYear', formData.startYear)}
+                className={errors.startYear ? 'border-destructive' : ''}
+              />
+            </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="endYear">End Year (Optional)</Label>
-            <Input
+            <FormField
               id="endYear"
-              type="number"
-              min={formData.startYear || new Date().getFullYear()}
-              value={formData.endYear}
-              onChange={(e) => setFormData({ ...formData, endYear: Number(e.target.value) })}
-              className={errors.endYear ? 'border-destructive' : ''}
-            />
-            {errors.endYear && (
-              <Alert variant="destructive" className="py-2">
-                <AlertDescription>{errors.endYear}</AlertDescription>
-              </Alert>
-            )}
+              label="End Year (Optional)"
+              error={errors.endYear}
+            >
+              <Input
+                id="endYear"
+                type="number"
+                min={formData.startYear || new Date().getFullYear()}
+                value={formData.endYear}
+                onChange={(e) => setFormData({ ...formData, endYear: Number(e.target.value) })}
+                onBlur={() => handleFieldBlur('endYear', formData.endYear)}
+                className={errors.endYear ? 'border-destructive' : ''}
+              />
+            </FormField>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={hasErrors}>
+              Save
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
