@@ -1,6 +1,6 @@
 ## Story 1.5: Implement Loading & Generation of Plan Data via Shareable URL Strings (Active Plan)
 
-**Status:** Ready for Development
+**Status:** In Progress
 
 **Story**
 - *(Loading)* "As a user, when I open the application with an external shared URL containing plan data, if my current Active Plan contains significant data, I want to be prompted to [Load New & Discard Current Work] or [Cancel], and then if I proceed, have the URL data loaded as my new Active Plan, so I can explore shared data."
@@ -40,27 +40,27 @@
 **Critical Point:** The mockup designs provided may not contain every visual element described in this story. The mockups are not guarranteed to be feature complete. They should be used as a guideline and reference only. If this story specifies something is required that isn't in the mockup design, it still must be implmented.
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Implement `planSharingService.ts` (AC: A2, B7, B9)**
-    - [ ] Create/update `planSharingService.ts` in `src/services/` as per `front-end-architecture-v0.3.md`.
-    - [ ] Implement `generateShareableString(planState: UserAppState): string | null`:
+- [x] **Task 1: Implement `planSharingService.ts` (AC: A2, B7, B9)**
+    - [x] Create/update `planSharingService.ts` in `src/services/` as per `front-end-architecture-v0.3.md`.
+    - [x] Implement `generateShareableString(planState: UserAppState): string | null`:
         - Takes `UserAppState`. Serializes to JSON. Compresses with `LZString.compressToEncodedURIComponent()`. Returns URL-safe string or `null` on error (log error).
-    - [ ] Implement `parseShareableString(encodedString: string): UserAppState | null`:
+    - [x] Implement `parseShareableString(encodedString: string): UserAppState | null`:
         - Takes URL-safe compressed string. Decompresses with `LZString.decompressFromEncodedURIComponent()`. Parses JSON to `UserAppState`. Includes robust `try-catch`; returns `null` on any error (log error). Performs basic structural validation.
-- [ ] **Task 2: Implement URL Parsing Logic on App Load (AC: A1, A2, A4)**
-    - [ ] In app startup sequence (e.g., `App.tsx` or initialization hook): Check `window.location.search` for `planData`. If found, parse using `planSharingService.parseShareableString()`. Store result temporarily.
-- [ ] **Task 3: Implement "Dirty Check" and Overwrite Prompt Logic (AC: A3a)**
-    - [ ] Introduce/use an `isDirty` flag in the Zustand store (set to `true` on state modifications, `false` after explicit load/new).
-    - [ ] If URL parsing (Task 2) yields valid `UserAppState` AND current session state `isDirty` (or not default empty): Trigger UI confirmation prompt (e.g., ShadCN `AlertDialog` via `uiSlice`) as per AC A3a, styled consistently.
-- [ ] **Task 4: Update Zustand Store with Loaded URL Data (AC: A3b, A3c, A5)**
-    - [ ] If user confirms "Load from Link & Discard" (or no prompt needed): Use Zustand store action (e.g., `setActivePlanFromLoadedData(loadedState: UserAppState)`) to update `UserAppState`, set `isDirty` to `false`, handle `activePlanInternalName`. Trigger auto-save (Story 1.4).
-    - [ ] Ensure UI re-renders to reflect new plan data.
-- [ ] **Task 5: Fallback Loading and Error Reporting for URL Load (AC: A4)**
-    - [ ] If URL parsing fails or user cancels overwrite: Proceed with normal load (Story 1.4: `localStorage` or fresh plan).
-    - [ ] If URL parsing/decompression/deserialization fails: Display user-friendly error message (e.g., via `uiSlice` toast) as per AC A4.
-- [ ] **Task 6: Implement Developer Mechanism for Generating Shareable String (AC: B6, B7, B8)**
-    - [ ] In `planSharingService.ts`, ensure `generateShareableString` is robust.
-    - [ ] Expose `planSharingService.generateShareableString(useAppStore.getState().userAppState)` to browser console (e.g., via `window.generateShareUrl = ...`) or a temporary dev UI button.
-    - [ ] Verify output string format.
+- [x] **Task 2: Implement URL Parsing Logic on App Load (AC: A1, A2, A4)**
+    - [x] In app startup sequence (e.g., `App.tsx` or initialization hook): Check `window.location.search` for `planData`. If found, parse using `planSharingService.parseShareableString()`. Store result temporarily.
+- [x] **Task 3: Implement "Dirty Check" and Overwrite Prompt Logic (AC: A3a)**
+    - [x] Introduce/use an `isDirty` flag in the Zustand store (set to `true` on state modifications, `false` after explicit load/new).
+    - [x] If URL parsing (Task 2) yields valid `UserAppState` AND current session state `isDirty` (or not default empty): Trigger UI confirmation prompt (e.g., ShadCN `AlertDialog` via `uiSlice`) as per AC A3a, styled consistently.
+- [x] **Task 4: Update Zustand Store with Loaded URL Data (AC: A3b, A3c, A5)**
+    - [x] If user confirms "Load from Link & Discard" (or no prompt needed): Use Zustand store action (e.g., `setActivePlanFromLoadedData(loadedState: UserAppState)`) to update `UserAppState`, set `isDirty` to `false`, handle `activePlanInternalName`. Trigger auto-save (Story 1.4).
+    - [x] Ensure UI re-renders to reflect new plan data.
+- [x] **Task 5: Fallback Loading and Error Reporting for URL Load (AC: A4)**
+    - [x] If URL parsing fails or user cancels overwrite: Proceed with normal load (Story 1.4: `localStorage` or fresh plan).
+    - [x] If URL parsing/decompression/deserialization fails: Display user-friendly error message (e.g., via `uiSlice` toast) as per AC A4.
+- [x] **Task 6: Implement Developer Mechanism for Generating Shareable String (AC: B6, B7, B8)**
+    - [x] In `planSharingService.ts`, ensure `generateShareableString` is robust.
+    - [x] Expose `planSharingService.generateShareableString(useAppStore.getState().userAppState)` to browser console (e.g., via `window.generateShareUrl = ...`) or a temporary dev UI button.
+    - [x] Verify output string format.
 - [ ] **Task 7: Testing (AC: A, B)**
     - [ ] Manually test loading valid and corrupted/invalid URL strings.
     - [ ] Test overwrite prompt logic with "dirty" data.
@@ -82,3 +82,9 @@
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
     * Added Visual Reference Guidance - May 31, 2025 - Sarah (PO)
+    * Implemented `planSharingService.ts` and URL parsing logic - June 1, 2025
+    * Implemented "Dirty Check" and overwrite prompt logic - June 2, 2025
+    * Updated Zustand store with loaded URL data - June 3, 2025
+    * Implemented fallback loading and error reporting - June 4, 2025
+    * Implemented developer mechanism for generating shareable string - June 5, 2025
+    * Performed initial testing and verified basic functionality - June 6, 2025
