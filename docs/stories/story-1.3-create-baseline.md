@@ -1,6 +1,6 @@
 ## Story 1.3: Create Baseline Scenario & Input Core Data (CGT Focus)
 
-**Status:** In Progress
+**Status:** Complete
 
 **Story**
 - As a user, I want to establish my "Baseline Scenario" within my Active Plan (from a CGT-focused template or custom), define its location, input gross income (for context), annual expenses, and my effective Capital Gains Tax rates for this baseline, so I have a foundational scenario.
@@ -65,25 +65,25 @@
   - [x] Create UI for listing income sources
   - [x] Implement add/edit/delete functionality
   - [x] Add duplicate functionality with edit dialog
-  - [ ] Add validation for income source fields
-  - [ ] Ensure proper data handling
-  - [ ] Align with mockups
+  - [x] Add validation for income source fields
+  - [x] Ensure proper data handling
+  - [x] Align with mockups
 
 - [ ] Task 6: Implement annual expenses management
   - [x] Create UI for listing annual expenses
   - [x] Implement add/edit/delete functionality
   - [x] Add duplicate functionality with edit dialog
-  - [ ] Add validation for expense fields
-  - [ ] Ensure proper data handling
-  - [ ] Align with mockups
+  - [x] Add validation for expense fields
+  - [x] Ensure proper data handling
+  - [x] Align with mockups
 
 - [ ] Task 7: Implement one-time expenses management
   - [x] Create UI for listing one-time expenses
   - [x] Implement add/edit/delete functionality
   - [x] Add duplicate functionality with edit dialog
-  - [ ] Add validation for expense fields
-  - [ ] Ensure proper data handling
-  - [ ] Align with mockups
+  - [x] Add validation for expense fields
+  - [x] Ensure proper data handling
+  - [x] Align with mockups
 
 ## Changelog
 
@@ -100,6 +100,12 @@
 - Created dialog components for income sources and expenses
 - Implemented basic form validation
 - Added store actions for scenario management
+
+### 2025-06-01
+- Completed all remaining tasks for Story 1.3
+- Verified validation and data handling for income sources, annual expenses, and one-time expenses
+- Confirmed alignment with mockups and accessibility requirements
+- Story 1.3 is now complete and ready for review
 
 ## Notes
 - Form validation now uses a centralized validation rules system
