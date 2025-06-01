@@ -239,16 +239,14 @@ export function ScenarioEditorView() {
   }, [scenario]);
 
   const handleSave = () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     // Ensure all required fields are present and properly typed
     const scenarioToSave: Scenario = {
       id: scenario.id || uuidv4(),
       name: scenario.name || '',
       projectionPeriod: scenario.projectionPeriod || 30,
-      residencyStartDate: scenario.residencyStartDate instanceof Date ? scenario.residencyStartDate : new Date(),
+      residencyStartDate: (scenario.residencyStartDate || new Date()) as Date,
       location: {
         country: scenario.location?.country || '',
         state: scenario.location?.state || '',
@@ -267,7 +265,7 @@ export function ScenarioEditorView() {
     };
 
     addScenario(scenarioToSave, { isBaseline: true });
-    navigate('/'); // Navigate back to main view
+    navigate('/scenarios');
   };
 
   const handleIncomeSourceSave = (incomeSource: IncomeSource) => {

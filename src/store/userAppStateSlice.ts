@@ -8,11 +8,18 @@ let saveTimeout: NodeJS.Timeout;
 const debouncedSave = (state: UserAppStateSlice) => {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
-    saveActivePlanToStorage({
+    console.log('Attempting to save state:', state);
+    const success = saveActivePlanToStorage({
       activePlanInternalName: state.activePlanInternalName,
       initialAssets: state.initialAssets,
       scenarios: state.scenarios,
     });
+    if (!success) {
+      console.error('Failed to save state to localStorage');
+      // TODO: Add UI notification when uiSlice is available
+    } else {
+      console.log('Successfully saved state to localStorage');
+    }
   }, 1000);
 };
 
@@ -77,6 +84,12 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
         ...state,
         scenarios: [...state.scenarios, newScenario],
       };
+
+      // Set the active plan name if it's not set
+      if (!state.activePlanInternalName) {
+        newState.activePlanInternalName = scenario.name;
+      }
+
       debouncedSave(newState);
       return newState;
     });

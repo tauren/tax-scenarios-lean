@@ -9,13 +9,32 @@ const STORAGE_KEY = 'tax-scenarios-active-plan';
  * @returns true if successful, false otherwise
  */
 export function saveActivePlanToStorage(state: UserAppState): boolean {
-  if (!state || !state.activePlanInternalName) {
+  console.log('saveActivePlanToStorage called with state:', state);
+  
+  if (!state) {
+    console.error('saveActivePlanToStorage: state is null or undefined');
     return false;
   }
-  const compressed = compressObject(state);
-  if (!compressed) return false;
-  localStorage.setItem(STORAGE_KEY, compressed);
-  return true;
+  
+  if (!state.activePlanInternalName) {
+    console.error('saveActivePlanToStorage: activePlanInternalName is missing');
+    return false;
+  }
+
+  try {
+    const compressed = compressObject(state);
+    if (!compressed) {
+      console.error('saveActivePlanToStorage: compression failed');
+      return false;
+    }
+    
+    console.log('Saving compressed data to localStorage:', compressed);
+    localStorage.setItem(STORAGE_KEY, compressed);
+    return true;
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+    return false;
+  }
 }
 
 /**
