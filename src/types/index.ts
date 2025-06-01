@@ -12,6 +12,7 @@ export interface UserAppStateSlice extends UserAppState {
   addScenario: (scenario: Scenario, options?: { isBaseline?: boolean }) => void;
   updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => void;
   deleteScenario: (scenarioId: string) => void;
+  setAppState: (newState: UserAppState) => void;
 }
 
 export interface Asset {

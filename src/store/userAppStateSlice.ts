@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { UserAppStateSlice, Asset, Scenario } from '@/types';
+import type { UserAppStateSlice, Asset, Scenario, UserAppState } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { loadActivePlanFromStorage, saveActivePlanToStorage, clearActivePlanFromStorage } from '../services/localStorageService';
 
@@ -122,6 +122,17 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       activePlanInternalName: '',
       initialAssets: [],
       scenarios: [],
+    });
+  },
+
+  setAppState: (newState: UserAppState) => {
+    set((state) => {
+      const mergedState = {
+        ...state,
+        ...newState,
+      };
+      debouncedSave(mergedState);
+      return mergedState;
     });
   },
 })); 

@@ -4,10 +4,12 @@ import { isCompressionEnabled, setCompressionEnabled } from '@/services/localSto
 import { useEffect, useState } from 'react';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { UserAppState } from '@/types';
+import { generateShareableString } from '@/services/planSharingService';
 
 export function Header() {
   const [compressionEnabled, setCompressionEnabledState] = useState(isCompressionEnabled());
   const activePlanInternalName = useUserAppState((state: UserAppState) => state.activePlanInternalName);
+  const state = useUserAppState((state: UserAppState) => state);
 
   useEffect(() => {
     setCompressionEnabledState(isCompressionEnabled());
@@ -18,6 +20,24 @@ export function Header() {
     setCompressionEnabled(willEnable);
     setCompressionEnabledState(willEnable);
     window.location.reload(); // Reload to apply new compression setting
+  };
+
+  const handleShare = () => {
+    const shareableString = generateShareableString(state);
+    console.log('Shareable string:', shareableString);
+    if (shareableString) {
+      try {
+        const url = `${window.location.origin}${window.location.pathname}?planData=${shareableString}`;
+        navigator.clipboard.writeText(url)
+          .then(() => alert('Shareable URL copied to clipboard!'))
+          .catch(err => console.error('Failed to copy URL:', err));
+      } catch (error) {
+        console.error('Error generating shareable URL:', error);
+        alert('Failed to generate shareable URL.');
+      }
+    } else {
+      alert('Failed to generate shareable URL. Please check your plan data.');
+    }
   };
 
   return (
@@ -35,7 +55,7 @@ export function Header() {
           <Button variant="outline" onClick={toggleCompression}>
             {compressionEnabled ? 'Disable Compression' : 'Enable Compression'}
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={handleShare}>
             <Share2 className="w-5 h-5" />
           </Button>
         </div>

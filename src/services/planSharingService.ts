@@ -1,5 +1,5 @@
 import type { UserAppState } from '@/types';
-import { compress, decompress } from 'lz-string';
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 
 /**
  * Generates a shareable URL string from a UserAppState object
@@ -13,7 +13,7 @@ export function generateShareableString(planState: UserAppState): string | null 
 
   try {
     const jsonString = JSON.stringify(planState);
-    return compress(jsonString);
+    return compressToEncodedURIComponent(jsonString);
   } catch (error) {
     console.error('Error generating shareable string:', error);
     return null;
@@ -31,7 +31,7 @@ export function parseShareableString(encodedString: string): UserAppState | null
   }
 
   try {
-    const jsonString = decompress(encodedString);
+    const jsonString = decompressFromEncodedURIComponent(encodedString);
     if (!jsonString) return null;
 
     const parsedState = JSON.parse(jsonString) as UserAppState;
