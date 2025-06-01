@@ -8,7 +8,6 @@ let saveTimeout: NodeJS.Timeout;
 const debouncedSave = (state: UserAppStateSlice) => {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
-    console.log('Attempting to save state:', state);
     const success = saveActivePlanToStorage({
       activePlanInternalName: state.activePlanInternalName,
       initialAssets: state.initialAssets,
@@ -17,8 +16,6 @@ const debouncedSave = (state: UserAppStateSlice) => {
     if (!success) {
       console.error('Failed to save state to localStorage');
       // TODO: Add UI notification when uiSlice is available
-    } else {
-      console.log('Successfully saved state to localStorage');
     }
   }, 1000);
 };

@@ -1,7 +1,39 @@
-import type { UserAppState } from '../types';
+import type { UserAppState } from '@/types';
 import { compressObject, decompressObject } from '@/lib/utils/lzString';
 
 const STORAGE_KEY = 'tax-scenarios-active-plan';
+const COMPRESSION_KEY = 'tax-scenarios-use-compression';
+
+export function isCompressionEnabled(): boolean {
+  return localStorage.getItem(COMPRESSION_KEY) === 'true';
+}
+
+export function setCompressionEnabled(enabled: boolean): void {
+  // Get current state
+  const currentData = localStorage.getItem(STORAGE_KEY);
+  if (currentData) {
+    try {
+      // Load the current state in its current format
+      const currentState = isCompressionEnabled()
+        ? decompressObject<UserAppState>(currentData)
+        : JSON.parse(currentData);
+
+      if (currentState) {
+        // Save the state in the new format
+        const newData = enabled
+          ? compressObject(currentState)
+          : JSON.stringify(currentState);
+        
+        localStorage.setItem(STORAGE_KEY, newData);
+      }
+    } catch (error) {
+      console.error('Error converting state during compression change:', error);
+    }
+  }
+
+  // Update compression setting
+  localStorage.setItem(COMPRESSION_KEY, enabled ? 'true' : 'false');
+}
 
 /**
  * Saves the active plan state to localStorage
@@ -9,30 +41,18 @@ const STORAGE_KEY = 'tax-scenarios-active-plan';
  * @returns true if successful, false otherwise
  */
 export function saveActivePlanToStorage(state: UserAppState): boolean {
-  console.log('saveActivePlanToStorage called with state:', state);
-  
-  if (!state) {
-    console.error('saveActivePlanToStorage: state is null or undefined');
-    return false;
-  }
-  
-  if (!state.activePlanInternalName) {
-    console.error('saveActivePlanToStorage: activePlanInternalName is missing');
+  if (!state || !state.activePlanInternalName) {
     return false;
   }
 
   try {
-    const compressed = compressObject(state);
-    if (!compressed) {
-      console.error('saveActivePlanToStorage: compression failed');
-      return false;
-    }
+    const data = isCompressionEnabled()
+      ? compressObject(state)
+      : JSON.stringify(state);
     
-    console.log('Saving compressed data to localStorage:', compressed);
-    localStorage.setItem(STORAGE_KEY, compressed);
+    localStorage.setItem(STORAGE_KEY, data);
     return true;
   } catch (error) {
-    console.error('Error saving to localStorage:', error);
     return false;
   }
 }
@@ -43,31 +63,17 @@ export function saveActivePlanToStorage(state: UserAppState): boolean {
  */
 export function loadActivePlanFromStorage(): UserAppState | null {
   try {
-    const compressed = localStorage.getItem(STORAGE_KEY);
-    if (!compressed) return null;
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return null;
 
-    const state = decompressObject<UserAppState>(compressed);
-    if (!state || !isValidUserAppState(state)) return null;
-
-    return state;
+    return isCompressionEnabled()
+      ? decompressObject<UserAppState>(data)
+      : JSON.parse(data);
   } catch (error) {
-    console.error('Error loading from localStorage:', error);
     return null;
   }
 }
 
-/**
- * Validates that the loaded data matches the expected structure
- */
-function isValidUserAppState(data: any): data is UserAppState {
-  return (
-    data &&
-    typeof data === 'object' &&
-    typeof data.activePlanInternalName === 'string' &&
-    Array.isArray(data.initialAssets) &&
-    Array.isArray(data.scenarios)
-  );
-}
 
 /**
  * Clears the active plan from localStorage
@@ -78,7 +84,6 @@ export function clearActivePlanFromStorage(): boolean {
     localStorage.removeItem(STORAGE_KEY);
     return true;
   } catch (error) {
-    console.error('Error clearing localStorage:', error);
     return false;
   }
 } 
