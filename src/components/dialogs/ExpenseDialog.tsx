@@ -68,7 +68,7 @@ export function ExpenseDialog({
       });
     }
     setErrors({});
-  }, [expense, type]);
+  }, [expense, type, open]);
 
   // Add validation on initial load and when form data changes
   useEffect(() => {

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Scenario } from '@/models';
 import { appConfigService } from '@/services/appConfigService';
 
 interface BaselineScenarioDialogProps {
@@ -64,7 +63,7 @@ export function BaselineScenarioDialog({ isOpen, onClose }: BaselineScenarioDial
                 onClick={() => setSelectedTemplate(template.id)}
               >
                 <CardHeader>
-                  <CardTitle>{template.location?.displayName || 'Unnamed Location'}</CardTitle>
+                  <CardTitle>{template.name}</CardTitle>
                   <CardDescription>
                     Capital Gains Tax: {template.tax?.capitalGains?.longTermRate || 0}%
                     {template.tax?.capitalGains?.specialConditions && (

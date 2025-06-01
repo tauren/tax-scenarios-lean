@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
-import type { Scenario, ScenarioIncomeSource, AnnualExpense, OneTimeExpense } from '@/types';
+import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense } from '@/types';
 import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { deepClone } from '@/lib/utils/clone';
 
 interface ValidationErrors {
+  [key: string]: string | undefined;
   name?: string;
   country?: string;
   projectionPeriod?: string;
@@ -75,14 +77,13 @@ const validationRules: ValidationRule[] = [
   },
   {
     field: 'incomeSources',
-    validate: (sources: ScenarioIncomeSource[] | undefined) => {
+    validate: (sources: IncomeSource[] | undefined) => {
       if (!sources?.length) return undefined; // Income sources are optional
       
-      const currentYear = new Date().getFullYear();
-      const hasValidSource = sources.every((source: ScenarioIncomeSource) => {
+      const hasValidSource = sources.every((source: IncomeSource) => {
         if (!source.name?.trim()) return false;
         if (!source.annualAmount || source.annualAmount <= 0) return false;
-        if (!source.startYear || source.startYear < currentYear) return false;
+        if (!source.startYear || source.startYear < new Date().getFullYear()) return false;
         if (source.endYear && source.endYear < source.startYear) return false;
         return true;
       });
@@ -153,7 +154,7 @@ export function ScenarioEditorView() {
   const [errors, setErrors] = useState<ScenarioValidationErrors>({});
   const [isIncomeSourceDialogOpen, setIsIncomeSourceDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  const [editingIncomeSource, setEditingIncomeSource] = useState<ScenarioIncomeSource | undefined>();
+  const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | undefined>();
   const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
 
@@ -162,13 +163,13 @@ export function ScenarioEditorView() {
     const state = location.state as { template?: Scenario; isCustom?: boolean };
     if (state?.template) {
       // Deep copy the template scenario
-      const templateCopy = JSON.parse(JSON.stringify(state.template)) as Scenario;
+      const templateCopy = deepClone(state.template);
       setScenario({
         ...templateCopy,
         id: uuidv4(), // Ensure new ID
         name: `Baseline: ${templateCopy.location.country}`,
         projectionPeriod: templateCopy.projectionPeriod || 10,
-        residencyStartDate: templateCopy.residencyStartDate || new Date(),
+        residencyStartDate: templateCopy.residencyStartDate instanceof Date ? templateCopy.residencyStartDate : new Date(),
         location: {
           country: templateCopy.location?.country || '',
           state: templateCopy.location?.state || '',
@@ -178,6 +179,7 @@ export function ScenarioEditorView() {
           capitalGains: {
             shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate || 0,
             longTermRate: templateCopy.tax?.capitalGains?.longTermRate || 0,
+            specialConditions: templateCopy.tax?.capitalGains?.specialConditions,
           },
         },
         incomeSources: templateCopy.incomeSources || [],
@@ -246,7 +248,7 @@ export function ScenarioEditorView() {
       id: scenario.id || uuidv4(),
       name: scenario.name || '',
       projectionPeriod: scenario.projectionPeriod || 30,
-      residencyStartDate: scenario.residencyStartDate || new Date(),
+      residencyStartDate: scenario.residencyStartDate instanceof Date ? scenario.residencyStartDate : new Date(),
       location: {
         country: scenario.location?.country || '',
         state: scenario.location?.state || '',
@@ -256,6 +258,7 @@ export function ScenarioEditorView() {
         capitalGains: {
           shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
           longTermRate: scenario.tax?.capitalGains?.longTermRate || 0,
+          specialConditions: scenario.tax?.capitalGains?.specialConditions,
         },
       },
       incomeSources: scenario.incomeSources || [],
@@ -267,7 +270,7 @@ export function ScenarioEditorView() {
     navigate('/'); // Navigate back to main view
   };
 
-  const handleIncomeSourceSave = (incomeSource: ScenarioIncomeSource) => {
+  const handleIncomeSourceSave = (incomeSource: IncomeSource) => {
     // Check if this is an existing item in our list
     const existingItem = scenario.incomeSources?.find(source => source.id === incomeSource.id);
     
@@ -330,7 +333,7 @@ export function ScenarioEditorView() {
     }
   };
 
-  const duplicateIncomeSource = (incomeSource: ScenarioIncomeSource) => {
+  const duplicateIncomeSource = (incomeSource: IncomeSource) => {
     const duplicatedSource = { ...incomeSource, id: uuidv4() };
     setIsIncomeSourceDialogOpen(true);
     setEditingIncomeSource(duplicatedSource);
@@ -604,7 +607,10 @@ export function ScenarioEditorView() {
           <Section
             title="Income Sources"
             actionLabel="Add Income Source"
-            onAction={() => setIsIncomeSourceDialogOpen(true)}
+            onAction={() => {
+              setEditingIncomeSource(undefined);
+              setIsIncomeSourceDialogOpen(true);
+            }}
             error={errors.incomeSources}
             hasItems={(scenario.incomeSources?.length ?? 0) > 0}
             emptyMessage="No income sources added yet. Add your first income source to get started."
@@ -630,8 +636,9 @@ export function ScenarioEditorView() {
             title="Annual Expenses"
             actionLabel="Add Annual Expense"
             onAction={() => {
-              setIsExpenseDialogOpen(true);
+              setEditingExpense(undefined);
               setExpenseType('annual');
+              setIsExpenseDialogOpen(true);
             }}
             error={errors.annualExpenses}
             hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
@@ -659,8 +666,9 @@ export function ScenarioEditorView() {
             title="One-Time Expenses"
             actionLabel="Add One-Time Expense"
             onAction={() => {
-              setIsExpenseDialogOpen(true);
+              setEditingExpense(undefined);
               setExpenseType('oneTime');
+              setIsExpenseDialogOpen(true);
             }}
             error={errors.oneTimeExpenses}
             hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
@@ -696,8 +704,8 @@ export function ScenarioEditorView() {
       </form>
 
       <IncomeSourceDialog
-        open={isIncomeSourceDialogOpen}
-        onOpenChange={(open) => setIsIncomeSourceDialogOpen(open)}
+        isOpen={isIncomeSourceDialogOpen}
+        onClose={() => setIsIncomeSourceDialogOpen(false)}
         incomeSource={editingIncomeSource}
         onSave={handleIncomeSourceSave}
       />

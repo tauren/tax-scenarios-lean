@@ -1,4 +1,4 @@
-import type { SpecialTaxFeature } from "@/models";
+import type { SpecialTaxFeature } from '@/types';
 
 export const specialTaxFeatures: SpecialTaxFeature[] = [
   {

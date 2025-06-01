@@ -1,9 +1,4 @@
-import type { Scenario, SpecialTaxFeature, GlobalQualitativeConcept } from '@/models';
-
-export interface CapitalGainsTaxRate {
-  shortTermRate: number;
-  longTermRate: number;
-}
+import type { Scenario, SpecialTaxFeature, GlobalQualitativeConcept, CapitalGainsTaxRate } from '@/types';
 
 export interface AppConfig {
   templateScenarios: Scenario[];

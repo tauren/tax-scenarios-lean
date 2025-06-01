@@ -1,4 +1,4 @@
-import type { GlobalQualitativeConcept } from '@/models';
+import type { GlobalQualitativeConcept } from '@/types';
 
 export const globalQualitativeConcepts: GlobalQualitativeConcept[] = [
   {

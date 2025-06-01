@@ -1,87 +1,98 @@
-import { Asset, Scenario, ScenarioIncomeSource, AnnualExpense, CapitalGainsTaxRate } from '../index';
+import type { Asset, Scenario, IncomeSource, AnnualExpense, CapitalGainsTaxRate } from '@/types';
 
-describe('Data Models', () => {
+describe('Types', () => {
   describe('Asset', () => {
-    it('should create a valid asset', () => {
+    it('should have required properties', () => {
       const asset: Asset = {
         id: 'test-asset',
         name: 'Test Asset',
-        type: 'stock',
-        value: 100000,
-        growthRate: 0.05,
-        incomeRate: 0.02,
-        taxRate: 0.15
+        quantity: 100,
+        costBasisPerUnit: 10,
+        acquisitionDate: new Date('2023-01-01')
       };
 
-      expect(asset).toBeDefined();
-      expect(asset.id).toBe('test-asset');
-      expect(asset.type).toBe('stock');
+      expect(asset).toHaveProperty('id');
+      expect(asset).toHaveProperty('name');
+      expect(asset).toHaveProperty('quantity');
+      expect(asset).toHaveProperty('costBasisPerUnit');
+      expect(asset).toHaveProperty('acquisitionDate');
     });
   });
 
   describe('Scenario', () => {
-    it('should create a valid scenario', () => {
+    it('should have required properties', () => {
       const scenario: Scenario = {
         id: 'test-scenario',
         name: 'Test Scenario',
-        description: 'Test Description',
+        projectionPeriod: 10,
+        residencyStartDate: new Date('2023-01-01'),
+        location: {
+          country: 'Test Country'
+        },
+        tax: {
+          capitalGains: {
+            shortTermRate: 0.15,
+            longTermRate: 0.10
+          }
+        },
         incomeSources: [],
-        expenses: [],
-        assets: [],
-        startYear: 2024,
-        endYear: 2074
+        annualExpenses: [],
+        oneTimeExpenses: []
       };
 
-      expect(scenario).toBeDefined();
-      expect(scenario.id).toBe('test-scenario');
-      expect(scenario.startYear).toBe(2024);
+      expect(scenario).toHaveProperty('id');
+      expect(scenario).toHaveProperty('name');
+      expect(scenario).toHaveProperty('projectionPeriod');
+      expect(scenario).toHaveProperty('residencyStartDate');
+      expect(scenario).toHaveProperty('location');
+      expect(scenario).toHaveProperty('tax');
+      expect(scenario).toHaveProperty('incomeSources');
+      expect(scenario).toHaveProperty('annualExpenses');
+      expect(scenario).toHaveProperty('oneTimeExpenses');
     });
   });
 
-  describe('ScenarioIncomeSource', () => {
-    it('should create a valid income source', () => {
-      const incomeSource: ScenarioIncomeSource = {
+  describe('IncomeSource', () => {
+    it('should have required properties', () => {
+      const incomeSource: IncomeSource = {
         id: 'test-income',
         name: 'Test Income',
-        amount: 50000,
-        startYear: 2024,
-        endYear: 2074,
-        inflationAdjusted: true
+        type: 'EMPLOYMENT',
+        annualAmount: 100000,
+        startYear: 2023
       };
 
-      expect(incomeSource).toBeDefined();
-      expect(incomeSource.id).toBe('test-income');
-      expect(incomeSource.inflationAdjusted).toBe(true);
+      expect(incomeSource).toHaveProperty('id');
+      expect(incomeSource).toHaveProperty('name');
+      expect(incomeSource).toHaveProperty('type');
+      expect(incomeSource).toHaveProperty('annualAmount');
+      expect(incomeSource).toHaveProperty('startYear');
     });
   });
 
   describe('AnnualExpense', () => {
-    it('should create a valid expense', () => {
+    it('should have required properties', () => {
       const expense: AnnualExpense = {
         id: 'test-expense',
         name: 'Test Expense',
-        amount: 30000,
-        startYear: 2024,
-        endYear: 2074,
-        inflationAdjusted: true
+        amount: 10000
       };
 
-      expect(expense).toBeDefined();
-      expect(expense.id).toBe('test-expense');
-      expect(expense.inflationAdjusted).toBe(true);
+      expect(expense).toHaveProperty('id');
+      expect(expense).toHaveProperty('name');
+      expect(expense).toHaveProperty('amount');
     });
   });
 
   describe('CapitalGainsTaxRate', () => {
-    it('should create a valid tax rate', () => {
+    it('should have required properties', () => {
       const taxRate: CapitalGainsTaxRate = {
-        year: 2024,
-        rate: 0.15
+        shortTermRate: 0.15,
+        longTermRate: 0.10
       };
 
-      expect(taxRate).toBeDefined();
-      expect(taxRate.year).toBe(2024);
-      expect(taxRate.rate).toBe(0.15);
+      expect(taxRate).toHaveProperty('shortTermRate');
+      expect(taxRate).toHaveProperty('longTermRate');
     });
   });
 }); 

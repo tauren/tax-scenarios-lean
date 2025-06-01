@@ -1,11 +1,16 @@
-import type { Scenario } from '@/models';
+import type { Scenario } from '@/types';
 
 export const templateScenarios: Scenario[] = [
   {
     id: "template-portugal",
+    name: "Portugal",
+    projectionPeriod: 10,
+    residencyStartDate: new Date(),
+    incomeSources: [],
+    annualExpenses: [],
+    oneTimeExpenses: [],
     location: {
-      country: "Portugal",
-      displayName: "Portugal"
+      country: "Portugal"
     },
     tax: {
       capitalGains: {
@@ -217,9 +222,14 @@ export const templateScenarios: Scenario[] = [
   },
   {
     id: "template-cyprus",
+    name: "Cyprus",
+    projectionPeriod: 10,
+    residencyStartDate: new Date(),
+    incomeSources: [],
+    annualExpenses: [],
+    oneTimeExpenses: [],
     location: {
-      country: "Cyprus",
-      displayName: "Cyprus"
+      country: "Cyprus"
     },
     tax: {
       capitalGains: {
@@ -430,10 +440,15 @@ export const templateScenarios: Scenario[] = [
   },
   {
     id: "template-uae",
+    name: "Dubai, UAE",
+    projectionPeriod: 10,
+    residencyStartDate: new Date(),
+    incomeSources: [],
+    annualExpenses: [],
+    oneTimeExpenses: [],
     location: {
       country: "United Arab Emirates",
-      city: "Dubai",
-      displayName: "Dubai, UAE"
+      city: "Dubai"
     },
     tax: {
       capitalGains: {

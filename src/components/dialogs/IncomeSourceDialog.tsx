@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ScenarioIncomeSource } from '@/types';
+import type { IncomeSource } from '@/types';
 import type { IncomeSourceValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,19 +15,14 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 interface IncomeSourceDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  incomeSource?: ScenarioIncomeSource;
-  onSave: (incomeSource: ScenarioIncomeSource) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  incomeSource?: IncomeSource;
+  onSave: (incomeSource: IncomeSource) => void;
 }
 
-export function IncomeSourceDialog({
-  open,
-  onOpenChange,
-  incomeSource,
-  onSave,
-}: IncomeSourceDialogProps) {
-  const [formData, setFormData] = useState<Partial<ScenarioIncomeSource>>({
+export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: IncomeSourceDialogProps) {
+  const [formData, setFormData] = useState<Partial<IncomeSource>>({
     name: '',
     type: 'EMPLOYMENT',
     annualAmount: 0,
@@ -53,14 +48,14 @@ export function IncomeSourceDialog({
       });
     }
     setErrors({});
-  }, [incomeSource, open]);
+  }, [incomeSource, isOpen]);
 
   // Add validation on initial load and when form data changes
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       validateForm();
     }
-  }, [open, formData]);
+  }, [isOpen, formData]);
 
   const validateField = (field: keyof IncomeSourceValidationErrors, value: any): string | undefined => {
     switch (field) {
@@ -113,7 +108,7 @@ export function IncomeSourceDialog({
       return;
     }
 
-    const incomeSourceToSave: ScenarioIncomeSource = {
+    const incomeSourceToSave: IncomeSource = {
       id: incomeSource?.id || uuidv4(),
       name: formData.name || '',
       type: formData.type || 'EMPLOYMENT',
@@ -123,13 +118,13 @@ export function IncomeSourceDialog({
     };
 
     onSave(incomeSourceToSave);
-    onOpenChange(false);
+    onClose();
   };
 
   const hasErrors = Object.keys(errors).length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{incomeSource ? 'Edit Income Source' : 'Add Income Source'}</DialogTitle>
@@ -169,7 +164,7 @@ export function IncomeSourceDialog({
               <select
                 id="type"
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as ScenarioIncomeSource['type'] })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as IncomeSource['type'] })}
                 className="w-full rounded-md border border-input bg-background px-3 py-2"
               >
                 <option value="EMPLOYMENT">Employment</option>
@@ -230,7 +225,7 @@ export function IncomeSourceDialog({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+            <Button variant="outline" onClick={onClose} type="button">
               Cancel
             </Button>
             <Button type="submit" disabled={hasErrors}>
