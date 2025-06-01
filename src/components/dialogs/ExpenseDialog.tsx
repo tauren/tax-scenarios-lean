@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { AnnualExpense, OneTimeExpense } from '@/types';
+import type { AnnualExpenseValidationErrors, OneTimeExpenseValidationErrors } from '@/types/validation';
 import { EXPENSE_CATEGORIES } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { FormField } from '@/components/shared/form-field';
 import {
   Dialog,
@@ -37,12 +37,6 @@ interface ExpenseDialogProps {
   onSave: (expense: AnnualExpense | OneTimeExpense) => void;
 }
 
-interface ValidationErrors {
-  name?: string;
-  amount?: string;
-  year?: string;
-}
-
 export function ExpenseDialog({
   open,
   onOpenChange,
@@ -53,9 +47,9 @@ export function ExpenseDialog({
   const [formData, setFormData] = useState<Partial<AnnualExpense | OneTimeExpense>>({
     name: '',
     amount: 0,
-    ...(type === 'oneTime' && { year: new Date().getFullYear() }),
+    ...(type === 'oneTime' ? { year: new Date().getFullYear() } : {}),
   });
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errors, setErrors] = useState<AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors>({});
   const [openCombobox, setOpenCombobox] = useState(false);
 
   useEffect(() => {

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { Scenario, ScenarioIncomeSource, AnnualExpense, OneTimeExpense } from '@/types';
+import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CalendarIcon } from 'lucide-react';
@@ -125,12 +126,14 @@ const validationRules: ValidationRule[] = [
 ];
 
 export function ScenarioEditorView() {
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const { addScenario } = useUserAppState();
-  const [scenario, setScenario] = useState<Partial<Scenario>>({
+  const [scenario, setScenario] = useState<Scenario>({
+    id: uuidv4(),
     name: '',
-    projectionPeriod: 10,
+    projectionPeriod: 30,
     residencyStartDate: new Date(),
     location: {
       country: '',
@@ -147,16 +150,12 @@ export function ScenarioEditorView() {
     annualExpenses: [],
     oneTimeExpenses: [],
   });
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [incomeSourceDialog, setIncomeSourceDialog] = useState<{
-    open: boolean;
-    incomeSource?: ScenarioIncomeSource;
-  }>({ open: false });
-  const [expenseDialog, setExpenseDialog] = useState<{
-    open: boolean;
-    expense?: AnnualExpense | OneTimeExpense;
-    type: 'annual' | 'oneTime';
-  }>({ open: false, type: 'annual' });
+  const [errors, setErrors] = useState<ScenarioValidationErrors>({});
+  const [isIncomeSourceDialogOpen, setIsIncomeSourceDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [editingIncomeSource, setEditingIncomeSource] = useState<ScenarioIncomeSource | undefined>();
+  const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
+  const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
 
   useEffect(() => {
     // If we have a template from the previous view, use it
@@ -186,11 +185,11 @@ export function ScenarioEditorView() {
         oneTimeExpenses: templateCopy.oneTimeExpenses || [],
       });
     } else if (state?.isCustom) {
-      setScenario({
-        ...scenario,
+      setScenario(prev => ({
+        ...prev,
         id: uuidv4(), // Ensure new ID
         name: 'Custom Baseline',
-      });
+      }));
     }
   }, [location.state]);
 
@@ -290,7 +289,7 @@ export function ScenarioEditorView() {
   };
 
   const handleExpenseSave = (expense: AnnualExpense | OneTimeExpense) => {
-    if (expenseDialog.type === 'annual') {
+    if (expenseType === 'annual') {
       // Check if this is an existing annual expense
       const existingItem = scenario.annualExpenses?.find(exp => exp.id === expense.id);
       
@@ -333,12 +332,15 @@ export function ScenarioEditorView() {
 
   const duplicateIncomeSource = (incomeSource: ScenarioIncomeSource) => {
     const duplicatedSource = { ...incomeSource, id: uuidv4() };
-    setIncomeSourceDialog({ open: true, incomeSource: duplicatedSource });
+    setIsIncomeSourceDialogOpen(true);
+    setEditingIncomeSource(duplicatedSource);
   };
 
   const duplicateExpense = (expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => {
     const duplicatedExpense = { ...expense, id: uuidv4() };
-    setExpenseDialog({ open: true, expense: duplicatedExpense, type });
+    setIsExpenseDialogOpen(true);
+    setEditingExpense(duplicatedExpense);
+    setExpenseType(type);
   };
 
   const removeIncomeSource = (id: string) => {
@@ -602,7 +604,7 @@ export function ScenarioEditorView() {
           <Section
             title="Income Sources"
             actionLabel="Add Income Source"
-            onAction={() => setIncomeSourceDialog({ open: true })}
+            onAction={() => setIsIncomeSourceDialogOpen(true)}
             error={errors.incomeSources}
             hasItems={(scenario.incomeSources?.length ?? 0) > 0}
             emptyMessage="No income sources added yet. Add your first income source to get started."
@@ -613,7 +615,10 @@ export function ScenarioEditorView() {
                   key={source.id}
                   title={source.name}
                   subtitle={`${formatCurrency(source.annualAmount)}/year • ${source.startYear} - ${source.endYear || 'Ongoing'}`}
-                  onEdit={() => setIncomeSourceDialog({ open: true, incomeSource: source })}
+                  onEdit={() => {
+                    setIsIncomeSourceDialogOpen(true);
+                    setEditingIncomeSource(source);
+                  }}
                   onDelete={() => removeIncomeSource(source.id)}
                   onDuplicate={() => duplicateIncomeSource(source)}
                 />
@@ -624,7 +629,10 @@ export function ScenarioEditorView() {
           <Section
             title="Annual Expenses"
             actionLabel="Add Annual Expense"
-            onAction={() => setExpenseDialog({ open: true, type: 'annual' })}
+            onAction={() => {
+              setIsExpenseDialogOpen(true);
+              setExpenseType('annual');
+            }}
             error={errors.annualExpenses}
             hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
             emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
@@ -635,7 +643,11 @@ export function ScenarioEditorView() {
                   key={expense.id}
                   title={expense.name}
                   subtitle={formatCurrency(expense.amount)}
-                  onEdit={() => setExpenseDialog({ open: true, expense, type: 'annual' })}
+                  onEdit={() => {
+                    setIsExpenseDialogOpen(true);
+                    setEditingExpense(expense);
+                    setExpenseType('annual');
+                  }}
                   onDelete={() => removeExpense(expense.id, 'annual')}
                   onDuplicate={() => duplicateExpense(expense, 'annual')}
                 />
@@ -646,7 +658,10 @@ export function ScenarioEditorView() {
           <Section
             title="One-Time Expenses"
             actionLabel="Add One-Time Expense"
-            onAction={() => setExpenseDialog({ open: true, type: 'oneTime' })}
+            onAction={() => {
+              setIsExpenseDialogOpen(true);
+              setExpenseType('oneTime');
+            }}
             error={errors.oneTimeExpenses}
             hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
             emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
@@ -657,7 +672,11 @@ export function ScenarioEditorView() {
                   key={expense.id}
                   title={expense.name}
                   subtitle={`${formatCurrency(expense.amount)} in ${expense.year}`}
-                  onEdit={() => setExpenseDialog({ open: true, expense, type: 'oneTime' })}
+                  onEdit={() => {
+                    setIsExpenseDialogOpen(true);
+                    setEditingExpense(expense);
+                    setExpenseType('oneTime');
+                  }}
                   onDelete={() => removeExpense(expense.id, 'oneTime')}
                   onDuplicate={() => duplicateExpense(expense, 'oneTime')}
                 />
@@ -677,17 +696,17 @@ export function ScenarioEditorView() {
       </form>
 
       <IncomeSourceDialog
-        open={incomeSourceDialog.open}
-        onOpenChange={(open) => setIncomeSourceDialog({ open })}
-        incomeSource={incomeSourceDialog.incomeSource}
+        open={isIncomeSourceDialogOpen}
+        onOpenChange={(open) => setIsIncomeSourceDialogOpen(open)}
+        incomeSource={editingIncomeSource}
         onSave={handleIncomeSourceSave}
       />
 
       <ExpenseDialog
-        open={expenseDialog.open}
-        onOpenChange={(open) => setExpenseDialog({ ...expenseDialog, open })}
-        expense={expenseDialog.expense}
-        type={expenseDialog.type}
+        open={isExpenseDialogOpen}
+        onOpenChange={(open) => setIsExpenseDialogOpen(open)}
+        expense={editingExpense}
+        type={expenseType}
         onSave={handleExpenseSave}
       />
     </div>

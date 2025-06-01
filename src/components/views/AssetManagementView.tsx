@@ -20,7 +20,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Pencil, Copy, Trash2 } from 'lucide-react';
+import { Pencil, Copy, Trash2, Plus } from 'lucide-react';
+import { Section } from "@/components/shared/section";
 
 export function AssetManagementView() {
   const { initialAssets, addAsset, updateAsset, deleteAsset } = useUserAppState();
@@ -65,129 +66,133 @@ export function AssetManagementView() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-foreground">Asset Management</h1>
-        <Button
-          onClick={() => {
-            setSelectedAsset(null);
-            setIsAddDialogOpen(true);
-          }}
-        >
-          Add Asset
-        </Button>
-      </div>
-
-      {initialAssets.length === 0 ? (
-        <div className="mt-8 p-12 text-center border rounded-lg bg-muted/5">
-          <p className="text-muted-foreground mb-4">
-            No assets added yet. Click the button below to get started.
-          </p>
+      <Section
+        title="Asset Management"
+        action={
           <Button
             onClick={() => {
               setSelectedAsset(null);
               setIsAddDialogOpen(true);
             }}
           >
+            <Plus className="h-4 w-4 mr-2" />
             Add Asset
           </Button>
-        </div>
-      ) : (
-        <div className="mt-8 overflow-x-auto border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Cost Basis</TableHead>
-                <TableHead>Acquisition Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {initialAssets.map((asset) => (
-                <TableRow 
-                  key={asset.id}
-                  className="cursor-pointer"
-                  onClick={(e) => {
-                    const target = e.target as HTMLElement;
-                    const isInActionsColumn = target.closest('td:last-child');
-                    if (!isInActionsColumn && !target.closest('button')) {
-                      setSelectedAsset(asset);
-                      setIsAddDialogOpen(true);
-                    }
-                  }}
-                >
-                  <TableCell>{asset.name}</TableCell>
-                  <TableCell>{formatAssetType(asset.assetType)}</TableCell>
-                  <TableCell>{asset.quantity.toLocaleString()}</TableCell>
-                  <TableCell>{formatCurrency(asset.costBasisPerUnit)}</TableCell>
-                  <TableCell>{formatDate(asset.acquisitionDate)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAsset(asset);
-                                setIsAddDialogOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit asset</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDuplicateAsset(asset);
-                              }}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Duplicate asset</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAsset(asset);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Delete asset</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TableCell>
+        }
+      >
+        {initialAssets.length === 0 ? (
+          <div className="mt-8 p-12 text-center border rounded-lg bg-muted/5">
+            <p className="text-muted-foreground mb-4">
+              No assets added yet. Click the button below to get started.
+            </p>
+            <Button
+              onClick={() => {
+                setSelectedAsset(null);
+                setIsAddDialogOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Asset
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-8 overflow-x-auto border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Cost Basis</TableHead>
+                  <TableHead>Acquisition Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              </TableHeader>
+              <TableBody>
+                {initialAssets.map((asset) => (
+                  <TableRow 
+                    key={asset.id}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      const isInActionsColumn = target.closest('td:last-child');
+                      if (!isInActionsColumn && !target.closest('button')) {
+                        setSelectedAsset(asset);
+                        setIsAddDialogOpen(true);
+                      }
+                    }}
+                  >
+                    <TableCell>{asset.name}</TableCell>
+                    <TableCell>{formatAssetType(asset.assetType)}</TableCell>
+                    <TableCell>{asset.quantity.toLocaleString()}</TableCell>
+                    <TableCell>{formatCurrency(asset.costBasisPerUnit)}</TableCell>
+                    <TableCell>{formatDate(asset.acquisitionDate)}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAsset(asset);
+                                  setIsAddDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit asset</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDuplicateAsset(asset);
+                                }}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Duplicate asset</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAsset(asset);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete asset</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Section>
 
       <AssetDialog
         isOpen={isAddDialogOpen}

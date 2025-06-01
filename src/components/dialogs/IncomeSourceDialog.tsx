@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { ScenarioIncomeSource } from '@/types';
+import type { IncomeSourceValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { FormField } from '@/components/shared/form-field';
 import {
   Dialog,
@@ -21,13 +21,6 @@ interface IncomeSourceDialogProps {
   onSave: (incomeSource: ScenarioIncomeSource) => void;
 }
 
-interface ValidationErrors {
-  name?: string;
-  annualAmount?: string;
-  startYear?: string;
-  endYear?: string;
-}
-
 export function IncomeSourceDialog({
   open,
   onOpenChange,
@@ -41,7 +34,7 @@ export function IncomeSourceDialog({
     startYear: new Date().getFullYear(),
     endYear: undefined,
   });
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errors, setErrors] = useState<IncomeSourceValidationErrors>({});
 
   useEffect(() => {
     if (incomeSource) {
@@ -69,7 +62,7 @@ export function IncomeSourceDialog({
     }
   }, [open, formData]);
 
-  const validateField = (field: keyof ValidationErrors, value: any): string | undefined => {
+  const validateField = (field: keyof IncomeSourceValidationErrors, value: any): string | undefined => {
     switch (field) {
       case 'name':
         return !value?.trim() ? 'Name is required' : undefined;
@@ -85,7 +78,7 @@ export function IncomeSourceDialog({
     }
   };
 
-  const handleFieldBlur = (field: keyof ValidationErrors, value: any) => {
+  const handleFieldBlur = (field: keyof IncomeSourceValidationErrors, value: any) => {
     const error = validateField(field, value);
     setErrors(prev => {
       const newErrors = { ...prev };
@@ -99,14 +92,14 @@ export function IncomeSourceDialog({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
+    const newErrors: IncomeSourceValidationErrors = {};
     let isValid = true;
 
     // Validate each field
     Object.keys(formData).forEach((field) => {
-      const error = validateField(field as keyof ValidationErrors, formData[field as keyof typeof formData]);
+      const error = validateField(field as keyof IncomeSourceValidationErrors, formData[field as keyof typeof formData]);
       if (error) {
-        newErrors[field as keyof ValidationErrors] = error;
+        newErrors[field as keyof IncomeSourceValidationErrors] = error;
         isValid = false;
       }
     });

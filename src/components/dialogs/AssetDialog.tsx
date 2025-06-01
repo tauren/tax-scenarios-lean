@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Asset } from '@/types';
+import type { AssetValidationErrors } from '@/types/validation';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormField } from "@/components/shared/form-field";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AssetDialogProps {
   isOpen: boolean;
@@ -37,6 +43,7 @@ const initialFormData: Omit<Asset, 'id'> = {
 
 export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps) {
   const [formData, setFormData] = useState<Omit<Asset, 'id'>>(initialFormData);
+  const [errors, setErrors] = useState<AssetValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -52,12 +59,70 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
     } else {
       setFormData(initialFormData);
     }
+    setErrors({});
   }, [asset, isOpen]);
+
+  // Add validation on initial load and when form data changes
+  useEffect(() => {
+    if (isOpen) {
+      validateForm();
+    }
+  }, [isOpen, formData]);
+
+  const validateField = (field: keyof AssetValidationErrors, value: any): string | undefined => {
+    switch (field) {
+      case 'name':
+        return !value?.trim() ? 'Name is required' : undefined;
+      case 'assetType':
+        return !value ? 'Asset type is required' : undefined;
+      case 'quantity':
+        return !value || value <= 0 ? 'Quantity must be greater than 0' : undefined;
+      case 'costBasisPerUnit':
+        return !value || value <= 0 ? 'Cost basis must be greater than 0' : undefined;
+      case 'acquisitionDate':
+        return !value ? 'Acquisition date is required' : undefined;
+      case 'fmvPerUnit':
+        if (!value) return undefined;
+        return value <= 0 ? 'FMV must be greater than 0' : undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const handleFieldBlur = (field: keyof AssetValidationErrors, value: any) => {
+    const error = validateField(field, value);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[field] = error;
+      } else {
+        delete newErrors[field];
+      }
+      return newErrors;
+    });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: AssetValidationErrors = {};
+    let isValid = true;
+
+    // Validate each field
+    Object.keys(formData).forEach((field) => {
+      const error = validateField(field as keyof AssetValidationErrors, formData[field as keyof typeof formData]);
+      if (error) {
+        newErrors[field as keyof AssetValidationErrors] = error;
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isSubmitting) return;
+    if (isSubmitting || !validateForm()) return;
     
     try {
       setIsSubmitting(true);
@@ -65,7 +130,6 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
       onClose();
     } catch (error) {
       console.error('Error saving asset:', error);
-      // You might want to show an error message to the user here
     } finally {
       setIsSubmitting(false);
     }
@@ -83,6 +147,8 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
     }
   };
 
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -96,23 +162,34 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="asset-name">Name</Label>
+          <FormField
+            label="Name"
+            id="asset-name"
+            error={errors.name}
+          >
             <Input
               id="asset-name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onBlur={() => handleFieldBlur('name', formData.name)}
               required
+              className={errors.name ? 'border-destructive' : ''}
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="asset-type">Asset Type</Label>
+          <FormField
+            label="Asset Type"
+            id="asset-type"
+            error={errors.assetType}
+          >
             <Select
               value={formData.assetType}
-              onValueChange={(value) => setFormData({ ...formData, assetType: value })}
+              onValueChange={(value) => {
+                setFormData({ ...formData, assetType: value });
+                handleFieldBlur('assetType', value);
+              }}
             >
-              <SelectTrigger id="asset-type" className="w-full">
+              <SelectTrigger id="asset-type" className={cn("w-full", errors.assetType ? "border-destructive" : "")}>
                 <SelectValue placeholder="Select a type" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
@@ -122,62 +199,105 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="asset-quantity">Quantity</Label>
+          <FormField
+            label="Quantity"
+            id="asset-quantity"
+            error={errors.quantity}
+          >
             <Input
               id="asset-quantity"
               type="number"
               value={formData.quantity === 0 ? '' : formData.quantity}
               onChange={(e) => handleNumberInput(e, 'quantity')}
+              onBlur={() => handleFieldBlur('quantity', formData.quantity)}
               min="0"
               step="0.00000001"
               required
+              className={errors.quantity ? 'border-destructive' : ''}
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="asset-cost-basis">Cost Basis per Unit</Label>
+          <FormField
+            label="Cost Basis per Unit"
+            id="asset-cost-basis"
+            error={errors.costBasisPerUnit}
+          >
             <Input
               id="asset-cost-basis"
               type="number"
               value={formData.costBasisPerUnit === 0 ? '' : formData.costBasisPerUnit}
               onChange={(e) => handleNumberInput(e, 'costBasisPerUnit')}
+              onBlur={() => handleFieldBlur('costBasisPerUnit', formData.costBasisPerUnit)}
               min="0"
               step="0.00000001"
               required
+              className={errors.costBasisPerUnit ? 'border-destructive' : ''}
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="asset-acquisition-date">Acquisition Date</Label>
-            <Input
-              id="asset-acquisition-date"
-              type="date"
-              value={formData.acquisitionDate.toISOString().split('T')[0]}
-              onChange={(e) => setFormData({ ...formData, acquisitionDate: new Date(e.target.value) })}
-              required
-            />
-          </div>
+          <FormField
+            label="Acquisition Date"
+            id="asset-acquisition-date"
+            error={errors.acquisitionDate}
+          >
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.acquisitionDate && "text-muted-foreground",
+                    errors.acquisitionDate ? "border-destructive" : ""
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.acquisitionDate ? (
+                    format(formData.acquisitionDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.acquisitionDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setFormData({ ...formData, acquisitionDate: date });
+                      handleFieldBlur('acquisitionDate', date);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="asset-fmv">FMV per Unit (Optional)</Label>
+          <FormField
+            label="FMV per Unit (Optional)"
+            id="asset-fmv"
+            error={errors.fmvPerUnit}
+          >
             <Input
               id="asset-fmv"
               type="number"
               value={formData.fmvPerUnit === 0 ? '' : formData.fmvPerUnit}
               onChange={(e) => handleNumberInput(e, 'fmvPerUnit')}
+              onBlur={() => handleFieldBlur('fmvPerUnit', formData.fmvPerUnit)}
               min="0"
               step="0.00000001"
+              className={errors.fmvPerUnit ? 'border-destructive' : ''}
             />
-          </div>
+          </FormField>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={hasErrors}>
               {asset ? (asset.id ? 'Save Changes' : 'Create Copy') : 'Add Asset'}
             </Button>
           </DialogFooter>
