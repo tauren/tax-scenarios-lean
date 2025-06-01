@@ -56,11 +56,11 @@
         - If `null` is returned by `loadActivePlanFromStorage()`:
             - Initialize the Zustand store with a default new/empty `UserAppState` (e.g., `activePlanInternalName: "Untitled Plan"`, empty arrays for `initialAssets`, `scenarios`, `userQualitativeGoals`).
             - If the reason for `null` was a detected corruption (as opposed to simply no data found), consider dispatching an action to `uiSlice.ts` for a toast notification like "Could not load previous session data as it appears corrupted. Starting a fresh session."
-- [ ] **Task 4: Manual Testing - Persistence Across Sessions (AC: 1, 3, 4, 8)**
-    - [ ] Make changes to the application state (e.g., update plan name, add assets/scenarios via UI implemented in previous/subsequent stories).
-    - [ ] Verify (using browser developer tools) that a compressed string is saved to the correct `localStorage` key after the debounce period.
-    - [ ] Close the browser tab/window and reopen the application.
-    - [ ] Verify that the previously entered state is correctly reloaded and displayed.
+- [x] **Task 4: Manual Testing - Persistence Across Sessions (AC: 1, 3, 4, 8)**
+    - [x] Make changes to the application state (e.g., update plan name, add assets/scenarios via UI implemented in previous/subsequent stories).
+    - [x] Verify (using browser developer tools) that a compressed string is saved to the correct `localStorage` key after the debounce period.
+    - [x] Close the browser tab/window and reopen the application.
+    - [x] Verify that the previously entered state is correctly reloaded and displayed.
 - [ ] **Task 5: Manual Testing - Error Handling for `localStorage` (AC: 6, 7)**
     - [ ] To test save errors (AC6):
         - Simulate `localStorage` being full (e.g., by trying to save a very large string to another key in dev tools until quota is hit, then try to trigger an auto-save in the app).
@@ -91,6 +91,7 @@
         - Implemented initial load logic in store initialization
         - Added validation for loaded state structure
         - Added error handling for storage operations
+        - Completed manual testing for persistence across sessions
     * 2025-05-31
         - Initial Draft - Sarah (PO)
 
