@@ -14,6 +14,7 @@ import { Section } from '@/components/shared/section';
 import { FormField } from '@/components/shared/form-field';
 import { CardList } from '@/components/shared/card-list';
 import { CardActions } from '@/components/shared/card-actions';
+import { ListItemCard } from '@/components/shared/list-item-card';
 
 interface ValidationErrors {
   name?: string;
@@ -26,6 +27,51 @@ interface ValidationErrors {
   annualExpenses?: string;
   oneTimeExpenses?: string;
 }
+
+type ValidationField = keyof ValidationErrors;
+
+interface ValidationRule {
+  field: ValidationField;
+  validate: (value: any) => string | undefined;
+  getValue: (scenario: Partial<Scenario>) => any;
+}
+
+const validationRules: ValidationRule[] = [
+  {
+    field: 'name',
+    validate: (value) => !value?.trim() ? 'Please enter a name for this scenario' : undefined,
+    getValue: (scenario) => scenario.name
+  },
+  {
+    field: 'country',
+    validate: (value) => !value?.trim() ? 'Please select a country for this scenario' : undefined,
+    getValue: (scenario) => scenario.location?.country
+  },
+  {
+    field: 'projectionPeriod',
+    validate: (value) => !value || value <= 0 ? 'Projection period must be at least 1 year' : undefined,
+    getValue: (scenario) => scenario.projectionPeriod
+  },
+  {
+    field: 'residencyStartDate',
+    validate: (value) => !value ? 'Please select a residency start date' : undefined,
+    getValue: (scenario) => scenario.residencyStartDate
+  },
+  {
+    field: 'shortTermRate',
+    validate: (value) => value === undefined || value < 0 || value > 100 
+      ? 'Short term rate must be between 0% and 100%' 
+      : undefined,
+    getValue: (scenario) => scenario.tax?.capitalGains?.shortTermRate
+  },
+  {
+    field: 'longTermRate',
+    validate: (value) => value === undefined || value < 0 || value > 100 
+      ? 'Long term rate must be between 0% and 100%' 
+      : undefined,
+    getValue: (scenario) => scenario.tax?.capitalGains?.longTermRate
+  }
+];
 
 export function ScenarioEditorView() {
   const location = useLocation();
@@ -97,69 +143,48 @@ export function ScenarioEditorView() {
     }
   }, [location.state]);
 
-  const validateField = (field: keyof ValidationErrors, value: any): string | undefined => {
-    switch (field) {
-      case 'name':
-        return !value?.trim() ? 'Please enter a name for this scenario' : undefined;
-      case 'country':
-        return !value?.trim() ? 'Please select a country for this scenario' : undefined;
-      case 'projectionPeriod':
-        return !value || value <= 0 ? 'Projection period must be at least 1 year' : undefined;
-      case 'residencyStartDate':
-        return !value ? 'Please select a residency start date' : undefined;
-      case 'shortTermRate':
-        return value === undefined || value < 0 || value > 100 
-          ? 'Short term rate must be between 0% and 100%' 
-          : undefined;
-      case 'longTermRate':
-        return value === undefined || value < 0 || value > 100 
-          ? 'Long term rate must be between 0% and 100%' 
-          : undefined;
-      default:
-        return undefined;
-    }
+  const validateField = (field: ValidationField, value: any): string | undefined => {
+    const rule = validationRules.find(r => r.field === field);
+    if (!rule) return undefined;
+
+    const error = rule.validate(value);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[field] = error;
+      } else {
+        delete newErrors[field];
+      }
+      return newErrors;
+    });
+    return error;
   };
 
-  const handleFieldBlur = (field: keyof ValidationErrors, value: any) => {
-    const error = validateField(field, value);
-    setErrors(prev => ({
-      ...prev,
-      [field]: error
-    }));
+  const handleFieldBlur = (field: ValidationField, value: any) => {
+    validateField(field, value);
   };
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
 
-    if (!scenario.name?.trim()) {
-      newErrors.name = 'Please enter a name for this scenario';
-    }
-
-    if (!scenario.location?.country?.trim()) {
-      newErrors.country = 'Please select a country for this scenario';
-    }
-
-    if (!scenario.projectionPeriod || scenario.projectionPeriod <= 0) {
-      newErrors.projectionPeriod = 'Projection period must be at least 1 year';
-    }
-
-    if (!scenario.residencyStartDate) {
-      newErrors.residencyStartDate = 'Please select a residency start date';
-    }
-
-    const shortTermRate = scenario.tax?.capitalGains?.shortTermRate;
-    if (shortTermRate === undefined || shortTermRate < 0 || shortTermRate > 100) {
-      newErrors.shortTermRate = 'Short term rate must be between 0% and 100%';
-    }
-
-    const longTermRate = scenario.tax?.capitalGains?.longTermRate;
-    if (longTermRate === undefined || longTermRate < 0 || longTermRate > 100) {
-      newErrors.longTermRate = 'Long term rate must be between 0% and 100%';
-    }
+    // Validate each field using the validation rules
+    validationRules.forEach(rule => {
+      const value = rule.getValue(scenario);
+      const error = rule.validate(value);
+      if (error) {
+        newErrors[rule.field] = error;
+      }
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const hasErrors = Object.keys(errors).length > 0;
+
+  useEffect(() => {
+    validateForm();
+  }, [scenario]);
 
   const handleSave = () => {
     if (!validateForm()) {
@@ -193,8 +218,11 @@ export function ScenarioEditorView() {
   };
 
   const handleIncomeSourceSave = (incomeSource: ScenarioIncomeSource) => {
-    if (incomeSourceDialog.incomeSource) {
-      // Update existing income source
+    // Check if this is an existing item in our list
+    const existingItem = scenario.incomeSources?.find(source => source.id === incomeSource.id);
+    
+    if (existingItem) {
+      // Update existing item
       setScenario({
         ...scenario,
         incomeSources: scenario.incomeSources?.map((source) =>
@@ -202,74 +230,64 @@ export function ScenarioEditorView() {
         ),
       });
     } else {
-      // Add new income source
+      // Add new item (either from duplicate or new)
       setScenario({
         ...scenario,
-        incomeSources: [...(scenario.incomeSources || []), { ...incomeSource, id: uuidv4() }],
+        incomeSources: [...(scenario.incomeSources || []), incomeSource],
       });
     }
   };
 
   const handleExpenseSave = (expense: AnnualExpense | OneTimeExpense) => {
-    if (expenseDialog.expense) {
-      // Update existing expense
-      if (expenseDialog.type === 'annual') {
-        const updatedExpenses: AnnualExpense[] = scenario.annualExpenses?.map((exp) =>
-          exp.id === expense.id ? expense as AnnualExpense : exp
-        ) || [];
+    if (expenseDialog.type === 'annual') {
+      // Check if this is an existing annual expense
+      const existingItem = scenario.annualExpenses?.find(exp => exp.id === expense.id);
+      
+      if (existingItem) {
+        // Update existing annual expense
         setScenario({
           ...scenario,
-          annualExpenses: updatedExpenses,
+          annualExpenses: scenario.annualExpenses?.map((exp) =>
+            exp.id === expense.id ? expense as AnnualExpense : exp
+          ),
         });
       } else {
-        const updatedOneTimeExpenses: OneTimeExpense[] = scenario.oneTimeExpenses?.map((exp) =>
-          exp.id === expense.id ? expense as OneTimeExpense : exp
-        ) || [];
+        // Add new annual expense
         setScenario({
           ...scenario,
-          oneTimeExpenses: updatedOneTimeExpenses,
+          annualExpenses: [...(scenario.annualExpenses || []), expense as AnnualExpense],
         });
       }
     } else {
-      // Add new expense
-      if (expenseDialog.type === 'annual') {
-        const newExpenses: AnnualExpense[] = [...(scenario.annualExpenses || []), expense as AnnualExpense];
+      // Check if this is an existing one-time expense
+      const existingItem = scenario.oneTimeExpenses?.find(exp => exp.id === expense.id);
+      
+      if (existingItem) {
+        // Update existing one-time expense
         setScenario({
           ...scenario,
-          annualExpenses: newExpenses,
+          oneTimeExpenses: scenario.oneTimeExpenses?.map((exp) =>
+            exp.id === expense.id ? expense as OneTimeExpense : exp
+          ),
         });
       } else {
-        const newOneTimeExpenses: OneTimeExpense[] = [...(scenario.oneTimeExpenses || []), expense as OneTimeExpense];
+        // Add new one-time expense
         setScenario({
           ...scenario,
-          oneTimeExpenses: newOneTimeExpenses,
+          oneTimeExpenses: [...(scenario.oneTimeExpenses || []), expense as OneTimeExpense],
         });
       }
     }
   };
 
   const duplicateIncomeSource = (incomeSource: ScenarioIncomeSource) => {
-    setScenario({
-      ...scenario,
-      incomeSources: [
-        ...(scenario.incomeSources || []),
-        { ...incomeSource, id: uuidv4() },
-      ],
-    });
+    const duplicatedSource = { ...incomeSource, id: uuidv4() };
+    setIncomeSourceDialog({ open: true, incomeSource: duplicatedSource });
   };
 
   const duplicateExpense = (expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => {
-    if (type === 'annual') {
-      setScenario({
-        ...scenario,
-        annualExpenses: [...(scenario.annualExpenses || []), { ...expense as AnnualExpense, id: uuidv4() }],
-      });
-    } else {
-      setScenario({
-        ...scenario,
-        oneTimeExpenses: [...(scenario.oneTimeExpenses || []), { ...expense as OneTimeExpense, id: uuidv4() }],
-      });
-    }
+    const duplicatedExpense = { ...expense, id: uuidv4() };
+    setExpenseDialog({ open: true, expense: duplicatedExpense, type });
   };
 
   const removeIncomeSource = (id: string) => {
@@ -292,6 +310,15 @@ export function ScenarioEditorView() {
       });
     }
   };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -446,153 +473,93 @@ export function ScenarioEditorView() {
 
         <Section 
           title="Income Sources"
-          action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIncomeSourceDialog({ open: true })}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Income Source
-            </Button>
-          }
+          actionLabel="Add Income Source"
+          onAction={() => setIncomeSourceDialog({ open: true })}
+          error={errors.incomeSources}
+          emptyMessage='No income sources defined. Click "Add Income Source" to get started.'
+          hasItems={scenario.incomeSources && scenario.incomeSources.length > 0}
         >
-          {errors.incomeSources && (
-            <Alert variant="destructive" className="py-2">
-              <AlertDescription>{errors.incomeSources}</AlertDescription>
-            </Alert>
-          )}
-
           <CardList>
-            {scenario.incomeSources?.map((source) => (
-              <Card key={source.id} className='py-0'>
-                <CardContent className="p-3">
-                  <div className="flex justify-between items-center">
-                    <div className="space-y-1">
-                      <h4 className="font-medium">{source.name}</h4>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <span>{source.type}</span>
-                        <span>•</span>
-                        <span>${source.annualAmount.toLocaleString()}/year</span>
-                        <span>•</span>
-                        <span>{source.startYear} - {source.endYear || 'Ongoing'}</span>
-                      </div>
-                    </div>
-                    <CardActions
-                      onEdit={() => setIncomeSourceDialog({ open: true, incomeSource: source })}
-                      onDuplicate={() => duplicateIncomeSource(source)}
-                      onDelete={() => removeIncomeSource(source.id)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+            {scenario.incomeSources?.map((income) => (
+              <ListItemCard
+                key={income.id}
+                title={income.name}
+                subtitle={`${income.type} • ${formatCurrency(income.annualAmount)}/year • ${income.startYear}-${income.endYear}`}
+                onEdit={() => setIncomeSourceDialog({ open: true, incomeSource: income })}
+                onDelete={() => removeIncomeSource(income.id)}
+                onDuplicate={() => duplicateIncomeSource(income)}
+              />
             ))}
           </CardList>
         </Section>
 
         <Section 
           title="Annual Expenses"
-          action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setExpenseDialog({ open: true, type: 'annual' })}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Annual Expense
-            </Button>
-          }
+          actionLabel="Add Annual Expense"
+          onAction={() => setExpenseDialog({ open: true, type: 'annual' })}
+          error={errors.annualExpenses}
+          emptyMessage='No annual expenses defined. Click "Add Annual Expense" to get started.'
+          hasItems={scenario.annualExpenses && scenario.annualExpenses.length > 0}
         >
-          {errors.annualExpenses && (
-            <Alert variant="destructive" className="py-2">
-              <AlertDescription>{errors.annualExpenses}</AlertDescription>
-            </Alert>
-          )}
-
           <CardList>
             {scenario.annualExpenses?.map((expense) => (
-              <Card key={expense.id} className='py-0'>
-                <CardContent className="p-3">
-                  <div className="flex justify-between items-center">
-                    <div className="space-y-1">
-                      <h4 className="font-medium">{expense.name}</h4>
-                      <div className="text-sm text-muted-foreground">
-                        ${expense.amount.toLocaleString()}/year
-                      </div>
-                    </div>
-                    <CardActions
-                      onEdit={() => setExpenseDialog({ open: true, expense, type: 'annual' })}
-                      onDuplicate={() => duplicateExpense(expense, 'annual')}
-                      onDelete={() => removeExpense(expense.id, 'annual')}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <ListItemCard
+                key={expense.id}
+                title={expense.name}
+                subtitle={`${formatCurrency(expense.amount)}/year`}
+                onEdit={() => setExpenseDialog({ open: true, expense, type: 'annual' })}
+                onDelete={() => removeExpense(expense.id, 'annual')}
+                onDuplicate={() => duplicateExpense(expense, 'annual')}
+              />
             ))}
           </CardList>
         </Section>
 
         <Section 
           title="One-Time Expenses"
-          action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setExpenseDialog({ open: true, type: 'oneTime' })}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add One-Time Expense
-            </Button>
-          }
+          actionLabel="Add One-Time Expense"
+          onAction={() => setExpenseDialog({ open: true, type: 'oneTime' })}
+          error={errors.oneTimeExpenses}
+          emptyMessage='No one-time expenses defined. Click "Add One-Time Expense" to get started.'
+          hasItems={scenario.oneTimeExpenses && scenario.oneTimeExpenses.length > 0}
         >
-          {errors.oneTimeExpenses && (
-            <Alert variant="destructive" className="py-2">
-              <AlertDescription>{errors.oneTimeExpenses}</AlertDescription>
-            </Alert>
-          )}
-
           <CardList>
             {scenario.oneTimeExpenses?.map((expense) => (
-              <Card key={expense.id} className='py-0'>
-                <CardContent className="p-3">
-                  <div className="flex justify-between items-center">
-                    <div className="space-y-1">
-                      <h4 className="font-medium">{expense.name}</h4>
-                      <div className="text-sm text-muted-foreground">
-                        ${expense.amount.toLocaleString()} in {(expense as OneTimeExpense).year}
-                      </div>
-                    </div>
-                    <CardActions
-                      onEdit={() => setExpenseDialog({ open: true, expense, type: 'oneTime' })}
-                      onDuplicate={() => duplicateExpense(expense, 'oneTime')}
-                      onDelete={() => removeExpense(expense.id, 'oneTime')}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <ListItemCard
+                key={expense.id}
+                title={expense.name}
+                subtitle={`${formatCurrency(expense.amount)} • Year ${expense.year}`}
+                onEdit={() => setExpenseDialog({ open: true, expense, type: 'oneTime' })}
+                onDelete={() => removeExpense(expense.id, 'oneTime')}
+                onDuplicate={() => duplicateExpense(expense, 'oneTime')}
+              />
             ))}
           </CardList>
         </Section>
       </div>
 
-      <div className="max-w-4xl mx-auto mt-8 flex justify-end space-x-4">
-        <Button
-          variant="outline"
-          onClick={() => navigate('/')}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSave}
-        >
-          Save Scenario
-        </Button>
+      <div className="max-w-4xl mx-auto mt-8 flex flex-col items-end space-y-4">
+        {hasErrors && (
+          <Alert variant="destructive" className="w-full">
+            <AlertDescription>
+              Please fix the form errors before saving
+            </AlertDescription>
+          </Alert>
+        )}
+        <div className="flex space-x-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={hasErrors}
+          >
+            Save Scenario
+          </Button>
+        </div>
       </div>
 
       <IncomeSourceDialog

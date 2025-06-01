@@ -25,7 +25,7 @@ $flax: hsla(50, 69%, 72%, 1); */
   --color-accent-foreground: oklch(0.2 0 0);
   
   /* Destructive colors */
-  --color-destructive: oklch(0.2 0 0);
+  --color-destructive: oklch(0.65 0.25 25);
   --color-destructive-foreground: oklch(1 0 0);
   
   /* Border and input colors */

@@ -1,24 +1,22 @@
 import type { ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FormFieldProps {
   id: string;
   label: string;
+  children: ReactNode;
   error?: string;
-  children?: ReactNode;
-  className?: string;
 }
 
-export function FormField({ id, label, error, children, className = '' }: FormFieldProps) {
+export function FormField({ id, label, children, error }: FormFieldProps) {
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
       {error && (
-        <Alert variant="destructive" className="py-2">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="text-sm text-destructive">
+          {error}
+        </div>
       )}
     </div>
   );
