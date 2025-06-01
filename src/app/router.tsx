@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { App } from '@/App';
 import { AssetManagementView } from '@/components/views/AssetManagementView';
 import { GetStartedView } from "@/views/GetStartedView";
+import { ScenarioEditorView } from "@/views/ScenarioEditorView";
 
 export const router = createBrowserRouter([
   {
@@ -18,7 +19,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'scenario/create-baseline',
-        element: <div>Create Baseline Scenario (Coming Soon)</div>, // Placeholder for Task 2
+        element: <ScenarioEditorView />,
       },
     ],
   },
