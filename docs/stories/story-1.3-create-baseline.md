@@ -61,10 +61,10 @@
   - Implemented template selection UI
   - Added custom baseline option
   - Set up navigation to scenario editor
-- [ ] **Task 3: Implement Baseline Scenario Object Creation Logic (AC: 2, 9)**
-    - [ ] If a `templateScenario` is selected: Perform a deep copy, assign a new unique `id`, set a default `name` (e.g., "Baseline: [Template Name]"), and add to `activeUserAppState.scenarios` in the Zustand store via an action (e.g., `addScenario(scenario, {isBaseline: true})`).
-    - [ ] If "Create Custom Scenario" is selected: Create a new `Scenario` object with a unique `id`, initialize with defaults (empty arrays for sub-objects, 0 rates), set a default `name` (e.g., "Custom Baseline"), and add to store.
-    - [ ] The first scenario added to `UserAppState.scenarios` is considered the Baseline.
+- [x] **Task 3: Implement Baseline Scenario Object Creation Logic (AC: 2, 9)**
+    - [x] If a `templateScenario` is selected: Perform a deep copy, assign a new unique `id`, set a default `name` (e.g., "Baseline: [Template Name]"), and add to `activeUserAppState.scenarios` in the Zustand store via an action (e.g., `addScenario(scenario, {isBaseline: true})`).
+    - [x] If "Create Custom Scenario" is selected: Create a new `Scenario` object with a unique `id`, initialize with defaults (empty arrays for sub-objects, 0 rates), set a default `name` (e.g., "Custom Baseline"), and add to store.
+    - [x] The first scenario added to `UserAppState.scenarios` is considered the Baseline.
 - [ ] **Task 4: Implement UI Form for Baseline Scenario Core Details (AC: 2b, 8, 10)**
     - [ ] Develop/utilize a `ScenarioEditorView.tsx` component (as per `front-end-architecture-v0.3.md` and referenced mockup). For this story, focus on the sections for core details.
     - [ ] Form section for `displayLocationName` (required), `locationCountry` (required), `locationState` (optional), `locationCity` (optional). These are editable.
