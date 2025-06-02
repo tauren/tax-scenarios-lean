@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { UserAppState } from '@/types';
 import { generateShareableString } from '@/services/planSharingService';
+import { Link } from 'react-router-dom';
 
 export function Header() {
   const [compressionEnabled, setCompressionEnabledState] = useState(isCompressionEnabled());
@@ -44,7 +45,9 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-40">
       <div className="h-full flex items-center px-4">
         <div className="w-1/4">
-          <h1 className="text-xl font-semibold text-foreground">Tax Scenarios</h1>
+          <Link to="/" className="text-xl font-semibold text-foreground hover:text-primary transition-colors">
+            Tax Scenarios
+          </Link>
         </div>
         <div className="flex-1 text-center">
           <div className="text-sm text-muted-foreground">

@@ -1,4 +1,4 @@
-import type { Scenario, SpecialTaxFeature, GlobalQualitativeConcept, CapitalGainsTaxRate } from '@/types';
+import type { Scenario, SpecialTaxFeature, GlobalQualitativeConcept } from '@/types';
 
 export interface AppConfig {
   templateScenarios: Scenario[];

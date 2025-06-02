@@ -222,6 +222,13 @@ export interface GlobalQualitativeConcept {
   description: string;
 }
 
+export interface ExamplePlan {
+  id: string;
+  name: string;
+  description: string;
+  planDataParam: string;
+}
+
 export const EXPENSE_CATEGORIES = [
   'Housing',
   'Transportation',
