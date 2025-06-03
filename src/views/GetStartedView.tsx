@@ -3,6 +3,9 @@ import { FileText, Globe2, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { appConfigService } from "@/services/appConfigService";
 import { useUserAppState } from "@/store/userAppStateSlice";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { BaselineScenarioDialog } from "@/components/dialogs/BaselineScenarioDialog";
 
 export function GetStartedView() {
   const navigate = useNavigate();
@@ -18,6 +21,7 @@ export function GetStartedView() {
       navigate("/scenarios");
     }
   };
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
     <div className="bg-background flex items-center justify-center p-4 md:p-6 lg:p-8">
@@ -27,6 +31,14 @@ export function GetStartedView() {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             How would you like to begin?
           </h1>
+          <Button
+          size="lg"
+          className="px-8"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          Create Baseline Scenario
+        </Button>
+
         </div>
 
         {/* Current Plan Section */}
@@ -120,6 +132,11 @@ export function GetStartedView() {
           </p>
         </div>
       </div>
+      <BaselineScenarioDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
+
     </div>
   );
 } 

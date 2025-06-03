@@ -1,7 +1,10 @@
-import { Outlet, useNavigate, useLocation, useSearchParams, replace } from 'react-router-dom';
+import { useTraceUpdate } from '@/hooks/useTraceUpdate'; // Import the new hook
+
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { useEffect } from 'react';
 import { usePlanDataFromUrl } from '@/hooks/usePlanDataFromUrl';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import {
@@ -14,53 +17,82 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { clearActivePlanFromStorage, loadActivePlanFromStorage } from '@/services/localStorageService';
+import { clearActivePlanFromStorage } from '@/services/localStorageService';
 
 export function App() {
-  const planData = usePlanDataFromUrl();
-  const setAppState = useUserAppState((state) => state.setAppState);
-  const activePlanInternalName = useUserAppState((state) => state.activePlanInternalName);
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Handle plan data loading
+  // Clean, declarative state to control the dialog's visibility
+  const [isOverwriteDialogOpen, setIsOverwriteDialogOpen] = useState(false);
+
+  // Custom hook to parse plan data from the URL
+  const planData = usePlanDataFromUrl();
+
+  // Zustand state management for the active plan
+  // Use two hook calls instead of one. This prevents infinite re-renders 
+  // due to a new object being created on every render
+  const setAppState = useUserAppState((state) => state.setAppState);
+  const activePlanInternalName = useUserAppState((state) => state.activePlanInternalName);
+  console.log("Active plan internal name:", activePlanInternalName);
+
+  // This single, focused useEffect manages the entire workflow
   useEffect(() => {
-    // Skip if no plan data or not on root path
-    if (!planData || location.pathname !== '/') {
-      return;
-    }
+   // If there's no plan data in the URL, there's nothing to do.
+   if (!planData) {
+    return;
+  }
 
-    // If no existing plan, load directly
-    if (!activePlanInternalName) {
-      clearActivePlanFromStorage(); // Clear any existing data
-      setAppState(planData);
-      navigate('/scenarios', { replace: true });
-    }
-  }, [planData, location.pathname, activePlanInternalName]);
+  // SCENARIO 1: AUTO-LOAD
+  // If there is planData, but no active plan in the app, load it immediately.
+  if (!activePlanInternalName) {
+    console.log("Auto-loading plan from URL...");
+    clearActivePlanFromStorage(); // Good practice to clear old remnants
+    setAppState(planData);
+    navigate('/scenarios', { replace: true });
+    return; // Stop the effect here
+  }
 
-  const handleConfirmLoad = () => {
+  // SCENARIO 2: OVERWRITE PROMPT
+  // If there is planData AND an active plan, show the overwrite dialog.
+  if (activePlanInternalName && activePlanInternalName !== planData.activePlanInternalName) {
+    console.log("Prompting to overwrite existing plan...");
+    setIsOverwriteDialogOpen(true);
+  }
+}, [planData, activePlanInternalName, navigate, setAppState]);
+  
+  // Add this right after all your hooks
+  useTraceUpdate({ planData, activePlanInternalName, isOverwriteDialogOpen, searchParams });
+
+  /** "Yes, Continue" action: Overwrites the plan and redirects. */
+  const handleConfirmOverwrite = () => {
     if (planData) {
       clearActivePlanFromStorage();
       setAppState(planData);
       navigate('/scenarios', { replace: true });
     }
+    setIsOverwriteDialogOpen(false); // Close dialog
   };
 
-  const handleCancelLoad = () => {
-    // const params = new URLSearchParams(location.search);
-    const params = new URLSearchParams(searchParams);
-    params.delete('planData');
-    setSearchParams(params, {replace:true})
-    // navigate(`${location.pathname}${params.toString() ? `?${params.toString()}` : ''}`, { replace: true });
+  /** "No, Cancel" action: Removes the query string and stays on the current page. */
+  const handleCancelOverwrite = () => {
+    // Create a mutable copy of the current search params.
+    const newParams = new URLSearchParams(searchParams);
+    // Remove the specific parameter.
+    newParams.delete('planData');
+    // Use the setter from the hook to update the URL.
+    setSearchParams(newParams, { replace: true });
+    // Close dialog
+    setIsOverwriteDialogOpen(false); 
   };
 
-  // Compute dialog visibility based on conditions
-  const shouldShowDialog = Boolean(
-    planData && 
-    location.pathname === '/' && 
-    loadActivePlanFromStorage()?.activePlanInternalName
-  );
+  /** Handles dialog close from overlay click or Escape key, treating it as a cancel. */
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleCancelOverwrite();
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -72,14 +104,7 @@ export function App() {
       </main>
       <Footer />
 
-      <AlertDialog 
-        open={shouldShowDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            handleCancelLoad();
-          }
-        }}
-      >
+      <AlertDialog open={isOverwriteDialogOpen} onOpenChange={handleOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Overwrite Existing Plan</AlertDialogTitle>
@@ -89,8 +114,8 @@ export function App() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelLoad}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmLoad}>Continue</AlertDialogAction>
+            <AlertDialogCancel onClick={handleCancelOverwrite}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmOverwrite}>Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
