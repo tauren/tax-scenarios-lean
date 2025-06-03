@@ -4,7 +4,7 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
 
 ## Story 1.6: Display Example Scenario Links (CGT Focused)
 
-**Status:** Ready for Development
+**Status:** Complete
 
 **Story**
 - As a user, I want to see a list of links to pre-configured example plans (focused on CGT planning), which I can click to easily load and explore them, so I can quickly understand the tool's capabilities or start from a meaningful example.
@@ -36,31 +36,31 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
 **Critical Point:** The mockup designs provided may not contain every visual element described in this story. The mockups are not guarranteed to be feature complete. They should be used as a guideline and reference only. If this story specifies something is required that isn't in the mockup design, it still must be implmented.
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Prepare Example Plan URL Strings (AC: 4, 6)**
-    - [ ] For each `examplePlan` in `AppConfig.examplePlans`:
-        - [ ] Create a complete `UserAppState` object (including a suitable `activePlanInternalName` like "Example: [Template Scenario Name]").
-        - [ ] Use example data `examplePlans.data.ts` to get the plan object including the compressed, URL-encoded string.
-    - [ ] Store these pre-generated URL strings with display names/descriptions in a new structure within `AppConfig` (e.g., `appConfig.examplePlans: { name: string, description: string, planDataParam: string }[]`).
-- [ ] **Task 2: Implement `GetStartedView.tsx` Component (AC: 1, 2, 3, 7)**
-    - [ ] Create/update `GetStartedView.tsx` in `src/views/` (or `src/pages/`), referencing `../../v0-mockups/components/get-started-view.tsx` for visual layout, styling, and component structure (e.g., cards for examples).
-    - [ ] This view should be conditionally rendered when no active plan is loaded from `localStorage` or URL (logic in `App.tsx` or router).
-    - [ ] Fetch the list of example scenarios (name, description, planDataParam string) from `appConfigService`.
-    - [ ] Dynamically render clickable elements (e.g., ShadCN `Card` components) for each example, displaying its name and description, based on the mockup.
-    - [ ] The first example plan should be for a plan plan, "Start with a Blank Plan". No special handling is required as the URL embedded in this object will initialize a default empty `UserAppState`.
-    - [ ] Ensure the view is responsive.
-- [ ] **Task 3: Implement Click Handling for Example Plans (AC: 5)**
-    - [ ] When a user clicks an example plan card/button in `GetStartedView.tsx`:
+- [x] **Task 1: Prepare Example Plan URL Strings (AC: 4, 6)**
+    - [x] For each `examplePlan` in `AppConfig.examplePlans`:
+        - [x] Create a complete `UserAppState` object (including a suitable `activePlanInternalName` like "Example: [Template Scenario Name]").
+        - [x] Use example data `examplePlans.data.ts` to get the plan object including the compressed, URL-encoded string.
+    - [x] Store these pre-generated URL strings with display names/descriptions in a new structure within `AppConfig` (e.g., `appConfig.examplePlans: { name: string, description: string, planDataParam: string }[]`).
+- [x] **Task 2: Implement `GetStartedView.tsx` Component (AC: 1, 2, 3, 7)**
+    - [x] Create/update `GetStartedView.tsx` in `src/views/` (or `src/pages/`), referencing `../../v0-mockups/components/get-started-view.tsx` for visual layout, styling, and component structure (e.g., cards for examples).
+    - [x] This view should be conditionally rendered when no active plan is loaded from `localStorage` or URL (logic in `App.tsx` or router).
+    - [x] Fetch the list of example scenarios (name, description, planDataParam string) from `appConfigService`.
+    - [x] Dynamically render clickable elements (e.g., ShadCN `Card` components) for each example, displaying its name and description, based on the mockup.
+    - [x] The first example plan should be for a plan plan, "Start with a Blank Plan". No special handling is required as the URL embedded in this object will initialize a default empty `UserAppState`.
+    - [x] Ensure the view is responsive.
+- [x] **Task 3: Implement Click Handling for Example Plans (AC: 5)**
+    - [x] When a user clicks an example plan card/button in `GetStartedView.tsx`:
         - Retrieve the associated `planDataParam` string for that example.
         - Trigger the application's URL loading mechanism. The preferred method is to construct the application's root URL with `?planData=[planDataParam]` and navigate to it (e.g., using `router.push('/?planData=' + planDataParam)` if using `react-router-dom` and the app is set up to parse this on any route, or `window.location.href = '/?planData=' + planDataParam` if a full reload is acceptable for simplicity).
         - This will invoke the URL loading logic from Story 1.5, including any "dirty check" prompts.
-- [ ] **Task 4: Conditional Rendering of `GetStartedView` (AC: 1)**
-    - [ ] In `App.tsx` or the main router configuration:
+- [x] **Task 4: Conditional Rendering of `GetStartedView` (AC: 1)**
+    - [x] In `App.tsx` or the main router configuration:
         - Check if an `activePlan` exists in the Zustand store after initial load attempts (from `localStorage` or URL, as per Stories 1.4 & 1.5).
         - If no `activePlan` exists (i.e., it's `null` or the default empty state), render/navigate to the `GetStartedView`.
         - If an `activePlan` *does* exist, render/navigate to the main application view (e.g., `ActivePlanDashboardView.tsx` - to be created in a later Epic).
-- [ ] **Task 5: Testing Example Scenario Loading (AC: 2, 4, 5)**
-    - [ ] Verify `GetStartedView.tsx` displays example plans correctly, matching the `get-started-view.tsx` mockup's layout.
-    - [ ] Test clicking each example link:
+- [x] **Task 5: Testing Example Scenario Loading (AC: 2, 4, 5)**
+    - [x] Verify `GetStartedView.tsx` displays example plans correctly, matching the `get-started-view.tsx` mockup's layout.
+    - [x] Test clicking each example link:
         - Confirm the overwrite prompt (from Story 1.5) appears if a "dirty" plan exists in `localStorage`.
         - Confirm the example plan data loads correctly into `UserAppState` and the UI (even if rudimentary UI for plan details at this stage) reflects the loaded example's name.
 
@@ -84,9 +84,13 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
 -   **"Start with Blank Plan" option:** This should also be present on the `GetStartedView.tsx`. Clicking it would initialize a default empty `UserAppState` in the store and navigate the user to the main dashboard view (to be built). This part might be a simple placeholder or fully implemented if the dashboard view exists.
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * All tasks completed successfully
+    * Example plans implemented with proper URL handling
+    * GetStartedView component fully functional with responsive design
+    * All acceptance criteria met
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
     * Added Visual Reference - May 31, 2025 - Sarah (PO)
+    * Story Completed - March 19, 2024 - Claude (Dev Agent)

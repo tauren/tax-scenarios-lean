@@ -37,29 +37,43 @@ export function App() {
   const activePlanInternalName = useUserAppState((state) => state.activePlanInternalName);
   console.log("Active plan internal name:", activePlanInternalName);
 
-  // This single, focused useEffect manages the entire workflow
+  // Add route protection for when no active plan exists
   useEffect(() => {
-   // If there's no plan data in the URL, there's nothing to do.
-   if (!planData) {
-    return;
-  }
+    // If we're already on the home page, no need to redirect
+    if (location.pathname === '/') {
+      return;
+    }
 
-  // SCENARIO 1: AUTO-LOAD
-  // If there is planData, but no active plan in the app, load it immediately.
-  if (!activePlanInternalName) {
-    console.log("Auto-loading plan from URL...");
-    clearActivePlanFromStorage(); // Good practice to clear old remnants
-    setAppState(planData);
-    navigate('/scenarios', { replace: true });
-    return; // Stop the effect here
-  }
+    // If there's no active plan, redirect to home
+    if (!activePlanInternalName) {
+      console.log("No active plan found, redirecting to home...");
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, activePlanInternalName, navigate]);
 
-  // SCENARIO 2: OVERWRITE PROMPT
-  // If there is planData AND an active plan, show the overwrite dialog.
-  if (activePlanInternalName && activePlanInternalName !== planData.activePlanInternalName) {
-    console.log("Prompting to overwrite existing plan...");
-    setIsOverwriteDialogOpen(true);
-  }
+  // Handles loading from shareable links with overwrite protection.
+  useEffect(() => {
+    // If there's no plan data in the URL, there's nothing to do.
+    if (!planData) {
+      return;
+    }
+
+    // SCENARIO 1: AUTO-LOAD (no active plan)
+    // If there is planData, but no active plan in the app, load it immediately.
+    if (!activePlanInternalName) {
+      console.log("Auto-loading plan from URL...");
+      clearActivePlanFromStorage(); // Good practice to clear old remnants
+      setAppState(planData);
+      navigate('/scenarios', { replace: true });
+      return; // Stop the effect here
+    }
+
+    // SCENARIO 2: OVERWRITE PROMPT
+    // If there is planData AND an active plan, show the overwrite dialog.
+    if (activePlanInternalName && activePlanInternalName !== planData.activePlanInternalName) {
+      console.log("Prompting to overwrite existing plan...");
+      setIsOverwriteDialogOpen(true);
+    }
 }, [planData, activePlanInternalName, navigate, setAppState]);
   
   // Add this right after all your hooks
