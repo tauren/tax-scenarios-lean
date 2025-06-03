@@ -2,6 +2,161 @@ import type { Scenario } from '@/types';
 
 export const templateScenarios: Scenario[] = [
   {
+    id: "template-blank",
+    name: "Blank Template",
+    projectionPeriod: 10,
+    residencyStartDate: new Date(),
+    incomeSources: [],
+    annualExpenses: [],
+    oneTimeExpenses: [],
+    location: {
+      country: "Blank"
+    },
+    tax: {
+      capitalGains: {
+        shortTermRate: 0,
+        longTermRate: 0,
+        specialConditions: ""
+      },
+      residencyRequirements: {
+        minimumStayDays: 0,
+        visaOptions: [
+        ],
+        specialPrograms: [
+        ]
+      },
+      treaties: {
+        countries: [
+        ],
+        specialProvisions: ""
+      }
+    },
+    costOfLiving: {
+      housing: {
+        averageRent: 0,
+        averagePurchase: 0,
+        currency: "",
+        notes: ""
+      },
+      transportation: {
+        publicTransit: 0,
+        carOwnership: 0,
+        fuel: 0,
+        currency: "",
+        notes: ""
+      },
+      utilities: {
+        electricity: 0,
+        water: 0,
+        internet: 0,
+        currency: "",
+        notes: ""
+      },
+      healthcare: {
+        insurance: 0,
+        outOfPocket: 0,
+        currency: "",
+        notes: ""
+      },
+      groceries: {
+        monthlyAverage: 0,
+        currency: "",
+        notes: ""
+      },
+      dining: {
+        averageMeal: 0,
+        currency: "",
+        notes: ""
+      }
+    },
+    qualityOfLife: {
+      safety: {
+        crimeRate: 0,
+        politicalStability: 0,
+        notes: ""
+      },
+      healthcare: {
+        quality: 0,
+        accessibility: 0,
+        internationalStandards: false,
+        notes: ""
+      },
+      climate: {
+        averageTemperature: "",
+        humidity: "",
+        seasons: [
+        ],
+        notes: ""
+      },
+      infrastructure: {
+        internet: 0,
+        transportation: 0,
+        utilities: 0,
+        notes: ""
+      },
+      culture: {
+        languageBarrier: 0,
+        expatCommunity: 0,
+        culturalDifferences: [
+        ],
+        notes: ""
+      },
+      lifestyle: {
+        entertainment: 0,
+        outdoorActivities: 0,
+        shopping: 0,
+        notes: ""
+      }
+    },
+    practical: {
+      expatProfile: {
+        typicalAge: "",
+        commonProfessions: [
+        ],
+        averageStayDuration: "",
+        communitySize: ""
+      },
+      challenges: {
+        commonIssues: [
+        ],
+        solutions: [
+        ]
+      },
+      advantages: {
+        keyBenefits: [
+        ],
+        uniqueFeatures: [
+        ]
+      },
+      recommendations: {
+        bestFor: [
+        ],
+        notRecommendedFor: [
+        ],
+        tips: [
+        ]
+      }
+    },
+    specialFeatures: {
+      taxOptimization: {
+        uniqueRules: [
+        ],
+        opportunities: [
+        ],
+        restrictions: [
+        ]
+      },
+      residency: {
+        programs: [
+        ],
+        requirements: [
+        ],
+        benefits: [
+        ]
+      }
+    }
+  },
+  {
     id: "template-portugal",
     name: "Portugal",
     projectionPeriod: 10,

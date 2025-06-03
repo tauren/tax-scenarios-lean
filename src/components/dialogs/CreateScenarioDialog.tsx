@@ -25,13 +25,13 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
   const handleCreateFromTemplate = () => {
     if (selectedTemplate) {
       const template = templateScenarios.find(t => t.id === selectedTemplate);
-      navigate('/scenario/edit', { 
-        state: { 
-          templateId: selectedTemplate,
-          template: template
-        } 
-      });
+      if (template) {
+        navigate('/scenarios/new', { 
+          state: { template }
+        });
+      }
     }
+    onClose();
   };
 
   return (

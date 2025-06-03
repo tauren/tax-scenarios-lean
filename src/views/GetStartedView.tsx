@@ -1,27 +1,23 @@
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { FileText, Globe2, Home } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { FileText, Globe2, Home, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { appConfigService } from "@/services/appConfigService";
 import { useUserAppState } from "@/store/userAppStateSlice";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { CreateScenarioDialog } from "@/components/dialogs/CreateScenarioDialog";
 
 export function GetStartedView() {
+  const { activePlanInternalName, scenarios } = useUserAppState();
   const navigate = useNavigate();
   const { examplePlans } = appConfigService.getConfig();
-  const currentPlan = useUserAppState((state) => state.activePlanInternalName);
 
   const handlePlanSelect = (planDataParam: string) => {
     if (planDataParam) {
       // Navigate to root with planData parameter
       navigate(`/?planData=${planDataParam}`);
     } else {
-      // For blank plan, initialize empty state
-      navigate("/scenarios");
+      // For blank plan, initialize empty state and go to overview
+      navigate("/overview");
     }
   };
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
     <div className="bg-background flex items-center justify-center p-4 md:p-6 lg:p-8">
@@ -31,17 +27,10 @@ export function GetStartedView() {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             How would you like to begin?
           </h1>
-          <Button
-            size="lg"
-            className="px-8"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            Create First Scenario
-          </Button>
         </div>
 
         {/* Current Plan Section */}
-        {currentPlan && currentPlan !== "Untitled Plan" && (
+        {activePlanInternalName && (
           <>
             <p className="text-lg text-muted-foreground text-center mb-6">
               Continue where you left off...
@@ -49,8 +38,14 @@ export function GetStartedView() {
             <div className="mb-8">
               <Card
                 className="py-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-2 border-primary/20 bg-primary/5 group"
-                onClick={() => navigate("/scenarios")}
+                onClick={() => navigate("/overview")}
               >
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Continue with Current Plan</span>
+                    <ArrowRight className="h-5 w-5" />
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform duration-200">
@@ -58,11 +53,11 @@ export function GetStartedView() {
                     </div>
                     <div>
                       <div className="font-semibold text-lg group-hover:text-primary transition-colors">
-                        {currentPlan}
+                        {activePlanInternalName}
                       </div>
-                      <CardDescription className="text-sm mt-1">
-                        Review or modify your existing plan.
-                      </CardDescription>
+                      <p className="text-muted-foreground">
+                        {scenarios.length} {scenarios.length === 1 ? 'scenario' : 'scenarios'}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -109,9 +104,9 @@ export function GetStartedView() {
                         <IconComponent className={`h-5 w-5 ${colors.icon}`} />
                       </div>
                       <div>
-                        <div className="font-semibold text-lg group-hover:text-primary transition-colors">
+                        <CardTitle className="font-semibold text-lg group-hover:text-primary transition-colors">
                           {plan.name}
-                        </div>
+                        </CardTitle>
                         <CardDescription className="text-sm mt-1">
                           {plan.description}
                         </CardDescription>
@@ -131,10 +126,6 @@ export function GetStartedView() {
           </p>
         </div>
       </div>
-      <CreateScenarioDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-      />
     </div>
   );
 } 

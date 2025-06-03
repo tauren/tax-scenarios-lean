@@ -8,12 +8,44 @@ import { ArrowLeft, PlusCircle, Pencil, Eye, Trash2, TrendingUp, TrendingDown } 
 import { useState } from 'react';
 import { CreateScenarioDialog } from '@/components/dialogs/CreateScenarioDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { Scenario } from '@/types';
+
+// Temporary interface for computed properties until we implement the calculations
+interface ComputedScenarioProperties {
+  qualitativeFitScore?: number;
+  estimatedCapitalGainsTax?: number;
+  netFinancialOutcome?: number;
+  isBaseline?: boolean;
+}
+
+// Temporary function to get computed properties for a scenario
+// This will be replaced with actual calculations later
+const getComputedProperties = (scenario: Scenario): ComputedScenarioProperties => {
+  // For now, return dummy data
+  return {
+    qualitativeFitScore: 75, // Dummy score
+    estimatedCapitalGainsTax: 50000, // Dummy tax amount
+    netFinancialOutcome: 100000, // Dummy outcome
+    isBaseline: false, // Dummy baseline flag
+  };
+};
 
 export function ScenarioHubView() {
-  const { scenarios } = useUserAppState();
+  const { scenarios, deleteScenario } = useUserAppState();
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState<Set<string>>(new Set());
+  const [scenarioToDelete, setScenarioToDelete] = useState<Scenario | null>(null);
 
   const handleScenarioSelection = (scenarioId: string, checked: boolean) => {
     const newSelected = new Set(selectedScenarios);
@@ -23,6 +55,14 @@ export function ScenarioHubView() {
       newSelected.delete(scenarioId);
     }
     setSelectedScenarios(newSelected);
+  };
+
+  const handleCreateScenario = (template?: Scenario) => {
+    if (template) {
+      navigate('/scenarios/new', { state: { template } });
+    } else {
+      navigate('/scenarios/new');
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -56,6 +96,21 @@ export function ScenarioHubView() {
     { key: 'qualitativeFitScore', label: 'Qualitative Fit Score', format: (val: number) => `${val}/100` },
   ];
 
+  const handleDeleteClick = (scenario: Scenario) => {
+    setScenarioToDelete(scenario);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (scenarioToDelete) {
+      deleteScenario(scenarioToDelete.id);
+      setScenarioToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setScenarioToDelete(null);
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* View Header */}
@@ -87,13 +142,13 @@ export function ScenarioHubView() {
           <div>
             <span className="text-muted-foreground">Best Qualitative Fit: </span>
             <span className="font-medium">
-              {Math.max(...scenarios.map((s) => s.qualitativeFitScore || 0))}/100
+              {Math.max(...scenarios.map((s) => getComputedProperties(s).qualitativeFitScore || 0))}/100
             </span>
           </div>
           <div>
             <span className="text-muted-foreground">Best Net Outcome: </span>
             <span className="font-medium">
-              {formatCurrency(Math.max(...scenarios.map((s) => s.netFinancialOutcome || 0)))}
+              {formatCurrency(Math.max(...scenarios.map((s) => getComputedProperties(s).netFinancialOutcome || 0)))}
             </span>
           </div>
         </div>
@@ -103,88 +158,91 @@ export function ScenarioHubView() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Scenario Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {scenarios.map((scenario) => (
-            <Card key={scenario.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
-                    {scenario.isBaseline && (
-                      <Badge variant="outline" className="mt-2 text-xs">
-                        Baseline
-                      </Badge>
-                    )}
+          {scenarios.map((scenario) => {
+            const computed = getComputedProperties(scenario);
+            return (
+              <Card key={scenario.id} className="relative">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
+                      {computed.isBaseline && (
+                        <Badge variant="outline" className="mt-2 text-xs">
+                          Baseline
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={selectedScenarios.has(scenario.id)}
+                        onCheckedChange={(checked) => handleScenarioSelection(scenario.id, !!checked)}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={selectedScenarios.has(scenario.id)}
-                      onCheckedChange={(checked) => handleScenarioSelection(scenario.id, !!checked)}
-                      className="data-[state=checked]:bg-primary"
-                    />
+                </CardHeader>
+
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Qualitative Fit:</span>
+                    <Badge variant={getScoreBadgeVariant(computed.qualitativeFitScore || 0)}>
+                      {computed.qualitativeFitScore || 0}/100
+                    </Badge>
                   </div>
-                </div>
-              </CardHeader>
 
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Qualitative Fit:</span>
-                  <Badge variant={getScoreBadgeVariant(scenario.qualitativeFitScore || 0)}>
-                    {scenario.qualitativeFitScore || 0}/100
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Est. CGT:</span>
-                  <span className="text-sm font-medium">
-                    {formatCurrency(scenario.estimatedCapitalGainsTax || 0)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Net Outcome:</span>
-                  <div className="flex items-center gap-1">
-                    {(scenario.netFinancialOutcome || 0) > 80000 ? (
-                      <TrendingUp className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3 text-red-600" />
-                    )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Est. CGT:</span>
                     <span className="text-sm font-medium">
-                      {formatCurrency(scenario.netFinancialOutcome || 0)}
+                      {formatCurrency(computed.estimatedCapitalGainsTax || 0)}
                     </span>
                   </div>
-                </div>
-              </CardContent>
 
-              <CardFooter className="pt-3 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/scenario/edit', { state: { scenario } })}
-                  className="flex-1 text-xs"
-                >
-                  <Pencil className="h-3 w-3 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/scenario/edit', { state: { scenario, viewOnly: true } })}
-                  className="flex-1 text-xs"
-                >
-                  <Eye className="h-3 w-3 mr-1" />
-                  Details
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {/* TODO: Implement delete */}}
-                  className="text-xs"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Net Outcome:</span>
+                    <div className="flex items-center gap-1">
+                      {(computed.netFinancialOutcome || 0) > 80000 ? (
+                        <TrendingUp className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3 text-red-600" />
+                      )}
+                      <span className="text-sm font-medium">
+                        {formatCurrency(computed.netFinancialOutcome || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="pt-3 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/scenarios/${scenario.id}/edit`)}
+                    className="flex-1 text-xs"
+                  >
+                    <Pencil className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/scenarios/${scenario.id}`)}
+                    className="flex-1 text-xs"
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Details
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteClick(scenario)}
+                    className="text-xs"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
@@ -206,14 +264,17 @@ export function ScenarioHubView() {
                 {comparisonMetrics.map((metric) => (
                   <TableRow key={metric.key}>
                     <TableCell className="font-medium">{metric.label}</TableCell>
-                    {selectedScenariosData.map((scenario) => (
-                      <TableCell
-                        key={scenario.id}
-                        className={metric.highlight ? 'bg-muted/50 font-medium' : ''}
-                      >
-                        {metric.format(scenario[metric.key as keyof typeof scenario] as number || 0)}
-                      </TableCell>
-                    ))}
+                    {selectedScenariosData.map((scenario) => {
+                      const computed = getComputedProperties(scenario);
+                      return (
+                        <TableCell
+                          key={scenario.id}
+                          className={metric.highlight ? 'bg-muted/50 font-medium' : ''}
+                        >
+                          {metric.format(computed[metric.key as keyof ComputedScenarioProperties] as number || 0)}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
@@ -226,6 +287,23 @@ export function ScenarioHubView() {
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
       />
+
+      <AlertDialog open={!!scenarioToDelete} onOpenChange={() => setScenarioToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Scenario</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{scenarioToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

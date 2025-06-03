@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense } from '@/types';
 import type { ScenarioValidationErrors } from '@/types/validation';
@@ -129,7 +129,8 @@ const validationRules: ValidationRule[] = [
 export function ScenarioEditorView() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { addScenario } = useUserAppState();
+  const { id } = useParams();
+  const { addScenario, updateScenario, scenarios } = useUserAppState();
   const [scenario, setScenario] = useState<Scenario>({
     id: uuidv4(),
     name: '',
@@ -157,39 +158,55 @@ export function ScenarioEditorView() {
   const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
 
+  const isCreating = id === 'new';
+
   useEffect(() => {
-    // If we have a template from the previous view, use it
-    const state = location.state as { template?: Scenario; scenario?: Scenario };
-    if (state?.template) {
-      // Deep copy the template scenario
-      const templateCopy = deepClone(state.template);
-      setScenario({
-        ...templateCopy,
-        id: uuidv4(), // Ensure new ID
-        name: templateCopy.name || templateCopy.location.country,
-        projectionPeriod: templateCopy.projectionPeriod || 10,
-        residencyStartDate: templateCopy.residencyStartDate instanceof Date ? templateCopy.residencyStartDate : new Date(),
-        location: {
-          country: templateCopy.location?.country || '',
-          state: templateCopy.location?.state || '',
-          city: templateCopy.location?.city || '',
-        },
-        tax: {
-          capitalGains: {
-            shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate || 0,
-            longTermRate: templateCopy.tax?.capitalGains?.longTermRate || 0,
-            specialConditions: templateCopy.tax?.capitalGains?.specialConditions,
+    // Check if we're creating a new scenario by checking the pathname
+    const isNewScenario = location.pathname === '/scenarios/new';
+
+    // If we have an ID in the URL, find the scenario
+    if (id && !isNewScenario) {
+      const existingScenario = scenarios.find(s => s.id === id);
+      if (existingScenario) {
+        setScenario(deepClone(existingScenario));
+      } else {
+        // If scenario not found, redirect to scenarios list
+        navigate('/scenarios');
+      }
+    } else if (isNewScenario) {
+      // If we have a template from the previous view, use it
+      const state = location.state as { template?: Scenario };
+      if (state?.template) {
+        // Deep copy the template scenario
+        const templateCopy = deepClone(state.template);
+        
+        // Create a new scenario from the template
+        const newScenario = {
+          ...templateCopy,
+          id: uuidv4(), // Ensure new ID for new scenario
+          name: templateCopy.name || templateCopy.location.country,
+          projectionPeriod: templateCopy.projectionPeriod || 10,
+          residencyStartDate: templateCopy.residencyStartDate instanceof Date ? templateCopy.residencyStartDate : new Date(),
+          location: {
+            country: templateCopy.location?.country || '',
+            state: templateCopy.location?.state || '',
+            city: templateCopy.location?.city || '',
           },
-        },
-        incomeSources: templateCopy.incomeSources || [],
-        annualExpenses: templateCopy.annualExpenses || [],
-        oneTimeExpenses: templateCopy.oneTimeExpenses || [],
-      });
-    } else if (state?.scenario) {
-      // If we're editing an existing scenario, use it
-      setScenario(deepClone(state.scenario));
+          tax: {
+            capitalGains: {
+              shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate || 0,
+              longTermRate: templateCopy.tax?.capitalGains?.longTermRate || 0,
+              specialConditions: templateCopy.tax?.capitalGains?.specialConditions,
+            },
+          },
+          incomeSources: templateCopy.incomeSources || [],
+          annualExpenses: templateCopy.annualExpenses || [],
+          oneTimeExpenses: templateCopy.oneTimeExpenses || [],
+        };
+        setScenario(newScenario);
+      }
     }
-  }, [location.state]);
+  }, [id, location.state, location.pathname, scenarios, navigate]);
 
   const validateField = (field: ValidationField, value: any): string | undefined => {
     const rule = validationRules.find(r => r.field === field);
@@ -239,7 +256,7 @@ export function ScenarioEditorView() {
 
     // Ensure all required fields are present and properly typed
     const scenarioToSave: Scenario = {
-      id: scenario.id || uuidv4(), // Required by Scenario type
+      id: scenario.id, // Keep the existing ID
       name: scenario.name || '',
       projectionPeriod: scenario.projectionPeriod || 30,
       residencyStartDate: scenario.residencyStartDate!, // We know this is valid because of validation
@@ -260,7 +277,13 @@ export function ScenarioEditorView() {
       oneTimeExpenses: scenario.oneTimeExpenses || [],
     };
 
-    addScenario(scenarioToSave);
+    if (id && id !== 'new') {
+      // Update existing scenario
+      updateScenario(id, scenarioToSave);
+    } else {
+      // Create new scenario
+      addScenario(scenarioToSave);
+    }
     navigate('/scenarios');
   };
 
@@ -374,9 +397,9 @@ export function ScenarioEditorView() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Edit Scenario</h1>
+          <h1 className="text-3xl font-bold">{isCreating ? 'Create Scenario' : 'Edit Scenario'}</h1>
           <p className="text-muted-foreground mt-2">
-            Configure your scenario details and settings
+            {isCreating ? 'Configure your new scenario details and settings' : 'Configure your scenario details and settings'}
           </p>
         </div>
         <div className="flex gap-4">
@@ -384,7 +407,7 @@ export function ScenarioEditorView() {
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={hasErrors}>
-            Save Changes
+            {isCreating ? 'Create Scenario' : 'Save Changes'}
           </Button>
         </div>
       </div>

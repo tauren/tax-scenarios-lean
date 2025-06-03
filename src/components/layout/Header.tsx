@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { UserAppState } from '@/types';
 import { generateShareableString } from '@/services/planSharingService';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export function Header() {
+  const navigate = useNavigate();
   const [compressionEnabled, setCompressionEnabledState] = useState(isCompressionEnabled());
   const activePlanInternalName = useUserAppState((state: UserAppState) => state.activePlanInternalName);
   const state = useUserAppState((state: UserAppState) => state);
@@ -50,9 +51,14 @@ export function Header() {
           </Link>
         </div>
         <div className="flex-1 text-center">
-          <div className="text-sm text-muted-foreground">
-            {activePlanInternalName}
-          </div>
+          {activePlanInternalName && (
+            <button
+              onClick={() => navigate('/overview')}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              {activePlanInternalName}
+            </button>
+          )}
         </div>
         <div className="w-1/4 flex justify-end items-center space-x-2">
           <Button variant="outline" onClick={toggleCompression}>

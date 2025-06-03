@@ -4,6 +4,7 @@ import { AssetManagementView } from '@/components/views/AssetManagementView';
 import { GetStartedView } from "@/views/GetStartedView";
 import { ScenarioEditorView } from "@/views/ScenarioEditorView";
 import { ScenarioHubView } from "@/views/ScenarioHubView";
+import { PlanOverview } from "@/views/PlanOverview";
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
         element: <GetStartedView />,
       },
       {
+        path: 'overview',
+        element: <PlanOverview />,
+      },
+      {
         path: 'assets',
         element: <AssetManagementView />,
       },
@@ -23,7 +28,15 @@ export const router = createBrowserRouter([
         element: <ScenarioHubView />,
       },
       {
-        path: 'scenario/edit',
+        path: 'scenarios/new',
+        element: <ScenarioEditorView />,
+      },
+      {
+        path: 'scenarios/:id',
+        element: <ScenarioEditorView />,
+      },
+      {
+        path: 'scenarios/:id/edit',
         element: <ScenarioEditorView />,
       },
     ],
