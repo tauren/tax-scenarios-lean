@@ -3,33 +3,18 @@ import { FileText, Globe2, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { appConfigService } from "@/services/appConfigService";
 import { useUserAppState } from "@/store/userAppStateSlice";
-import { usePlanDataFromUrl } from "@/hooks/usePlanDataFromUrl";
 
 export function GetStartedView() {
   const navigate = useNavigate();
-  const setAppState = useUserAppState((state) => state.setAppState);
   const { examplePlans } = appConfigService.getConfig();
   const currentPlan = useUserAppState((state) => state.activePlanInternalName);
-  const planData = usePlanDataFromUrl();
-
-  // Handle plan data from URL
-  if (planData) {
-    setAppState(planData);
-    navigate("/scenarios");
-    return null;
-  }
 
   const handlePlanSelect = (planDataParam: string) => {
     if (planDataParam) {
-      // Navigate to scenarios with planData parameter
-      navigate(`/scenarios?planData=${planDataParam}`);
+      // Navigate to root with planData parameter
+      navigate(`/?planData=${planDataParam}`);
     } else {
       // For blank plan, initialize empty state
-      setAppState({
-        activePlanInternalName: "Untitled Plan",
-        initialAssets: [],
-        scenarios: []
-      });
       navigate("/scenarios");
     }
   };

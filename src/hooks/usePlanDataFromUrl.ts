@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { parseShareableString } from '@/services/planSharingService';
 import type { UserAppState } from '@/types';
 
@@ -7,21 +7,18 @@ import type { UserAppState } from '@/types';
  * @returns The parsed plan data if present and valid, null otherwise
  */
 export function usePlanDataFromUrl(): UserAppState | null {
-  const [planData, setPlanData] = useState<UserAppState | null>(null);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const encodedData = params.get('planData');
 
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const encodedData = params.get('planData');
-      if (encodedData) {
-        const parsedData = parseShareableString(encodedData);
-        setPlanData(parsedData);
-      }
-    } catch (error) {
-      console.error('Error parsing plan data from URL:', error);
-      setPlanData(null);
-    }
-  }, []); // Only run on mount
+  if (!encodedData) {
+    return null;
+  }
 
-  return planData;
+  try {
+    return parseShareableString(encodedData);
+  } catch (error) {
+    console.error('Error parsing plan data from URL:', error);
+    return null;
+  }
 } 

@@ -17,6 +17,8 @@ const debouncedSave = (state: UserAppStateSlice) => {
       console.error('Failed to save state to localStorage');
       // TODO: Add UI notification when uiSlice is available
     }
+    // Clear dirty state after successful save
+    state.setDirty(false);
   }, 1000);
 };
 
@@ -29,10 +31,15 @@ const initialState = loadActivePlanFromStorage() || {
 
 export const useUserAppState = create<UserAppStateSlice>((set) => ({
   ...initialState,
+  isDirty: false,
+
+  setDirty: (isDirty: boolean) => {
+    set((state) => ({ ...state, isDirty }));
+  },
 
   setActivePlanInternalName: (name: string) => {
     set((state) => {
-      const newState = { ...state, activePlanInternalName: name };
+      const newState = { ...state, activePlanInternalName: name, isDirty: true };
       debouncedSave(newState);
       return newState;
     });
@@ -44,6 +51,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       const newState = {
         ...state,
         initialAssets: [...state.initialAssets, newAsset],
+        isDirty: true,
       };
       debouncedSave(newState);
       return newState;
@@ -57,6 +65,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
         initialAssets: state.initialAssets.map((asset) =>
           asset.id === assetId ? { ...asset, ...updatedAsset } : asset
         ),
+        isDirty: true,
       };
       debouncedSave(newState);
       return newState;
@@ -68,6 +77,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       const newState = {
         ...state,
         initialAssets: state.initialAssets.filter((asset) => asset.id !== assetId),
+        isDirty: true,
       };
       debouncedSave(newState);
       return newState;
@@ -80,6 +90,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       const newState = {
         ...state,
         scenarios: [...state.scenarios, newScenario],
+        isDirty: true,
       };
 
       // Set the active plan name if it's not set
@@ -99,6 +110,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
         scenarios: state.scenarios.map((scenario) =>
           scenario.id === scenarioId ? { ...scenario, ...updatedScenario } : scenario
         ),
+        isDirty: true,
       };
       debouncedSave(newState);
       return newState;
@@ -110,6 +122,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       const newState = {
         ...state,
         scenarios: state.scenarios.filter((scenario) => scenario.id !== scenarioId),
+        isDirty: true,
       };
       debouncedSave(newState);
       return newState;
@@ -122,6 +135,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       activePlanInternalName: '',
       initialAssets: [],
       scenarios: [],
+      isDirty: false,
     });
   },
 
@@ -130,6 +144,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       const mergedState = {
         ...state,
         ...newState,
+        isDirty: false, // Reset dirty state when loading new plan
       };
       debouncedSave(mergedState);
       return mergedState;
