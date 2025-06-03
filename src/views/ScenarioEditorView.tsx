@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense } from '@/types';
 import type { ScenarioValidationErrors } from '@/types/validation';
@@ -127,7 +127,8 @@ const validationRules: ValidationRule[] = [
 ];
 
 export function ScenarioEditorView() {
-  const { id } = useParams<{ id: string }>();
+  // TODO: Add a way to load a scenario from a URL param
+  // const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const { addScenario } = useUserAppState();
@@ -243,7 +244,7 @@ export function ScenarioEditorView() {
 
     // Ensure all required fields are present and properly typed
     const scenarioToSave: Scenario = {
-      id: scenario.id || uuidv4(),
+      id: scenario.id || uuidv4(), // Required by Scenario type
       name: scenario.name || '',
       projectionPeriod: scenario.projectionPeriod || 30,
       residencyStartDate: scenario.residencyStartDate!, // We know this is valid because of validation
