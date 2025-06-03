@@ -1,16 +1,14 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useUserAppState } from '@/store/userAppStateSlice';
 import { appConfigService } from '@/services/appConfigService';
+import { useState } from 'react';
+import { formatCurrency } from '@/lib/utils';
+import type { Scenario } from '@/types';
 
 interface CreateScenarioDialogProps {
   isOpen: boolean;
@@ -19,79 +17,130 @@ interface CreateScenarioDialogProps {
 
 export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogProps) {
   const navigate = useNavigate();
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const { scenarios: userScenarios } = useUserAppState();
   const templateScenarios = appConfigService.getConfig().templateScenarios;
+  const [selectedTemplate, setSelectedTemplate] = useState<Scenario | null>(null);
+  const [selectedMyScenario, setSelectedMyScenario] = useState<Scenario | null>(null);
 
   const handleCreateFromTemplate = () => {
-    if (selectedTemplate) {
-      const template = templateScenarios.find(t => t.id === selectedTemplate);
-      if (template) {
-        navigate('/scenarios/new', { 
-          state: { template }
-        });
-      }
+    const template = selectedTemplate || selectedMyScenario;
+    if (template) {
+      navigate('/scenarios/new', { 
+        state: { template }
+      });
+    } else {
+      navigate('/scenarios/new');
     }
-    onClose();
+  };
+
+  const renderScenarioCard = (scenario: Scenario, isTemplate: boolean) => {
+    const isSelected = isTemplate 
+      ? selectedTemplate?.id === scenario.id
+      : selectedMyScenario?.id === scenario.id;
+    
+    const handleSelect = () => {
+      if (isTemplate) {
+        setSelectedTemplate(scenario);
+        setSelectedMyScenario(null);
+      } else {
+        setSelectedMyScenario(scenario);
+        setSelectedTemplate(null);
+      }
+    };
+
+    return (
+      <Card 
+        key={scenario.id} 
+        className={`cursor-pointer transition-colors hover:bg-accent/50 ${
+          isSelected ? 'border-primary bg-accent/50' : ''
+        }`}
+        onClick={handleSelect}
+      >
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">{scenario.name}</CardTitle>
+          {isTemplate && (
+            <Badge variant="outline" className="w-fit">
+              Template
+            </Badge>
+          )}
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Gross Income:</span>
+              <span>{formatCurrency(scenario.financial?.income?.grossIncome || 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Expenses:</span>
+              <span>{formatCurrency(scenario.financial?.expenses?.total || 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Net Income:</span>
+              <span>{formatCurrency((scenario.financial?.income?.grossIncome || 0) - (scenario.financial?.expenses?.total || 0))}</span>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="pt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCreateFromTemplate();
+            }}
+          >
+            Use This {isTemplate ? 'Template' : 'Scenario'}
+          </Button>
+        </CardFooter>
+      </Card>
+    );
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[800px] h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Create New Scenario</DialogTitle>
           <DialogDescription>
-            Choose a template to start your new scenario. Each template includes predefined settings that you can customize.
+            Choose a template or existing scenario to start from, or create a new scenario from scratch.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto pr-2 mt-2">
-          <div className="grid gap-4">
-            {templateScenarios.map((template) => (
-              <Card
-                key={template.id}
-                className={`cursor-pointer transition-all ${
-                  selectedTemplate === template.id
-                    ? 'bg-muted border-primary'
-                    : 'hover:bg-muted/50'
-                }`}
-                onClick={() => setSelectedTemplate(template.id)}
-              >
-                <CardHeader>
-                  <CardTitle>{template.name}</CardTitle>
-                  <CardDescription>
-                    Capital Gains Tax: {template.tax?.capitalGains?.longTermRate || 0}%
-                    {template.tax?.capitalGains?.specialConditions && (
-                      <span className="block mt-1 text-xs">
-                        {template.tax.capitalGains.specialConditions.substring(0, 100)}...
-                      </span>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Cost of Living: {template.costOfLiving?.housing?.currency || 'USD'} {template.costOfLiving?.housing?.averageRent || 0}/month</p>
-                    <p>Quality of Life: {template.qualityOfLife?.safety?.crimeRate || 0}/5 Safety Rating</p>
-                    {template.practical?.advantages?.keyBenefits && (
-                      <p className="text-xs">
-                        Key Benefits: {template.practical.advantages.keyBenefits[0]}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        <Tabs defaultValue="templates" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="w-full">
+            <TabsTrigger value="templates" className="flex-1">Template Scenarios</TabsTrigger>
+            <TabsTrigger value="my-scenarios" className="flex-1">My Scenarios</TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-hidden">
+            <TabsContent value="templates" className="h-full mt-0">
+              <div className="h-full overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {templateScenarios.map(scenario => renderScenarioCard(scenario, true))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="my-scenarios" className="h-full mt-0">
+              <div className="h-full overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {userScenarios.map(scenario => renderScenarioCard(scenario, false))}
+                </div>
+              </div>
+            </TabsContent>
           </div>
-        </div>
+        </Tabs>
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button
+          <Button 
             onClick={handleCreateFromTemplate}
-            disabled={!selectedTemplate}
+            disabled={!selectedTemplate && !selectedMyScenario}
           >
-            Continue with Template
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, PlusCircle, Pencil, Eye, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Pencil, Eye, Trash2, TrendingUp, TrendingDown, Copy, MoreVertical } from 'lucide-react';
 import { useState } from 'react';
 import { CreateScenarioDialog } from '@/components/dialogs/CreateScenarioDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,6 +18,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Scenario } from '@/types';
 
 // Temporary interface for computed properties until we implement the calculations
@@ -57,13 +63,13 @@ export function ScenarioHubView() {
     setSelectedScenarios(newSelected);
   };
 
-  const handleCreateScenario = (template?: Scenario) => {
-    if (template) {
-      navigate('/scenarios/new', { state: { template } });
-    } else {
-      navigate('/scenarios/new');
-    }
-  };
+  // const handleCreateScenario = (template?: Scenario) => {
+  //   if (template) {
+  //     navigate('/scenarios/new', { state: { template } });
+  //   } else {
+  //     navigate('/scenarios/new');
+  //   }
+  // };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -74,11 +80,11 @@ export function ScenarioHubView() {
     }).format(amount);
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  // const getScoreColor = (score: number) => {
+  //   if (score >= 80) return 'text-green-600';
+  //   if (score >= 60) return 'text-yellow-600';
+  //   return 'text-red-600';
+  // };
 
   const getScoreBadgeVariant = (score: number) => {
     if (score >= 80) return 'default';
@@ -111,6 +117,12 @@ export function ScenarioHubView() {
     setScenarioToDelete(null);
   };
 
+  const handleDuplicateScenario = (scenario: Scenario) => {
+    navigate('/scenarios/new', { 
+      state: { template: scenario }
+    });
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* View Header */}
@@ -130,14 +142,10 @@ export function ScenarioHubView() {
 
       {/* Summary Stats */}
       <div className="mb-8 p-4 bg-muted/50 rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Total Scenarios: </span>
             <span className="font-medium">{scenarios.length}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Selected for Comparison: </span>
-            <span className="font-medium">{selectedScenarios.size}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Best Qualitative Fit: </span>
@@ -231,14 +239,26 @@ export function ScenarioHubView() {
                     <Eye className="h-3 w-3 mr-1" />
                     Details
                   </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteClick(scenario)}
-                    className="text-xs"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleDuplicateScenario(scenario)}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => handleDeleteClick(scenario)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardFooter>
               </Card>
             );
