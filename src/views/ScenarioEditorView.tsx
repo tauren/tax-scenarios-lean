@@ -246,7 +246,7 @@ export function ScenarioEditorView() {
       id: scenario.id || uuidv4(),
       name: scenario.name || '',
       projectionPeriod: scenario.projectionPeriod || 30,
-      residencyStartDate: (scenario.residencyStartDate || new Date()) as Date,
+      residencyStartDate: scenario.residencyStartDate!, // We know this is valid because of validation
       location: {
         country: scenario.location?.country || '',
         state: scenario.location?.state || '',
@@ -528,8 +528,10 @@ export function ScenarioEditorView() {
                         mode="single"
                         selected={scenario.residencyStartDate}
                         onSelect={(date: Date | undefined) => {
-                          setScenario({ ...scenario, residencyStartDate: date });
-                          handleFieldBlur('residencyStartDate', date);
+                          if (date) {
+                            setScenario({ ...scenario, residencyStartDate: date });
+                            handleFieldBlur('residencyStartDate', date);
+                          }
                         }}
                         initialFocus
                       />

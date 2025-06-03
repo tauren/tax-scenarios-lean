@@ -77,7 +77,7 @@ export function ExpenseDialog({
     }
   }, [open, formData]);
 
-  const validateField = (field: keyof ValidationErrors, value: any): string | undefined => {
+  const validateField = (field: keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), value: any): string | undefined => {
     switch (field) {
       case 'name':
         return !value?.trim() ? 'Name is required' : undefined;
@@ -91,7 +91,7 @@ export function ExpenseDialog({
     }
   };
 
-  const handleFieldBlur = (field: keyof ValidationErrors, value: any) => {
+  const handleFieldBlur = (field: keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), value: any) => {
     const error = validateField(field, value);
     setErrors(prev => {
       const newErrors = { ...prev };
@@ -105,14 +105,14 @@ export function ExpenseDialog({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
+    const newErrors: AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors = {};
     let isValid = true;
 
     // Validate each field
     Object.keys(formData).forEach((field) => {
-      const error = validateField(field as keyof ValidationErrors, formData[field as keyof typeof formData]);
+      const error = validateField(field as keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), formData[field as keyof typeof formData]);
       if (error) {
-        newErrors[field as keyof ValidationErrors] = error;
+        newErrors[field as keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors)] = error;
         isValid = false;
       }
     });
