@@ -84,7 +84,7 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
     });
   },
 
-  addScenario: (scenario: Scenario, options?: { isBaseline?: boolean }) => {
+  addScenario: (scenario: Scenario) => {
     set((state) => {
       const newScenario = { ...scenario, id: uuid() };
       const newState = {
