@@ -3,7 +3,7 @@ import { App } from '@/App';
 import { AssetManagementView } from '@/components/views/AssetManagementView';
 import { GetStartedView } from "@/views/GetStartedView";
 import { ScenarioEditorView } from "@/views/ScenarioEditorView";
-import { ScenariosView } from "@/views/ScenariosView";
+import { ScenarioHubView } from "@/views/ScenarioHubView";
 
 export const router = createBrowserRouter([
   {
@@ -20,7 +20,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'scenarios',
-        element: <ScenariosView />,
+        element: <ScenarioHubView />,
       },
       {
         path: 'scenario/edit',
