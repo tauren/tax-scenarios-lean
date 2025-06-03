@@ -1,9 +1,20 @@
 ## Story 2.1: Create Comparison Scenario (from Template or Custom - CGT Focus)
 
-**Status:** Draft
+**Status:** Ready for Development
 
 **Story**
 - As a user, I want to add a "Comparison Scenario" to my Active Plan, either by selecting a CGT-focused `templateScenario` or by creating a 'custom' scenario where I define the location and my effective Capital Gains Tax rates, so I can model different situations.
+
+**Dependencies**
+- Story 1.0: Static Data - Required for `appConfigService.ts` and `templateScenarios` data
+- Story 1.1: App Shell - Required for `UserAppState` interface and basic application structure
+- Story 1.2: Asset Management - Required for `initialAssets` in `UserAppState`
+- Story 1.3: Create Baseline - Required for `scenarios` in `UserAppState`
+- Story 1.4: LocalStorage - Required for persistence strategy
+- Story 1.5: Load from URL - Required for URL loading mechanism
+- Story 1.6: Example Plans - Required for template scenario handling
+- Story 1.7: CI/CD Pipeline - Required for deployment
+- Architecture Documents: Required for `UserAppState` interface and scenario structure
 
 **Acceptance Criteria (ACs)**
 1.  User can initiate the creation of a new "Comparison Scenario" within their Active Plan (e.g., from the "Scenario Hub / Comparison Dashboard" - to be built).
@@ -64,8 +75,14 @@
 -   **Focus of this Story:** This story is about *creating the scenario shell* and getting its basic identity (name, location, origin - template/custom) into the system. Detailed financial input for this newly created comparison scenario is covered in Story 2.3.
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * Story prepared for development
+    * All prerequisites (Stories 1.0 through 1.7) are completed
+    * Ready for implementation of comparison scenario creation functionality
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
+    * Updated Status - June 1, 2025 - Claude (Dev Agent)
+        - Marked as Ready for Development
+        - Added completion notes
+        - Verified all prerequisites are met

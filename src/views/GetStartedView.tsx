@@ -5,7 +5,7 @@ import { appConfigService } from "@/services/appConfigService";
 import { useUserAppState } from "@/store/userAppStateSlice";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { BaselineScenarioDialog } from "@/components/dialogs/BaselineScenarioDialog";
+import { CreateScenarioDialog } from "@/components/dialogs/CreateScenarioDialog";
 
 export function GetStartedView() {
   const navigate = useNavigate();
@@ -32,44 +32,43 @@ export function GetStartedView() {
             How would you like to begin?
           </h1>
           <Button
-          size="lg"
-          className="px-8"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          Create Baseline Scenario
-        </Button>
-
+            size="lg"
+            className="px-8"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            Create First Scenario
+          </Button>
         </div>
 
         {/* Current Plan Section */}
         {currentPlan && currentPlan !== "Untitled Plan" && (
           <>
-          <p className="text-lg text-muted-foreground text-center mb-6">
-            Continue where you left off...
-          </p>      
-          <div className="mb-8">
-            <Card
-              className="py-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-2 border-primary/20 bg-primary/5 group"
-              onClick={() => navigate("/scenarios")}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform duration-200">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-lg group-hover:text-primary transition-colors">
-                      {currentPlan}
+            <p className="text-lg text-muted-foreground text-center mb-6">
+              Continue where you left off...
+            </p>      
+            <div className="mb-8">
+              <Card
+                className="py-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-2 border-primary/20 bg-primary/5 group"
+                onClick={() => navigate("/scenarios")}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform duration-200">
+                      <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <CardDescription className="text-sm mt-1">
-                    Review or modify your existing plan.
-                    </CardDescription>
+                    <div>
+                      <div className="font-semibold text-lg group-hover:text-primary transition-colors">
+                        {currentPlan}
+                      </div>
+                      <CardDescription className="text-sm mt-1">
+                        Review or modify your existing plan.
+                      </CardDescription>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </>
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
 
         {/* Example Plans Section */}
@@ -132,11 +131,10 @@ export function GetStartedView() {
           </p>
         </div>
       </div>
-      <BaselineScenarioDialog
+      <CreateScenarioDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
       />
-
     </div>
   );
 } 

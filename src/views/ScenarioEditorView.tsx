@@ -127,8 +127,6 @@ const validationRules: ValidationRule[] = [
 ];
 
 export function ScenarioEditorView() {
-  // TODO: Add a way to load a scenario from a URL param
-  // const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const { addScenario } = useUserAppState();
@@ -161,14 +159,14 @@ export function ScenarioEditorView() {
 
   useEffect(() => {
     // If we have a template from the previous view, use it
-    const state = location.state as { template?: Scenario; isCustom?: boolean };
+    const state = location.state as { template?: Scenario; scenario?: Scenario };
     if (state?.template) {
       // Deep copy the template scenario
       const templateCopy = deepClone(state.template);
       setScenario({
         ...templateCopy,
         id: uuidv4(), // Ensure new ID
-        name: `Baseline: ${templateCopy.location.country}`,
+        name: templateCopy.name || templateCopy.location.country,
         projectionPeriod: templateCopy.projectionPeriod || 10,
         residencyStartDate: templateCopy.residencyStartDate instanceof Date ? templateCopy.residencyStartDate : new Date(),
         location: {
@@ -187,12 +185,9 @@ export function ScenarioEditorView() {
         annualExpenses: templateCopy.annualExpenses || [],
         oneTimeExpenses: templateCopy.oneTimeExpenses || [],
       });
-    } else if (state?.isCustom) {
-      setScenario(prev => ({
-        ...prev,
-        id: uuidv4(), // Ensure new ID
-        name: 'Custom Baseline',
-      }));
+    } else if (state?.scenario) {
+      // If we're editing an existing scenario, use it
+      setScenario(deepClone(state.scenario));
     }
   }, [location.state]);
 
@@ -265,7 +260,7 @@ export function ScenarioEditorView() {
       oneTimeExpenses: scenario.oneTimeExpenses || [],
     };
 
-    addScenario(scenarioToSave, { isBaseline: true });
+    addScenario(scenarioToSave);
     navigate('/scenarios');
   };
 
@@ -376,12 +371,22 @@ export function ScenarioEditorView() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Edit Scenario</h1>
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          Back
-        </Button>
+    <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Edit Scenario</h1>
+          <p className="text-muted-foreground mt-2">
+            Configure your scenario details and settings
+          </p>
+        </div>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={() => navigate('/scenarios')}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={hasErrors}>
+            Save Changes
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={(e) => {
@@ -692,15 +697,6 @@ export function ScenarioEditorView() {
               ))}
             </CardList>
           </Section>
-        </div>
-
-        <div className="mt-6 flex justify-end space-x-4">
-          <Button variant="outline" onClick={() => navigate(-1)} type="button">
-            Cancel
-          </Button>
-          <Button type="submit" disabled={hasErrors}>
-            Save Scenario
-          </Button>
         </div>
       </form>
 

@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
         element: <ScenariosView />,
       },
       {
-        path: 'scenario/create-baseline',
+        path: 'scenario/edit',
         element: <ScenarioEditorView />,
       },
     ],

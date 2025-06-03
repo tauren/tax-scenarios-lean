@@ -12,12 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { appConfigService } from '@/services/appConfigService';
 
-interface BaselineScenarioDialogProps {
+interface CreateScenarioDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function BaselineScenarioDialog({ isOpen, onClose }: BaselineScenarioDialogProps) {
+export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogProps) {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const templateScenarios = appConfigService.getConfig().templateScenarios;
@@ -25,7 +25,7 @@ export function BaselineScenarioDialog({ isOpen, onClose }: BaselineScenarioDial
   const handleCreateFromTemplate = () => {
     if (selectedTemplate) {
       const template = templateScenarios.find(t => t.id === selectedTemplate);
-      navigate('/scenario/create-baseline', { 
+      navigate('/scenario/edit', { 
         state: { 
           templateId: selectedTemplate,
           template: template
@@ -34,22 +34,16 @@ export function BaselineScenarioDialog({ isOpen, onClose }: BaselineScenarioDial
     }
   };
 
-  const handleCreateCustom = () => {
-    navigate('/scenario/create-baseline', { state: { isCustom: true } });
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Create Baseline Scenario</DialogTitle>
+          <DialogTitle>Create New Scenario</DialogTitle>
           <DialogDescription>
-            Choose how you want to create your baseline scenario. You can start from a template or create a custom one.
+            Choose a template to start your new scenario. Each template includes predefined settings that you can customize.
           </DialogDescription>
         </DialogHeader>
 
-        <h3 className="text-sm font-medium mt-4">Start from a Template</h3>
-        
         <div className="flex-1 overflow-y-auto pr-2 mt-2">
           <div className="grid gap-4">
             {templateScenarios.map((template) => (
@@ -87,25 +81,6 @@ export function BaselineScenarioDialog({ isOpen, onClose }: BaselineScenarioDial
               </Card>
             ))}
           </div>
-        </div>
-
-        <div className="mt-4 space-y-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleCreateCustom}
-          >
-            Create Custom Baseline
-          </Button>
         </div>
 
         <DialogFooter className="mt-4">
