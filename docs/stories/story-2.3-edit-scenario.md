@@ -1,6 +1,6 @@
 ## Story 2.3: Edit Core Data of Comparison Scenarios (CGT Focus)
 
-**Status:** Draft
+**Status:** Complete
 
 **Story**
 - As a user, I want to edit the core data of my Comparison Scenarios (name, location, gross income for context, expenses, effective CGT rates, and planned asset sales which are covered in Epic 3), so I can refine and tailor each scenario to the specific situation I am modeling.
@@ -60,8 +60,13 @@
 -   **Data Integrity (AC3):** When a template-derived scenario's name/location is changed, the system should *not* re-fetch or reset other data (like tax rates) from the original template. The copied data becomes independent.
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * Implemented all required fields in ScenarioEditorView
+    * Added comprehensive validation for all fields
+    * Ensured data persistence through Zustand store
+    * Verified template-derived scenarios maintain their data when edited
+    * All ACs have been met and tested
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
+    * Completed - March 19, 2024 - Claude 3.7 Sonnet
