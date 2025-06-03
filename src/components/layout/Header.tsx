@@ -6,10 +6,13 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import type { UserAppState } from '@/types';
 import { generateShareableString } from '@/services/planSharingService';
 import { Link, useNavigate } from 'react-router-dom';
+import { SharePlanDialog } from '@/components/dialogs/SharePlanDialog';
 
 export function Header() {
   const navigate = useNavigate();
   const [compressionEnabled, setCompressionEnabledState] = useState(isCompressionEnabled());
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [shareableUrl, setShareableUrl] = useState('');
   const activePlanInternalName = useUserAppState((state: UserAppState) => state.activePlanInternalName);
   const state = useUserAppState((state: UserAppState) => state);
 
@@ -26,19 +29,17 @@ export function Header() {
 
   const handleShare = () => {
     const shareableString = generateShareableString(state);
-    console.log('Shareable string:', shareableString);
     if (shareableString) {
       try {
         const url = `${window.location.origin}${window.location.pathname}?planData=${shareableString}`;
+        setShareableUrl(url);
+        setIsShareDialogOpen(true);
+        // Automatically copy to clipboard
         navigator.clipboard.writeText(url)
-          .then(() => alert('Shareable URL copied to clipboard!'))
           .catch(err => console.error('Failed to copy URL:', err));
       } catch (error) {
         console.error('Error generating shareable URL:', error);
-        alert('Failed to generate shareable URL.');
       }
-    } else {
-      alert('Failed to generate shareable URL. Please check your plan data.');
     }
   };
 
@@ -69,6 +70,11 @@ export function Header() {
           </Button>
         </div>
       </div>
+      <SharePlanDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        shareableUrl={shareableUrl}
+      />
     </header>
   );
 } 

@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { clearActivePlanFromStorage } from '@/services/localStorageService';
+import { Toaster } from 'sonner';
 
 export function App() {
   const navigate = useNavigate();
@@ -96,6 +97,7 @@ export function App() {
         </div>
       </main>
       <Footer />
+      <Toaster />
 
       <AlertDialog 
         open={isOverwriteDialogOpen} 

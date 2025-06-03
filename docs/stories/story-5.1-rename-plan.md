@@ -1,6 +1,6 @@
 ## Story 5.1: Plan Overview and Management Screen
 
-**Status:** Draft
+**Status:** Complete
 
 **Story**
 - As a user, I want to have a central plan overview screen that displays and allows me to manage all aspects of my current plan, including its name, scenarios, assets, and other properties, so I can easily navigate and manage all components of my plan.
@@ -29,30 +29,30 @@
 
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Create Plan Overview Screen Component**
-    - [ ] Create new `PlanOverview.tsx` component
-    - [ ] Implement basic layout structure with sections for plan name, scenarios, and assets
-    - [ ] Add navigation links to ScenarioHub and asset management
-    - [ ] Style according to application design system
-- [ ] **Task 2: Implement Plan Name Management (AC: 3)**
-    - [ ] Create editable plan name field at the top of the overview screen
-    - [ ] Implement click-to-edit functionality
-    - [ ] Add validation for plan name input
-    - [ ] Connect to Zustand store for state management
-- [ ] **Task 3: Add Navigation and Component Integration**
-    - [ ] Implement navigation links to ScenarioHub and asset management
-    - [ ] Add component counts for scenarios and assets
-    - [ ] Ensure proper routing setup for navigation
-- [ ] **Task 4: State Management and Persistence**
-    - [ ] Connect to Zustand store for plan data
-    - [ ] Implement auto-save functionality
-    - [ ] Ensure proper state updates trigger UI refreshes
-- [ ] **Task 5: Testing**
-    - [ ] Test plan name editing functionality
-    - [ ] Verify navigation to different plan components
-    - [ ] Test state persistence and loading
-    - [ ] Verify component counts update correctly
-    - [ ] Test edge cases for input validation
+- [x] **Task 1: Create Plan Overview Screen Component**
+    - [x] Create new `PlanOverview.tsx` component
+    - [x] Implement basic layout structure with sections for plan name, scenarios, and assets
+    - [x] Add navigation links to ScenarioHub and asset management
+    - [x] Style according to application design system
+- [x] **Task 2: Implement Plan Name Management (AC: 3)**
+    - [x] Create editable plan name field at the top of the overview screen
+    - [x] Implement click-to-edit functionality
+    - [x] Add validation for plan name input
+    - [x] Connect to Zustand store for state management
+- [x] **Task 3: Add Navigation and Component Integration**
+    - [x] Implement navigation links to ScenarioHub and asset management
+    - [x] Add component counts for scenarios and assets
+    - [x] Ensure proper routing setup for navigation
+- [x] **Task 4: State Management and Persistence**
+    - [x] Connect to Zustand store for plan data
+    - [x] Implement auto-save functionality
+    - [x] Ensure proper state updates trigger UI refreshes
+- [x] **Task 5: Testing**
+    - [x] Test plan name editing functionality
+    - [x] Verify navigation to different plan components
+    - [x] Test state persistence and loading
+    - [x] Verify component counts update correctly
+    - [x] Test edge cases for input validation
 
 **Dev Technical Guidance**
 - **New Component:** Create `PlanOverview.tsx` as the main container for plan management
@@ -73,9 +73,16 @@
   - Consistent navigation patterns
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * Implemented basic plan overview screen with editable plan name
+    * Added navigation to ScenarioHub and asset management
+    * Implemented proper state management and persistence
+    * Added component counts for scenarios and assets
+    * Fixed dialog and URL parameter handling for template selection
+    * All functionality thoroughly tested and verified
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
     * Updated - June 1, 2025 - Added plan overview screen functionality
+    * Updated - June 3, 2024 - Implemented core functionality and fixed dialog issues
+    * Updated - June 3, 2024 - Completed testing and marked story as complete
