@@ -14,6 +14,7 @@ export interface UserAppStateSlice extends UserAppState {
   addScenario: (scenario: Scenario, options?: { isBaseline?: boolean }) => void;
   updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => void;
   deleteScenario: (scenarioId: string) => void;
+  setScenarioAsPrimary: (scenarioId: string) => void;
   setAppState: (newState: UserAppState) => void;
   clearStoredState: () => void;
 }
@@ -242,10 +243,6 @@ export const EXPENSE_CATEGORIES = [
   'Entertainment',
   'Education',
   'Personal Care',
-  'Debt Payments',
-  'Savings',
-  'Investments',
-  'Taxes',
   'Legal', 
   'Other'
 ] as const; 

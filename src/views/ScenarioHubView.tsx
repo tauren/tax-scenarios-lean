@@ -47,7 +47,7 @@ const getComputedProperties = (scenario: Scenario): ComputedScenarioProperties =
 };
 
 export function ScenarioHubView() {
-  const { scenarios, deleteScenario } = useUserAppState();
+  const { scenarios, deleteScenario, setScenarioAsPrimary } = useUserAppState();
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState<Set<string>>(new Set());
@@ -123,6 +123,10 @@ export function ScenarioHubView() {
     });
   };
 
+  const handleSetAsBaseline = (scenario: Scenario) => {
+    setScenarioAsPrimary(scenario.id);
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* View Header */}
@@ -166,19 +170,22 @@ export function ScenarioHubView() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Scenario Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {scenarios.map((scenario) => {
+          {scenarios.map((scenario, index) => {
             const computed = getComputedProperties(scenario);
+            const isFirstScenario = index === 0;
             return (
               <Card key={scenario.id} className="relative">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
-                      {computed.isBaseline && (
-                        <Badge variant="outline" className="mt-2 text-xs">
-                          Baseline
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
+                        {isFirstScenario && (
+                          <Badge variant="outline" className="text-xs">
+                            Baseline
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -246,6 +253,12 @@ export function ScenarioHubView() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      {!isFirstScenario && (
+                        <DropdownMenuItem onClick={() => handleSetAsBaseline(scenario)}>
+                          <TrendingUp className="h-4 w-4 mr-2" />
+                          Set as Baseline
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleDuplicateScenario(scenario)}>
                         <Copy className="h-4 w-4 mr-2" />
                         Duplicate

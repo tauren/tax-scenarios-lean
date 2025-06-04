@@ -18,15 +18,7 @@ export function ListItemCard({
   onDuplicate,
 }: ListItemCardProps) {
   return (
-    <Card 
-      className="relative py-0 cursor-pointer hover:bg-accent/50 transition-colors"
-      onClick={(e) => {
-        // Only trigger edit if the click wasn't on the action buttons
-        if (!(e.target as HTMLElement).closest('.card-actions')) {
-          onEdit();
-        }
-      }}
-    >
+    <Card className="relative py-0">
       <CardContent className="p-3">
         <div className="flex items-center justify-between">
           <div>

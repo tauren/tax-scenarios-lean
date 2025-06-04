@@ -11,17 +11,27 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { v4 as uuidv4 } from 'uuid';
 
+type DialogMode = 'add' | 'edit' | 'duplicate';
+
 interface IncomeSourceDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   incomeSource?: IncomeSource;
+  mode?: DialogMode;
   onSave: (incomeSource: IncomeSource) => void;
 }
 
-export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: IncomeSourceDialogProps) {
+export function IncomeSourceDialog({ 
+  open, 
+  onOpenChange, 
+  incomeSource, 
+  mode = 'add',
+  onSave 
+}: IncomeSourceDialogProps) {
   const [formData, setFormData] = useState<Partial<IncomeSource>>({
     name: '',
     type: 'EMPLOYMENT',
@@ -31,50 +41,53 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
   });
   const [errors, setErrors] = useState<IncomeSourceValidationErrors>({});
 
+  // Reset form when dialog opens with new data
   useEffect(() => {
-    if (incomeSource) {
-      setFormData({
-        ...incomeSource,
-        startYear: incomeSource.startYear || new Date().getFullYear(),
-        endYear: incomeSource.endYear || undefined,
-      });
-    } else {
-      setFormData({
-        name: '',
-        type: 'EMPLOYMENT',
-        annualAmount: 0,
-        startYear: new Date().getFullYear(),
-        endYear: undefined,
-      });
-    }
-    setErrors({});
-  }, [incomeSource, isOpen]);
-
-  // Add validation on initial load and when form data changes
-  useEffect(() => {
-    if (isOpen) {
+    if (open) {
+      if (incomeSource) {
+        setFormData({
+          ...incomeSource,
+          startYear: incomeSource.startYear || new Date().getFullYear(),
+          endYear: incomeSource.endYear || undefined,
+        });
+      } else {
+        setFormData({
+          name: '',
+          type: 'EMPLOYMENT',
+          annualAmount: 0,
+          startYear: new Date().getFullYear(),
+          endYear: undefined,
+        });
+      }
+      setErrors({});
+      // Run validation on load
       validateForm();
     }
-  }, [isOpen, formData]);
+  }, [open, incomeSource]);
 
-  const validateField = (field: keyof IncomeSourceValidationErrors, value: any): string | undefined => {
-    switch (field) {
-      case 'name':
-        return !value?.trim() ? 'Name is required' : undefined;
-      case 'annualAmount':
-        return !value || value <= 0 ? 'Annual amount must be greater than 0' : undefined;
-      case 'startYear':
-        return !value || value < new Date().getFullYear() ? 'Start year must be current year or later' : undefined;
-      case 'endYear':
-        if (!value) return undefined;
-        return value < formData.startYear! ? 'End year must be after start year' : undefined;
-      default:
-        return undefined;
-    }
+  const validateName = (value: string | undefined): string | undefined => {
+    return !value?.trim() ? 'Name is required' : undefined;
   };
 
-  const handleFieldBlur = (field: keyof IncomeSourceValidationErrors, value: any) => {
-    const error = validateField(field, value);
+  const validateType = (value: string | undefined): string | undefined => {
+    return !value ? 'Type is required' : undefined;
+  };
+
+  const validateAnnualAmount = (value: number | undefined): string | undefined => {
+    return !value || value <= 0 ? 'Annual amount must be greater than 0' : undefined;
+  };
+
+  const validateStartYear = (value: number | undefined): string | undefined => {
+    const currentYear = new Date().getFullYear();
+    return !value || value < currentYear ? `Start year must be ${currentYear} or later` : undefined;
+  };
+
+  const validateEndYear = (value: number | undefined, startYear: number): string | undefined => {
+    if (!value) return undefined;
+    return value < startYear ? 'End year must be after start year' : undefined;
+  };
+
+  const setFieldError = (field: keyof IncomeSourceValidationErrors, error: string | undefined) => {
     setErrors(prev => {
       const newErrors = { ...prev };
       if (error) {
@@ -88,25 +101,28 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
 
   const validateForm = (): boolean => {
     const newErrors: IncomeSourceValidationErrors = {};
-    let isValid = true;
+    const currentYear = new Date().getFullYear();
 
-    // Validate each field
-    Object.keys(formData).forEach((field) => {
-      const error = validateField(field as keyof IncomeSourceValidationErrors, formData[field as keyof typeof formData]);
-      if (error) {
-        newErrors[field as keyof IncomeSourceValidationErrors] = error;
-        isValid = false;
-      }
-    });
+    // Validate all fields
+    const nameError = validateName(formData.name);
+    const typeError = validateType(formData.type);
+    const annualAmountError = validateAnnualAmount(formData.annualAmount);
+    const startYearError = validateStartYear(formData.startYear);
+    const endYearError = validateEndYear(formData.endYear, formData.startYear || currentYear);
+
+    // Only add errors that exist
+    if (nameError) newErrors.name = nameError;
+    if (typeError) newErrors.type = typeError;
+    if (annualAmountError) newErrors.annualAmount = annualAmountError;
+    if (startYearError) newErrors.startYear = startYearError;
+    if (endYearError) newErrors.endYear = endYearError;
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     const incomeSourceToSave: IncomeSource = {
       id: incomeSource?.id || uuidv4(),
@@ -118,29 +134,57 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
     };
 
     onSave(incomeSourceToSave);
-    onClose();
+    onOpenChange(false);
   };
 
-  const hasErrors = Object.keys(errors).length > 0;
+  const getDialogTitle = () => {
+    switch (mode) {
+      case 'add':
+        return 'Add Income Source';
+      case 'edit':
+        return 'Edit Income Source';
+      case 'duplicate':
+        return 'Duplicate Income Source';
+      default:
+        return 'Income Source';
+    }
+  };
+
+  const getDialogDescription = () => {
+    switch (mode) {
+      case 'add':
+        return 'Add a new income source to your scenario.';
+      case 'edit':
+        return 'Update the details of this income source.';
+      case 'duplicate':
+        return 'Create a copy of this income source with a new name.';
+      default:
+        return '';
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog 
+      open={open} 
+      onOpenChange={onOpenChange}
+    >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{incomeSource ? 'Edit Income Source' : 'Add Income Source'}</DialogTitle>
+          <DialogTitle>{getDialogTitle()}</DialogTitle>
           <DialogDescription>
-            {incomeSource 
-              ? 'Update the details of this income source.'
-              : 'Add a new income source to your scenario.'}
+            {getDialogDescription()}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          if (!hasErrors) {
-            handleSave();
-          }
-        }}>
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (Object.keys(errors).length === 0) {
+              handleSave();
+            }
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-4 py-4">
             <FormField
               id="name"
@@ -150,8 +194,12 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                onBlur={() => handleFieldBlur('name', formData.name)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, name: value });
+                  setFieldError('name', validateName(value));
+                }}
+                onBlur={() => setFieldError('name', validateName(formData.name))}
                 placeholder="e.g., Salary, Rental"
                 className={errors.name ? 'border-destructive' : ''}
               />
@@ -160,12 +208,18 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
             <FormField
               id="type"
               label="Type"
+              error={errors.type}
             >
               <select
                 id="type"
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as IncomeSource['type'] })}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                onChange={(e) => {
+                  const value = e.target.value as IncomeSource['type'];
+                  setFormData({ ...formData, type: value });
+                  setFieldError('type', validateType(value));
+                }}
+                onBlur={() => setFieldError('type', validateType(formData.type))}
+                className={`w-full rounded-md border ${errors.type ? 'border-destructive' : 'border-input'} bg-background px-3 py-2`}
               >
                 <option value="EMPLOYMENT">Employment</option>
                 <option value="RENTAL_PROPERTY">Rental Property</option>
@@ -184,8 +238,12 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
                 min="0"
                 step="0.01"
                 value={formData.annualAmount || ''}
-                onChange={(e) => setFormData({ ...formData, annualAmount: e.target.value ? Number(e.target.value) : 0 })}
-                onBlur={() => handleFieldBlur('annualAmount', formData.annualAmount)}
+                onChange={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : 0;
+                  setFormData({ ...formData, annualAmount: value });
+                  setFieldError('annualAmount', validateAnnualAmount(value));
+                }}
+                onBlur={() => setFieldError('annualAmount', validateAnnualAmount(formData.annualAmount))}
                 placeholder="0.00"
                 className={errors.annualAmount ? 'border-destructive' : ''}
               />
@@ -201,8 +259,16 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
                 type="number"
                 min={new Date().getFullYear()}
                 value={formData.startYear}
-                onChange={(e) => setFormData({ ...formData, startYear: Number(e.target.value) })}
-                onBlur={() => handleFieldBlur('startYear', formData.startYear)}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  setFormData({ ...formData, startYear: value });
+                  setFieldError('startYear', validateStartYear(value));
+                  setFieldError('endYear', validateEndYear(formData.endYear, value));
+                }}
+                onBlur={() => {
+                  setFieldError('startYear', validateStartYear(formData.startYear));
+                  setFieldError('endYear', validateEndYear(formData.endYear, formData.startYear || new Date().getFullYear()));
+                }}
                 className={errors.startYear ? 'border-destructive' : ''}
               />
             </FormField>
@@ -216,19 +282,27 @@ export function IncomeSourceDialog({ isOpen, onClose, incomeSource, onSave }: In
                 id="endYear"
                 type="number"
                 min={formData.startYear || new Date().getFullYear()}
-                value={formData.endYear}
-                onChange={(e) => setFormData({ ...formData, endYear: Number(e.target.value) })}
-                onBlur={() => handleFieldBlur('endYear', formData.endYear)}
+                value={formData.endYear || ''}
+                onChange={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : undefined;
+                  setFormData({ ...formData, endYear: value });
+                  setFieldError('endYear', validateEndYear(value, formData.startYear || new Date().getFullYear()));
+                }}
+                onBlur={() => setFieldError('endYear', validateEndYear(formData.endYear, formData.startYear || new Date().getFullYear()))}
+                placeholder="Leave empty for ongoing"
                 className={errors.endYear ? 'border-destructive' : ''}
               />
             </FormField>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={onClose} type="button">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={hasErrors}>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              onClick={handleSave}
+              disabled={Object.keys(errors).length > 0}
+            >
               Save
             </Button>
           </DialogFooter>

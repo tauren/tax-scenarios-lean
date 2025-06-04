@@ -129,6 +129,28 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
     });
   },
 
+  setScenarioAsPrimary: (scenarioId: string) => {
+    set((state) => {
+      // Find the scenario to make primary
+      const scenarioToMakePrimary = state.scenarios.find(s => s.id === scenarioId);
+      if (!scenarioToMakePrimary) return state;
+
+      // Create new array with the selected scenario first
+      const newScenarios = [
+        scenarioToMakePrimary,
+        ...state.scenarios.filter(s => s.id !== scenarioId)
+      ];
+
+      const newState = {
+        ...state,
+        scenarios: newScenarios,
+        isDirty: true,
+      };
+      debouncedSave(newState);
+      return newState;
+    });
+  },
+
   clearStoredState: () => {
     clearActivePlanFromStorage();
     set({

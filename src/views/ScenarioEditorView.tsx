@@ -157,7 +157,7 @@ export function ScenarioEditorView() {
   const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | undefined>();
   const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
-
+  
   const isCreating = id === 'new';
 
   useEffect(() => {
@@ -199,9 +199,10 @@ export function ScenarioEditorView() {
               specialConditions: templateCopy.tax?.capitalGains?.specialConditions,
             },
           },
-          incomeSources: templateCopy.incomeSources || [],
-          annualExpenses: templateCopy.annualExpenses || [],
-          oneTimeExpenses: templateCopy.oneTimeExpenses || [],
+          // Use the deep cloned arrays directly
+          incomeSources: templateCopy.incomeSources,
+          annualExpenses: templateCopy.annualExpenses,
+          oneTimeExpenses: templateCopy.oneTimeExpenses,
         };
         setScenario(newScenario);
       }
@@ -350,17 +351,37 @@ export function ScenarioEditorView() {
     }
   };
 
-  const duplicateIncomeSource = (incomeSource: IncomeSource) => {
-    const duplicatedSource = { ...incomeSource, id: uuidv4() };
+  const handleEditIncomeSource = (incomeSource: IncomeSource) => {
+    setEditingIncomeSource(incomeSource);
     setIsIncomeSourceDialogOpen(true);
-    setEditingIncomeSource(duplicatedSource);
   };
 
-  const duplicateExpense = (expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => {
-    const duplicatedExpense = { ...expense, id: uuidv4() };
+  const handleEditExpense = (expense: AnnualExpense | OneTimeExpense) => {
+    setEditingExpense(expense);
     setIsExpenseDialogOpen(true);
-    setEditingExpense(duplicatedExpense);
+  };
+
+  const handleAddIncomeSource = () => {
+    setEditingIncomeSource(undefined);
+    setIsIncomeSourceDialogOpen(true);
+  };
+
+  const handleAddExpense = (type: 'annual' | 'oneTime') => {
+    setEditingExpense(undefined);
     setExpenseType(type);
+    setIsExpenseDialogOpen(true);
+  };
+
+  const duplicateIncomeSource = (incomeSource: IncomeSource) => {
+    const duplicatedSource = { ...incomeSource, id: uuidv4() };
+    setEditingIncomeSource(duplicatedSource);
+    setIsIncomeSourceDialogOpen(true);
+  };
+
+  const duplicateExpense = (expense: AnnualExpense | OneTimeExpense) => {
+    const duplicatedExpense = { ...expense, id: uuidv4() };
+    setEditingExpense(duplicatedExpense);
+    setIsExpenseDialogOpen(true);
   };
 
   const removeIncomeSource = (id: string) => {
@@ -393,6 +414,16 @@ export function ScenarioEditorView() {
     }).format(amount)
   }
 
+  const handleIncomeSourceDialogClose = () => {
+    setIsIncomeSourceDialogOpen(false);
+    setEditingIncomeSource(undefined);
+  };
+
+  const handleExpenseDialogClose = () => {
+    setIsExpenseDialogOpen(false);
+    setEditingExpense(undefined);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -412,329 +443,302 @@ export function ScenarioEditorView() {
         </div>
       </div>
 
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        if (!hasErrors) {
-          handleSave();
-        }
-      }}>
-        <div className="space-y-6">
-          <Section title="Basic Information">
-            <div className="grid gap-4">
-              <FormField
+      <div className="space-y-6">
+        <Section title="Basic Information">
+          <div className="grid gap-4">
+            <FormField
+              id="name"
+              label="Scenario Name"
+              error={errors.name}
+            >
+              <Input
                 id="name"
-                label="Scenario Name"
-                error={errors.name}
+                name="name"
+                value={scenario.name}
+                onChange={(e) => setScenario({ ...scenario, name: e.target.value })}
+                onBlur={() => handleFieldBlur('name', scenario.name)}
+                placeholder="Enter scenario name"
+                className={errors.name ? 'border-destructive' : ''}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                id="country"
+                label="Country"
+                error={errors.country}
               >
                 <Input
-                  id="name"
-                  name="name"
-                  value={scenario.name}
-                  onChange={(e) => setScenario({ ...scenario, name: e.target.value })}
-                  onBlur={() => handleFieldBlur('name', scenario.name)}
-                  placeholder="Enter scenario name"
-                  className={errors.name ? 'border-destructive' : ''}
+                  id="country"
+                  name="country"
+                  value={scenario.location?.country}
+                  onChange={(e) => setScenario({
+                    ...scenario,
+                    location: {
+                      country: e.target.value,
+                      state: scenario.location?.state,
+                      city: scenario.location?.city
+                    }
+                  })}
+                  onBlur={() => handleFieldBlur('country', scenario.location?.country)}
+                  placeholder="Enter country"
+                  className={errors.country ? 'border-destructive' : ''}
                 />
               </FormField>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  id="country"
-                  label="Country"
-                  error={errors.country}
-                >
-                  <Input
-                    id="country"
-                    name="country"
-                    value={scenario.location?.country}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      location: {
-                        country: e.target.value,
-                        state: scenario.location?.state,
-                        city: scenario.location?.city
-                      }
-                    })}
-                    onBlur={() => handleFieldBlur('country', scenario.location?.country)}
-                    placeholder="Enter country"
-                    className={errors.country ? 'border-destructive' : ''}
-                  />
-                </FormField>
-
-                <FormField
+              <FormField
+                id="state"
+                label="State/Province"
+              >
+                <Input
                   id="state"
-                  label="State/Province"
-                >
-                  <Input
-                    id="state"
-                    name="state"
-                    value={scenario.location?.state}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      location: {
-                        country: scenario.location?.country || '',
-                        state: e.target.value,
-                        city: scenario.location?.city
-                      }
-                    })}
-                    placeholder="Enter state/province (optional)"
-                  />
-                </FormField>
+                  name="state"
+                  value={scenario.location?.state}
+                  onChange={(e) => setScenario({
+                    ...scenario,
+                    location: {
+                      country: scenario.location?.country || '',
+                      state: e.target.value,
+                      city: scenario.location?.city
+                    }
+                  })}
+                  placeholder="Enter state/province (optional)"
+                />
+              </FormField>
 
-                <FormField
+              <FormField
+                id="city"
+                label="City"
+              >
+                <Input
                   id="city"
-                  label="City"
-                >
-                  <Input
-                    id="city"
-                    name="city"
-                    value={scenario.location?.city}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      location: {
-                        country: scenario.location?.country || '',
-                        state: scenario.location?.state,
-                        city: e.target.value
-                      }
-                    })}
-                    placeholder="Enter city (optional)"
-                  />
-                </FormField>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  id="projectionPeriod"
-                  label="Projection Period (Years)"
-                  error={errors.projectionPeriod}
-                >
-                  <Input
-                    id="projectionPeriod"
-                    name="projectionPeriod"
-                    type="number"
-                    min="1"
-                    value={scenario.projectionPeriod}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      projectionPeriod: Number(e.target.value)
-                    })}
-                    onBlur={() => handleFieldBlur('projectionPeriod', scenario.projectionPeriod)}
-                    className={errors.projectionPeriod ? 'border-destructive' : ''}
-                  />
-                </FormField>
-
-                <FormField
-                  id="residencyStartDate"
-                  label="Residency Start Date"
-                  error={errors.residencyStartDate}
-                >
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="residencyStartDate"
-                        name="residencyStartDate"
-                        variant="outline"
-                        type="button"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !scenario.residencyStartDate && "text-muted-foreground",
-                          errors.residencyStartDate && "border-destructive"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {scenario.residencyStartDate ? (
-                          format(scenario.residencyStartDate, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      className="w-auto p-0" 
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={scenario.residencyStartDate}
-                        onSelect={(date: Date | undefined) => {
-                          if (date) {
-                            setScenario({ ...scenario, residencyStartDate: date });
-                            handleFieldBlur('residencyStartDate', date);
-                          }
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormField>
-              </div>
+                  name="city"
+                  value={scenario.location?.city}
+                  onChange={(e) => setScenario({
+                    ...scenario,
+                    location: {
+                      country: scenario.location?.country || '',
+                      state: scenario.location?.state,
+                      city: e.target.value
+                    }
+                  })}
+                  placeholder="Enter city (optional)"
+                />
+              </FormField>
             </div>
-          </Section>
 
-          <Section 
-            title="Capital Gains Tax Rates"
-          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                id="shortTermRate"
-                label="Short-Term Capital Gains Tax Rate (%)"
-                error={errors.shortTermRate}
+                id="projectionPeriod"
+                label="Projection Period (Years)"
+                error={errors.projectionPeriod}
               >
                 <Input
-                  id="shortTermRate"
-                  name="shortTermRate"
+                  id="projectionPeriod"
+                  name="projectionPeriod"
                   type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={scenario.tax?.capitalGains?.shortTermRate}
+                  min="1"
+                  value={scenario.projectionPeriod}
                   onChange={(e) => setScenario({
                     ...scenario,
-                    tax: {
-                      ...scenario.tax,
-                      capitalGains: {
-                        shortTermRate: Number(e.target.value),
-                        longTermRate: scenario.tax?.capitalGains?.longTermRate || 0
-                      }
-                    }
+                    projectionPeriod: Number(e.target.value)
                   })}
-                  onBlur={() => handleFieldBlur('shortTermRate', scenario.tax?.capitalGains?.shortTermRate)}
-                  className={errors.shortTermRate ? 'border-destructive' : ''}
+                  onBlur={() => handleFieldBlur('projectionPeriod', scenario.projectionPeriod)}
+                  className={errors.projectionPeriod ? 'border-destructive' : ''}
                 />
               </FormField>
 
               <FormField
-                id="longTermRate"
-                label="Long-Term Capital Gains Tax Rate (%)"
-                error={errors.longTermRate}
+                id="residencyStartDate"
+                label="Residency Start Date"
+                error={errors.residencyStartDate}
               >
-                <Input
-                  id="longTermRate"
-                  name="longTermRate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={scenario.tax?.capitalGains?.longTermRate}
-                  onChange={(e) => setScenario({
-                    ...scenario,
-                    tax: {
-                      ...scenario.tax,
-                      capitalGains: {
-                        shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
-                        longTermRate: Number(e.target.value)
-                      }
-                    }
-                  })}
-                  onBlur={() => handleFieldBlur('longTermRate', scenario.tax?.capitalGains?.longTermRate)}
-                  className={errors.longTermRate ? 'border-destructive' : ''}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="residencyStartDate"
+                      name="residencyStartDate"
+                      variant="outline"
+                      type="button"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !scenario.residencyStartDate && "text-muted-foreground",
+                        errors.residencyStartDate && "border-destructive"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {scenario.residencyStartDate ? (
+                        format(scenario.residencyStartDate, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-0" 
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={scenario.residencyStartDate}
+                      onSelect={(date: Date | undefined) => {
+                        if (date) {
+                          setScenario({ ...scenario, residencyStartDate: date });
+                          handleFieldBlur('residencyStartDate', date);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </FormField>
             </div>
-          </Section>
+          </div>
+        </Section>
 
-          <Section
-            title="Income Sources"
-            actionLabel="Add Income Source"
-            onAction={() => {
-              setEditingIncomeSource(undefined);
-              setIsIncomeSourceDialogOpen(true);
-            }}
-            error={errors.incomeSources}
-            hasItems={(scenario.incomeSources?.length ?? 0) > 0}
-            emptyMessage="No income sources added yet. Add your first income source to get started."
-          >
-            <CardList>
-              {scenario.incomeSources?.map((source) => (
-                <ListItemCard
-                  key={source.id}
-                  title={source.name}
-                  subtitle={`${formatCurrency(source.annualAmount)}/year • ${source.startYear} - ${source.endYear || 'Ongoing'}`}
-                  onEdit={() => {
-                    setIsIncomeSourceDialogOpen(true);
-                    setEditingIncomeSource(source);
-                  }}
-                  onDelete={() => removeIncomeSource(source.id)}
-                  onDuplicate={() => duplicateIncomeSource(source)}
-                />
-              ))}
-            </CardList>
-          </Section>
+        <Section 
+          title="Capital Gains Tax Rates"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              id="shortTermRate"
+              label="Short-Term Capital Gains Tax Rate (%)"
+              error={errors.shortTermRate}
+            >
+              <Input
+                id="shortTermRate"
+                name="shortTermRate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={scenario.tax?.capitalGains?.shortTermRate}
+                onChange={(e) => setScenario({
+                  ...scenario,
+                  tax: {
+                    ...scenario.tax,
+                    capitalGains: {
+                      shortTermRate: Number(e.target.value),
+                      longTermRate: scenario.tax?.capitalGains?.longTermRate || 0
+                    }
+                  }
+                })}
+                onBlur={() => handleFieldBlur('shortTermRate', scenario.tax?.capitalGains?.shortTermRate)}
+                className={errors.shortTermRate ? 'border-destructive' : ''}
+              />
+            </FormField>
 
-          <Section
-            title="Annual Expenses"
-            actionLabel="Add Annual Expense"
-            onAction={() => {
-              setEditingExpense(undefined);
-              setExpenseType('annual');
-              setIsExpenseDialogOpen(true);
-            }}
-            error={errors.annualExpenses}
-            hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
-            emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
-          >
-            <CardList>
-              {scenario.annualExpenses?.map((expense) => (
-                <ListItemCard
-                  key={expense.id}
-                  title={expense.name}
-                  subtitle={formatCurrency(expense.amount)}
-                  onEdit={() => {
-                    setIsExpenseDialogOpen(true);
-                    setEditingExpense(expense);
-                    setExpenseType('annual');
-                  }}
-                  onDelete={() => removeExpense(expense.id, 'annual')}
-                  onDuplicate={() => duplicateExpense(expense, 'annual')}
-                />
-              ))}
-            </CardList>
-          </Section>
+            <FormField
+              id="longTermRate"
+              label="Long-Term Capital Gains Tax Rate (%)"
+              error={errors.longTermRate}
+            >
+              <Input
+                id="longTermRate"
+                name="longTermRate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={scenario.tax?.capitalGains?.longTermRate}
+                onChange={(e) => setScenario({
+                  ...scenario,
+                  tax: {
+                    ...scenario.tax,
+                    capitalGains: {
+                      shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
+                      longTermRate: Number(e.target.value)
+                    }
+                  }
+                })}
+                onBlur={() => handleFieldBlur('longTermRate', scenario.tax?.capitalGains?.longTermRate)}
+                className={errors.longTermRate ? 'border-destructive' : ''}
+              />
+            </FormField>
+          </div>
+        </Section>
 
-          <Section
-            title="One-Time Expenses"
-            actionLabel="Add One-Time Expense"
-            onAction={() => {
-              setEditingExpense(undefined);
-              setExpenseType('oneTime');
-              setIsExpenseDialogOpen(true);
-            }}
-            error={errors.oneTimeExpenses}
-            hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
-            emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
-          >
-            <CardList>
-              {scenario.oneTimeExpenses?.map((expense) => (
-                <ListItemCard
-                  key={expense.id}
-                  title={expense.name}
-                  subtitle={`${formatCurrency(expense.amount)} in ${expense.year}`}
-                  onEdit={() => {
-                    setIsExpenseDialogOpen(true);
-                    setEditingExpense(expense);
-                    setExpenseType('oneTime');
-                  }}
-                  onDelete={() => removeExpense(expense.id, 'oneTime')}
-                  onDuplicate={() => duplicateExpense(expense, 'oneTime')}
-                />
-              ))}
-            </CardList>
-          </Section>
-        </div>
-      </form>
+        <Section
+          title="Income Sources"
+          actionLabel="Add Income Source"
+          onAction={handleAddIncomeSource}
+          error={errors.incomeSources}
+          hasItems={(scenario.incomeSources?.length ?? 0) > 0}
+          emptyMessage="No income sources added yet. Add your first income source to get started."
+        >
+          <CardList>
+            {scenario.incomeSources?.map((source) => (
+              <ListItemCard
+                key={source.id}
+                title={source.name}
+                subtitle={`${formatCurrency(source.annualAmount)}/year • ${source.startYear} - ${source.endYear || 'Ongoing'}`}
+                onEdit={() => handleEditIncomeSource(source)}
+                onDelete={() => removeIncomeSource(source.id)}
+                onDuplicate={() => duplicateIncomeSource(source)}
+              />
+            ))}
+          </CardList>
+        </Section>
+
+        <Section
+          title="Annual Expenses"
+          actionLabel="Add Annual Expense"
+          onAction={() => handleAddExpense('annual')}
+          error={errors.annualExpenses}
+          hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
+          emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
+        >
+          <CardList>
+            {scenario.annualExpenses?.map((expense) => (
+              <ListItemCard
+                key={expense.id}
+                title={expense.name}
+                subtitle={formatCurrency(expense.amount)}
+                onEdit={() => handleEditExpense(expense)}
+                onDelete={() => removeExpense(expense.id, 'annual')}
+                onDuplicate={() => duplicateExpense(expense)}
+              />
+            ))}
+          </CardList>
+        </Section>
+
+        <Section
+          title="One-Time Expenses"
+          actionLabel="Add One-Time Expense"
+          onAction={() => handleAddExpense('oneTime')}
+          error={errors.oneTimeExpenses}
+          hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
+          emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
+        >
+          <CardList>
+            {scenario.oneTimeExpenses?.map((expense) => (
+              <ListItemCard
+                key={expense.id}
+                title={expense.name}
+                subtitle={`${formatCurrency(expense.amount)} in ${expense.year}`}
+                onEdit={() => handleEditExpense(expense)}
+                onDelete={() => removeExpense(expense.id, 'oneTime')}
+                onDuplicate={() => duplicateExpense(expense)}
+              />
+            ))}
+          </CardList>
+        </Section>
+      </div>
 
       <IncomeSourceDialog
-        isOpen={isIncomeSourceDialogOpen}
-        onClose={() => setIsIncomeSourceDialogOpen(false)}
+        open={isIncomeSourceDialogOpen}
+        onOpenChange={handleIncomeSourceDialogClose}
         incomeSource={editingIncomeSource}
+        mode={!editingIncomeSource ? 'add' : scenario.incomeSources?.some(s => s.id === editingIncomeSource.id) ? 'edit' : 'duplicate'}
         onSave={handleIncomeSourceSave}
       />
 
       <ExpenseDialog
         open={isExpenseDialogOpen}
-        onOpenChange={(open) => setIsExpenseDialogOpen(open)}
+        onOpenChange={handleExpenseDialogClose}
         expense={editingExpense}
-        type={expenseType}
+        type={editingExpense && 'year' in editingExpense ? 'oneTime' : 'annual'}
+        mode={!editingExpense ? 'add' : (scenario.annualExpenses?.some(e => e.id === editingExpense.id) || scenario.oneTimeExpenses?.some(e => e.id === editingExpense.id)) ? 'edit' : 'duplicate'}
         onSave={handleExpenseSave}
       />
     </div>

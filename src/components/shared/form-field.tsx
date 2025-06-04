@@ -13,11 +13,9 @@ export function FormField({ id, label, children, error }: FormFieldProps) {
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
-      {error && (
-        <div className="text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      <div className="min-h-[1.25rem] text-sm text-destructive">
+        {error}
+      </div>
     </div>
   );
 } 
