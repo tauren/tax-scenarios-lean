@@ -13,7 +13,7 @@ interface BreadcrumbItem {
 export function Breadcrumbs() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { activePlanInternalName } = useUserAppState();
+  const { activePlanInternalName, scenarios } = useUserAppState();
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
   // Don't show breadcrumbs on the home page
@@ -53,6 +53,13 @@ export function Breadcrumbs() {
       }
       // If we're editing a scenario
       else if (pathSegments[1] && pathSegments[2] === 'edit') {
+        const scenario = scenarios.find(s => s.id === pathSegments[1]);
+        if (scenario) {
+          items.push({
+            label: scenario.name,
+            path: `/scenarios/${pathSegments[1]}`,
+          });
+        }
         items.push({
           label: 'Edit Scenario',
           path: `/scenarios/${pathSegments[1]}/edit`,
@@ -60,8 +67,9 @@ export function Breadcrumbs() {
       }
       // If we're viewing a scenario
       else if (pathSegments[1] && !pathSegments[2]) {
+        const scenario = scenarios.find(s => s.id === pathSegments[1]);
         items.push({
-          label: 'View Scenario',
+          label: scenario?.name || 'View Scenario',
           path: `/scenarios/${pathSegments[1]}`,
         });
       }

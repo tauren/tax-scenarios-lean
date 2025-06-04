@@ -11,8 +11,6 @@ export function PlanOverview() {
   const { activePlanInternalName, setActivePlanInternalName, initialAssets, scenarios } = useUserAppState();
   const [isEditingName, setIsEditingName] = useState(false);
   const [planName, setPlanName] = useState(activePlanInternalName || 'Untitled Plan');
-
-  console.log(planName, scenarios, initialAssets)
   
   const handleNameSubmit = () => {
     if (planName.trim()) {

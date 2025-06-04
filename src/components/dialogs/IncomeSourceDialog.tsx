@@ -60,6 +60,8 @@ export function IncomeSourceDialog({
         });
       }
       setErrors({});
+      // Run validation on load
+      validateForm();
     }
   }, [open, incomeSource]);
 
@@ -295,12 +297,13 @@ export function IncomeSourceDialog({
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
+              <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit">
-              {mode === 'add' ? 'Add Income Source' : 'Save Changes'}
+            <Button 
+              onClick={handleSave}
+              disabled={Object.keys(errors).length > 0}
+            >
+              Save
             </Button>
           </DialogFooter>
         </form>

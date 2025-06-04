@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Command,
@@ -19,6 +20,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -74,6 +76,8 @@ export function ExpenseDialog({
         });
       }
       setErrors({});
+      // Run validation on load
+      validateForm();
     }
   }, [open, expense, type]);
 
@@ -91,7 +95,7 @@ export function ExpenseDialog({
     }
   };
 
-  const handleFieldBlur = (field: keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), value: any) => {
+  const setFieldError = (field: keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), value: any) => {
     const error = validateField(field, value);
     setErrors(prev => {
       const newErrors = { ...prev };
@@ -143,12 +147,6 @@ export function ExpenseDialog({
     onOpenChange(false);
   };
 
-  const handleCancel = () => {
-    onOpenChange(false);
-  };
-
-  const hasErrors = Object.keys(errors).length > 0;
-
   const getDialogTitle = () => {
     const action = mode === 'add' ? 'Add' : mode === 'edit' ? 'Edit' : 'Duplicate';
     const expenseType = type === 'annual' ? 'Annual' : 'One-Time';
@@ -162,11 +160,7 @@ export function ExpenseDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      if (!newOpen) {
-        handleCancel();
-      }
-    }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -179,7 +173,7 @@ export function ExpenseDialog({
 
         <form onSubmit={(e) => {
           e.preventDefault();
-          if (!hasErrors) {
+          if (Object.keys(errors).length === 0) {
             handleSave();
           }
         }}>
@@ -207,37 +201,40 @@ export function ExpenseDialog({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command id="expense-categories">
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
                     <CommandInput 
                       placeholder="Search or enter expense category..."
                       value={formData.name || ''}
                       onValueChange={(value) => {
                         setFormData({ ...formData, name: value });
-                        setOpenCombobox(false);
+                        setFieldError('name', value);
                       }}
                     />
-                    <CommandEmpty>No category found.</CommandEmpty>
-                    <CommandGroup>
-                      {EXPENSE_CATEGORIES.map((category) => (
-                        <CommandItem
-                          key={category}
-                          value={category}
-                          onSelect={(value) => {
-                            setFormData({ ...formData, name: value });
-                            setOpenCombobox(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.name === category ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {category}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                    <CommandList>
+                      <CommandEmpty>No category found.</CommandEmpty>
+                      <CommandGroup>
+                        {EXPENSE_CATEGORIES.map((category) => (
+                          <CommandItem
+                            key={category}
+                            value={category}
+                            onSelect={(value) => {
+                              setFormData({ ...formData, name: value });
+                              setFieldError('name', value);
+                              setOpenCombobox(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.name === category ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {category}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
@@ -254,8 +251,12 @@ export function ExpenseDialog({
                 min="0"
                 step="0.01"
                 value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value ? Number(e.target.value) : 0 })}
-                onBlur={() => handleFieldBlur('amount', formData.amount)}
+                onChange={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : 0;
+                  setFormData({ ...formData, amount: value });
+                  setFieldError('amount', value);
+                }}
+                onBlur={() => setFieldError('amount', formData.amount)}
                 placeholder="0.00"
                 className={errors.amount ? 'border-destructive' : ''}
               />
@@ -272,11 +273,12 @@ export function ExpenseDialog({
                   type="number"
                   min={new Date().getFullYear()}
                   value={(formData as OneTimeExpense).year || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    year: e.target.value ? Number(e.target.value) : new Date().getFullYear() 
-                  })}
-                  onBlur={() => handleFieldBlur('year', (formData as OneTimeExpense).year)}
+                  onChange={(e) => {
+                    const value = e.target.value ? Number(e.target.value) : new Date().getFullYear();
+                    setFormData({ ...formData, year: value });
+                    setFieldError('year', value);
+                  }}
+                  onBlur={() => setFieldError('year', (formData as OneTimeExpense).year)}
                   className={errors.year ? 'border-destructive' : ''}
                 />
               </FormField>
@@ -284,11 +286,14 @@ export function ExpenseDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={hasErrors}>
-              {mode === 'add' ? 'Add Expense' : 'Save Changes'}
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              onClick={handleSave}
+              disabled={Object.keys(errors).length > 0}
+            >
+              Save
             </Button>
           </DialogFooter>
         </form>
