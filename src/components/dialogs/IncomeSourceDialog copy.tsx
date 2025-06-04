@@ -158,11 +158,7 @@ export function IncomeSourceDialog({
   return (
     <Dialog 
       open={open} 
-      onOpenChange={(newOpen) => {
-        if (!newOpen) {
-          handleCancel();
-        }
-      }}
+      onOpenChange={onOpenChange}
     >
       <DialogContent>
         <DialogHeader>

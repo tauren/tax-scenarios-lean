@@ -18,6 +18,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { deepClone } from '@/lib/utils/clone';
+import { TestDialog } from '@/components/dialogs/TestDialog';
+import { TestIncomeSourceDialog } from '@/components/dialogs/TestIncomeSourceDialog';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -157,6 +159,13 @@ export function ScenarioEditorView() {
   const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | undefined>();
   const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
+  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
+  const [editingTestItem, setEditingTestItem] = useState<{ id: string; name: string } | undefined>();
+  const [testItems, setTestItems] = useState<{ id: string; name: string }[]>([]);
+  const [testDialogMode, setTestDialogMode] = useState<'add' | 'edit' | 'duplicate'>('add');
+  const [isTestIncomeSourceDialogOpen, setIsTestIncomeSourceDialogOpen] = useState(false);
+  const [editingTestIncomeSource, setEditingTestIncomeSource] = useState<IncomeSource | undefined>();
+  const [testIncomeSourceMode, setTestIncomeSourceMode] = useState<'add' | 'edit' | 'duplicate'>('add');
 
   const isCreating = id === 'new';
 
@@ -199,9 +208,10 @@ export function ScenarioEditorView() {
               specialConditions: templateCopy.tax?.capitalGains?.specialConditions,
             },
           },
-          incomeSources: templateCopy.incomeSources || [],
-          annualExpenses: templateCopy.annualExpenses || [],
-          oneTimeExpenses: templateCopy.oneTimeExpenses || [],
+          // Use the deep cloned arrays directly
+          incomeSources: templateCopy.incomeSources,
+          annualExpenses: templateCopy.annualExpenses,
+          oneTimeExpenses: templateCopy.oneTimeExpenses,
         };
         setScenario(newScenario);
       }
@@ -350,17 +360,37 @@ export function ScenarioEditorView() {
     }
   };
 
-  const duplicateIncomeSource = (incomeSource: IncomeSource) => {
-    const duplicatedSource = { ...incomeSource, id: uuidv4() };
+  const handleEditIncomeSource = (incomeSource: IncomeSource) => {
+    setEditingIncomeSource(incomeSource);
     setIsIncomeSourceDialogOpen(true);
-    setEditingIncomeSource(duplicatedSource);
   };
 
-  const duplicateExpense = (expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => {
-    const duplicatedExpense = { ...expense, id: uuidv4() };
+  const handleEditExpense = (expense: AnnualExpense | OneTimeExpense) => {
+    setEditingExpense(expense);
     setIsExpenseDialogOpen(true);
-    setEditingExpense(duplicatedExpense);
+  };
+
+  const handleAddIncomeSource = () => {
+    setEditingIncomeSource(undefined);
+    setIsIncomeSourceDialogOpen(true);
+  };
+
+  const handleAddExpense = (type: 'annual' | 'oneTime') => {
+    setEditingExpense(undefined);
     setExpenseType(type);
+    setIsExpenseDialogOpen(true);
+  };
+
+  const duplicateIncomeSource = (incomeSource: IncomeSource) => {
+    const duplicatedSource = { ...incomeSource, id: uuidv4() };
+    setEditingIncomeSource(duplicatedSource);
+    setIsIncomeSourceDialogOpen(true);
+  };
+
+  const duplicateExpense = (expense: AnnualExpense | OneTimeExpense) => {
+    const duplicatedExpense = { ...expense, id: uuidv4() };
+    setEditingExpense(duplicatedExpense);
+    setIsExpenseDialogOpen(true);
   };
 
   const removeIncomeSource = (id: string) => {
@@ -392,6 +422,92 @@ export function ScenarioEditorView() {
       maximumFractionDigits: 0,
     }).format(amount)
   }
+
+  const handleIncomeSourceDialogClose = () => {
+    setIsIncomeSourceDialogOpen(false);
+    setEditingIncomeSource(undefined);
+  };
+
+  const handleExpenseDialogClose = () => {
+    setIsExpenseDialogOpen(false);
+    setEditingExpense(undefined);
+  };
+
+  const handleTestDialogClose = () => {
+    setIsTestDialogOpen(false);
+    setEditingTestItem(undefined);
+  };
+
+  const handleTestItemSave = (item: { id: string; name: string }) => {
+    if (testDialogMode === 'add' || testDialogMode === 'duplicate') {
+      setTestItems([...testItems, item]);
+    } else {
+      setTestItems(testItems.map(i => i.id === item.id ? item : i));
+    }
+    handleTestDialogClose();
+  };
+
+  const handleAddTestItem = () => {
+    setTestDialogMode('add');
+    setEditingTestItem(undefined);
+    setIsTestDialogOpen(true);
+  };
+
+  const handleEditTestItem = (item: { id: string; name: string }) => {
+    setTestDialogMode('edit');
+    setEditingTestItem(item);
+    setIsTestDialogOpen(true);
+  };
+
+  const handleDuplicateTestItem = (item: { id: string; name: string }) => {
+    setTestDialogMode('duplicate');
+    setEditingTestItem({ ...item, id: crypto.randomUUID() });
+    setIsTestDialogOpen(true);
+  };
+
+  const handleDeleteTestItem = (id: string) => {
+    setTestItems(testItems.filter(item => item.id !== id));
+  };
+
+  const handleTestIncomeSourceDialogClose = () => {
+    setIsTestIncomeSourceDialogOpen(false);
+    setEditingTestIncomeSource(undefined);
+  };
+
+  const handleTestIncomeSourceSave = (incomeSource: IncomeSource) => {
+    if (testIncomeSourceMode === 'add' || testIncomeSourceMode === 'duplicate') {
+      setScenario({
+        ...scenario,
+        incomeSources: [...(scenario.incomeSources || []), incomeSource],
+      });
+    } else {
+      setScenario({
+        ...scenario,
+        incomeSources: scenario.incomeSources?.map((source) =>
+          source.id === incomeSource.id ? incomeSource : source
+        ),
+      });
+    }
+    handleTestIncomeSourceDialogClose();
+  };
+
+  const handleAddTestIncomeSource = () => {
+    setTestIncomeSourceMode('add');
+    setEditingTestIncomeSource(undefined);
+    setIsTestIncomeSourceDialogOpen(true);
+  };
+
+  const handleEditTestIncomeSource = (incomeSource: IncomeSource) => {
+    setTestIncomeSourceMode('edit');
+    setEditingTestIncomeSource(incomeSource);
+    setIsTestIncomeSourceDialogOpen(true);
+  };
+
+  const handleDuplicateTestIncomeSource = (incomeSource: IncomeSource) => {
+    setTestIncomeSourceMode('duplicate');
+    setEditingTestIncomeSource({ ...incomeSource, id: crypto.randomUUID() });
+    setIsTestIncomeSourceDialogOpen(true);
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -636,10 +752,7 @@ export function ScenarioEditorView() {
           <Section
             title="Income Sources"
             actionLabel="Add Income Source"
-            onAction={() => {
-              setEditingIncomeSource(undefined);
-              setIsIncomeSourceDialogOpen(true);
-            }}
+            onAction={handleAddIncomeSource}
             error={errors.incomeSources}
             hasItems={(scenario.incomeSources?.length ?? 0) > 0}
             emptyMessage="No income sources added yet. Add your first income source to get started."
@@ -650,10 +763,7 @@ export function ScenarioEditorView() {
                   key={source.id}
                   title={source.name}
                   subtitle={`${formatCurrency(source.annualAmount)}/year • ${source.startYear} - ${source.endYear || 'Ongoing'}`}
-                  onEdit={() => {
-                    setIsIncomeSourceDialogOpen(true);
-                    setEditingIncomeSource(source);
-                  }}
+                  onEdit={() => handleEditIncomeSource(source)}
                   onDelete={() => removeIncomeSource(source.id)}
                   onDuplicate={() => duplicateIncomeSource(source)}
                 />
@@ -664,11 +774,7 @@ export function ScenarioEditorView() {
           <Section
             title="Annual Expenses"
             actionLabel="Add Annual Expense"
-            onAction={() => {
-              setEditingExpense(undefined);
-              setExpenseType('annual');
-              setIsExpenseDialogOpen(true);
-            }}
+            onAction={() => handleAddExpense('annual')}
             error={errors.annualExpenses}
             hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
             emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
@@ -679,13 +785,9 @@ export function ScenarioEditorView() {
                   key={expense.id}
                   title={expense.name}
                   subtitle={formatCurrency(expense.amount)}
-                  onEdit={() => {
-                    setIsExpenseDialogOpen(true);
-                    setEditingExpense(expense);
-                    setExpenseType('annual');
-                  }}
+                  onEdit={() => handleEditExpense(expense)}
                   onDelete={() => removeExpense(expense.id, 'annual')}
-                  onDuplicate={() => duplicateExpense(expense, 'annual')}
+                  onDuplicate={() => duplicateExpense(expense)}
                 />
               ))}
             </CardList>
@@ -694,11 +796,7 @@ export function ScenarioEditorView() {
           <Section
             title="One-Time Expenses"
             actionLabel="Add One-Time Expense"
-            onAction={() => {
-              setEditingExpense(undefined);
-              setExpenseType('oneTime');
-              setIsExpenseDialogOpen(true);
-            }}
+            onAction={() => handleAddExpense('oneTime')}
             error={errors.oneTimeExpenses}
             hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
             emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
@@ -709,13 +807,9 @@ export function ScenarioEditorView() {
                   key={expense.id}
                   title={expense.name}
                   subtitle={`${formatCurrency(expense.amount)} in ${expense.year}`}
-                  onEdit={() => {
-                    setIsExpenseDialogOpen(true);
-                    setEditingExpense(expense);
-                    setExpenseType('oneTime');
-                  }}
+                  onEdit={() => handleEditExpense(expense)}
                   onDelete={() => removeExpense(expense.id, 'oneTime')}
-                  onDuplicate={() => duplicateExpense(expense, 'oneTime')}
+                  onDuplicate={() => duplicateExpense(expense)}
                 />
               ))}
             </CardList>
@@ -723,19 +817,83 @@ export function ScenarioEditorView() {
         </div>
       </form>
 
+      {/* Test Section */}
+      <Section title="Test Section">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Test Items</h3>
+            <Button onClick={handleAddTestItem}>Add Test Item</Button>
+          </div>
+
+          <CardList>
+            {testItems.map((item) => (
+              <ListItemCard
+                key={item.id}
+                title={item.name}
+                subtitle="Test Item"
+                onEdit={() => handleEditTestItem(item)}
+                onDuplicate={() => handleDuplicateTestItem(item)}
+                onDelete={() => handleDeleteTestItem(item.id)}
+              />
+            ))}
+          </CardList>
+        </div>
+      </Section>
+
+      {/* Test Income Sources Section */}
+      <Section title="Test Income Sources">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Test Income Sources</h3>
+            <Button onClick={handleAddTestIncomeSource}>Add Test Income Source</Button>
+          </div>
+
+          <CardList>
+            {scenario.incomeSources?.map((source) => (
+              <ListItemCard
+                key={source.id}
+                title={source.name}
+                subtitle={`${formatCurrency(source.annualAmount)}/year • ${source.startYear} - ${source.endYear || 'Ongoing'}`}
+                onEdit={() => handleEditTestIncomeSource(source)}
+                onDuplicate={() => handleDuplicateTestIncomeSource(source)}
+                onDelete={() => removeIncomeSource(source.id)}
+              />
+            ))}
+          </CardList>
+        </div>
+      </Section>
+
       <IncomeSourceDialog
-        isOpen={isIncomeSourceDialogOpen}
-        onClose={() => setIsIncomeSourceDialogOpen(false)}
+        open={isIncomeSourceDialogOpen}
+        onOpenChange={handleIncomeSourceDialogClose}
         incomeSource={editingIncomeSource}
+        mode={!editingIncomeSource ? 'add' : scenario.incomeSources?.some(s => s.id === editingIncomeSource.id) ? 'edit' : 'duplicate'}
         onSave={handleIncomeSourceSave}
       />
 
       <ExpenseDialog
         open={isExpenseDialogOpen}
-        onOpenChange={(open) => setIsExpenseDialogOpen(open)}
+        onOpenChange={handleExpenseDialogClose}
         expense={editingExpense}
-        type={expenseType}
+        type={editingExpense && 'year' in editingExpense ? 'oneTime' : 'annual'}
+        mode={!editingExpense ? 'add' : (scenario.annualExpenses?.some(e => e.id === editingExpense.id) || scenario.oneTimeExpenses?.some(e => e.id === editingExpense.id)) ? 'edit' : 'duplicate'}
         onSave={handleExpenseSave}
+      />
+
+      <TestDialog
+        open={isTestDialogOpen}
+        onOpenChange={setIsTestDialogOpen}
+        item={editingTestItem}
+        mode={testDialogMode}
+        onSave={handleTestItemSave}
+      />
+
+      <TestIncomeSourceDialog
+        open={isTestIncomeSourceDialogOpen}
+        onOpenChange={setIsTestIncomeSourceDialogOpen}
+        incomeSource={editingTestIncomeSource}
+        mode={testIncomeSourceMode}
+        onSave={handleTestIncomeSourceSave}
       />
     </div>
   );

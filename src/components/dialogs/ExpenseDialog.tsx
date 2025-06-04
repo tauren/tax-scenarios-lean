@@ -29,11 +29,14 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 
+type DialogMode = 'add' | 'edit' | 'duplicate';
+
 interface ExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense?: AnnualExpense | OneTimeExpense;
   type: 'annual' | 'oneTime';
+  mode?: DialogMode;
   onSave: (expense: AnnualExpense | OneTimeExpense) => void;
 }
 
@@ -42,6 +45,7 @@ export function ExpenseDialog({
   onOpenChange,
   expense,
   type,
+  mode = 'add',
   onSave,
 }: ExpenseDialogProps) {
   const [formData, setFormData] = useState<Partial<AnnualExpense | OneTimeExpense>>({
@@ -52,30 +56,26 @@ export function ExpenseDialog({
   const [errors, setErrors] = useState<AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors>({});
   const [openCombobox, setOpenCombobox] = useState(false);
 
-  useEffect(() => {
-    if (expense) {
-      setFormData({
-        ...expense,
-        name: expense.name || '',
-        amount: expense.amount || 0,
-        ...(type === 'oneTime' && { year: (expense as OneTimeExpense).year || new Date().getFullYear() }),
-      });
-    } else {
-      setFormData({
-        name: '',
-        amount: 0,
-        ...(type === 'oneTime' && { year: new Date().getFullYear() }),
-      });
-    }
-    setErrors({});
-  }, [expense, type, open]);
-
-  // Add validation on initial load and when form data changes
+  // Reset form data when expense changes or dialog opens
   useEffect(() => {
     if (open) {
-      validateForm();
+      if (expense) {
+        setFormData({
+          ...expense,
+          name: expense.name || '',
+          amount: expense.amount || 0,
+          ...(type === 'oneTime' && { year: (expense as OneTimeExpense).year || new Date().getFullYear() }),
+        });
+      } else {
+        setFormData({
+          name: '',
+          amount: 0,
+          ...(type === 'oneTime' && { year: new Date().getFullYear() }),
+        });
+      }
+      setErrors({});
     }
-  }, [open, formData]);
+  }, [open, expense, type]);
 
   const validateField = (field: keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), value: any): string | undefined => {
     switch (field) {
@@ -143,19 +143,37 @@ export function ExpenseDialog({
     onOpenChange(false);
   };
 
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+
   const hasErrors = Object.keys(errors).length > 0;
 
+  const getDialogTitle = () => {
+    const action = mode === 'add' ? 'Add' : mode === 'edit' ? 'Edit' : 'Duplicate';
+    const expenseType = type === 'annual' ? 'Annual' : 'One-Time';
+    return `${action} ${expenseType} Expense`;
+  };
+
+  const getDialogDescription = () => {
+    const action = mode === 'add' ? 'Add a new' : mode === 'edit' ? 'Update the details of this' : 'Create a copy of this';
+    const expenseType = type === 'annual' ? 'annual' : 'one-time';
+    return `${action} ${expenseType} expense${mode === 'duplicate' ? ' with a new name' : ''}.`;
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!newOpen) {
+        handleCancel();
+      }
+    }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {expense ? 'Edit' : 'Add'} {type === 'annual' ? 'Annual' : 'One-Time'} Expense
+            {getDialogTitle()}
           </DialogTitle>
           <DialogDescription>
-            {expense 
-              ? `Update the details of this ${type === 'annual' ? 'annual' : 'one-time'} expense.`
-              : `Add a new ${type === 'annual' ? 'annual' : 'one-time'} expense to your scenario.`}
+            {getDialogDescription()}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,21 +212,9 @@ export function ExpenseDialog({
                     <CommandInput 
                       placeholder="Search or enter expense category..."
                       value={formData.name || ''}
-                      onValueChange={(value: string) => {
+                      onValueChange={(value) => {
                         setFormData({ ...formData, name: value });
-                        handleFieldBlur('name', value);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          if (openCombobox) {
-                            setOpenCombobox(false);
-                          } else {
-                            if (!hasErrors) {
-                              handleSave();
-                            }
-                          }
-                        }
+                        setOpenCombobox(false);
                       }}
                     />
                     <CommandEmpty>No category found.</CommandEmpty>
@@ -217,9 +223,8 @@ export function ExpenseDialog({
                         <CommandItem
                           key={category}
                           value={category}
-                          onSelect={(value: string) => {
+                          onSelect={(value) => {
                             setFormData({ ...formData, name: value });
-                            handleFieldBlur('name', value);
                             setOpenCombobox(false);
                           }}
                         >
@@ -239,12 +244,12 @@ export function ExpenseDialog({
             </FormField>
 
             <FormField
-              id="expense-amount"
+              id="amount"
               label="Amount"
               error={errors.amount}
             >
               <Input
-                id="expense-amount"
+                id="amount"
                 type="number"
                 min="0"
                 step="0.01"
@@ -253,52 +258,37 @@ export function ExpenseDialog({
                 onBlur={() => handleFieldBlur('amount', formData.amount)}
                 placeholder="0.00"
                 className={errors.amount ? 'border-destructive' : ''}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (!hasErrors) {
-                      handleSave();
-                    }
-                  }
-                }}
               />
             </FormField>
 
             {type === 'oneTime' && (
               <FormField
-                id="expense-year"
+                id="year"
                 label="Year"
                 error={errors.year}
               >
                 <Input
-                  id="expense-year"
+                  id="year"
                   type="number"
                   min={new Date().getFullYear()}
-                  value={(formData as OneTimeExpense).year}
-                  onChange={(e) =>
-                    setFormData({ ...formData, year: Number(e.target.value) })
-                  }
+                  value={(formData as OneTimeExpense).year || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    year: e.target.value ? Number(e.target.value) : new Date().getFullYear() 
+                  })}
                   onBlur={() => handleFieldBlur('year', (formData as OneTimeExpense).year)}
                   className={errors.year ? 'border-destructive' : ''}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (!hasErrors) {
-                        handleSave();
-                      }
-                    }
-                  }}
                 />
               </FormField>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button type="submit" disabled={hasErrors}>
-              Save
+              {mode === 'add' ? 'Add Expense' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </form>
