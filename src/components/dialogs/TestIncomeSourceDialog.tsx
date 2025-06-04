@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
@@ -68,6 +69,92 @@ export function TestIncomeSourceDialog({
     }
   }, [open, incomeSource]);
 
+  const validateName = (value: string | undefined) => {
+    console.log('Validating name:', value);
+    if (!value?.trim()) {
+      setErrors(prev => ({ ...prev, name: 'Name is required' }));
+    } else {
+      setErrors(prev => ({ ...prev, name: undefined }));
+    }
+  };
+
+  const validateType = (value: string | undefined) => {
+    console.log('Validating type:', value);
+    if (!value) {
+      setErrors(prev => ({ ...prev, type: 'Type is required' }));
+    } else {
+      setErrors(prev => ({ ...prev, type: undefined }));
+    }
+  };
+
+  const validateAnnualAmount = (value: number | undefined) => {
+    console.log('Validating annual amount:', value);
+    if (!value || value <= 0) {
+      setErrors(prev => ({ ...prev, annualAmount: 'Annual amount must be greater than 0' }));
+    } else {
+      setErrors(prev => ({ ...prev, annualAmount: undefined }));
+    }
+  };
+
+  const validateStartYear = (value: number | undefined) => {
+    console.log('Validating start year:', value);
+    const currentYear = new Date().getFullYear();
+    if (!value || value < currentYear) {
+      setErrors(prev => ({ ...prev, startYear: `Start year must be ${currentYear} or later` }));
+    } else {
+      setErrors(prev => ({ ...prev, startYear: undefined }));
+    }
+  };
+
+  const validateEndYear = (value: number | undefined) => {
+    console.log('Validating end year:', value);
+    if (value && value < (formData.startYear || new Date().getFullYear())) {
+      setErrors(prev => ({ ...prev, endYear: 'End year must be after start year' }));
+    } else {
+      setErrors(prev => ({ ...prev, endYear: undefined }));
+    }
+  };
+
+  const handleSave = () => {
+    if (!validateForm()) return;
+
+    onSave({
+      id: incomeSource?.id || crypto.randomUUID(),
+      name: formData.name || '',
+      type: formData.type || 'EMPLOYMENT',
+      annualAmount: formData.annualAmount || 0,
+      startYear: formData.startYear || new Date().getFullYear(),
+      endYear: formData.endYear,
+    });
+    onOpenChange(false);
+  };
+
+  const getDialogTitle = () => {
+    switch (mode) {
+      case 'add':
+        return 'Add Income Source';
+      case 'edit':
+        return 'Edit Income Source';
+      case 'duplicate':
+        return 'Duplicate Income Source';
+      default:
+        return 'Income Source';
+    }
+  };
+
+  const getDialogDescription = () => {
+    switch (mode) {
+      case 'add':
+        return 'Add a new income source to your scenario.';
+      case 'edit':
+        return 'Update the details of this income source.';
+      case 'duplicate':
+        return 'Create a copy of this income source with a new name.';
+      default:
+        return '';
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
     const currentYear = new Date().getFullYear();
@@ -101,58 +188,10 @@ export function TestIncomeSourceDialog({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (!validateForm()) return;
-
-    onSave({
-      id: incomeSource?.id || crypto.randomUUID(),
-      name: formData.name || '',
-      type: formData.type || 'EMPLOYMENT',
-      annualAmount: formData.annualAmount || 0,
-      startYear: formData.startYear || new Date().getFullYear(),
-      endYear: formData.endYear,
-    });
-    onOpenChange(false);
-  };
-
-  const handleCancel = () => {
-    onOpenChange(false);
-  };
-
-  const getDialogTitle = () => {
-    switch (mode) {
-      case 'add':
-        return 'Add Income Source';
-      case 'edit':
-        return 'Edit Income Source';
-      case 'duplicate':
-        return 'Duplicate Income Source';
-      default:
-        return 'Income Source';
-    }
-  };
-
-  const getDialogDescription = () => {
-    switch (mode) {
-      case 'add':
-        return 'Add a new income source to your scenario.';
-      case 'edit':
-        return 'Update the details of this income source.';
-      case 'duplicate':
-        return 'Create a copy of this income source with a new name.';
-      default:
-        return '';
-    }
-  };
-
   return (
     <Dialog 
       open={open} 
-      onOpenChange={(newOpen) => {
-        if (!newOpen) {
-          handleCancel();
-        }
-      }}
+      onOpenChange={onOpenChange}
     >
       <DialogContent>
         <DialogHeader>
@@ -172,6 +211,7 @@ export function TestIncomeSourceDialog({
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onBlur={() => validateName(formData.name)}
               placeholder="e.g., Salary, Rental"
               className={errors.name ? 'border-destructive' : ''}
             />
@@ -186,6 +226,7 @@ export function TestIncomeSourceDialog({
               id="type"
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as IncomeSource['type'] })}
+              onBlur={() => validateType(formData.type)}
               className={`w-full rounded-md border ${errors.type ? 'border-destructive' : 'border-input'} bg-background px-3 py-2`}
             >
               <option value="EMPLOYMENT">Employment</option>
@@ -206,6 +247,7 @@ export function TestIncomeSourceDialog({
               step="0.01"
               value={formData.annualAmount || ''}
               onChange={(e) => setFormData({ ...formData, annualAmount: e.target.value ? Number(e.target.value) : 0 })}
+              onBlur={() => validateAnnualAmount(formData.annualAmount)}
               placeholder="0.00"
               className={errors.annualAmount ? 'border-destructive' : ''}
             />
@@ -222,6 +264,10 @@ export function TestIncomeSourceDialog({
               min={new Date().getFullYear()}
               value={formData.startYear}
               onChange={(e) => setFormData({ ...formData, startYear: Number(e.target.value) })}
+              onBlur={() => {
+                validateStartYear(formData.startYear);
+                validateEndYear(formData.endYear);
+              }}
               className={errors.startYear ? 'border-destructive' : ''}
             />
           </FormField>
@@ -237,6 +283,7 @@ export function TestIncomeSourceDialog({
               min={formData.startYear || new Date().getFullYear()}
               value={formData.endYear || ''}
               onChange={(e) => setFormData({ ...formData, endYear: e.target.value ? Number(e.target.value) : undefined })}
+              onBlur={() => validateEndYear(formData.endYear)}
               placeholder="Leave empty for ongoing"
               className={errors.endYear ? 'border-destructive' : ''}
             />
@@ -244,9 +291,11 @@ export function TestIncomeSourceDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
           <Button type="button" onClick={handleSave}>
             {mode === 'add' ? 'Add Income Source' : 'Save Changes'}
           </Button>
