@@ -156,6 +156,7 @@ export interface ScenarioYearlyProjection {
     capitalGainsTax: number;
     totalTax: number;
   };
+  capitalGainsData: CapitalGainsData;
   netFinancialOutcome: number;
 }
 
@@ -180,7 +181,7 @@ export interface TaxBreakdown {
   totalTax: number;
 }
 
-export interface CalculationError {
+export interface CalculationError extends Error {
   code: string;
   message: string;
   details?: Record<string, unknown>;

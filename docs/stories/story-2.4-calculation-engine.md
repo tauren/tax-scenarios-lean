@@ -1,6 +1,6 @@
 ## Story 2.4: Implement Calculation Service Foundation
 
-**Status:** Review
+**Status:** Complete
 
 **Story**
 - As a developer, I want to have a well-defined structure for the calculation service and its types, so I can implement the core capital gains tax calculations in a maintainable and extensible way.
@@ -79,3 +79,4 @@
     * Reorganized as foundational story - May 31, 2025 - Sarah (PO)
     * Started Implementation - May 31, 2025 - Sarah (PO)
     * Completed Implementation - May 31, 2025 - Claude (Dev Agent)
+    * Marked as Complete - May 31, 2025 - Claude (Story Validator)
