@@ -25,32 +25,32 @@
 **Critical Point:** The mockup designs provided may not contain every visual element described in this story. The mockups are not guarranteed to be feature complete. They should be used as a guideline and reference only. If this story specifies something is required that isn't in the mockup design, it still must be implmented.
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Implement Navigation to Scenario Editor for Existing Scenarios (AC: 1)**
-    - [ ] Ensure that from the `ScenarioHubView.tsx` (or wherever scenarios are listed, e.g., on summary cards from Story 2.5), an "Edit" action/button exists for each Comparison Scenario.
-    - [ ] Clicking "Edit" navigates the user to `ScenarioEditorView.tsx`, loading the selected scenario's data for editing. This might involve passing the `scenarioId` as a route parameter or prop.
-- [ ] **Task 2: Develop/Enhance `ScenarioEditorView.tsx` for Editing (AC: 2, 3, 8)**
-    - [ ] Ensure `ScenarioEditorView.tsx` can load and display data for an existing `Scenario` object fetched from the Zustand store based on its ID.
-    - [ ] Implement form sections (visually guided by the mockup) for editing:
+- [x] **Task 1: Implement Navigation to Scenario Editor for Existing Scenarios (AC: 1)**
+    - [x] Ensure that from the `ScenarioHubView.tsx` (or wherever scenarios are listed, e.g., on summary cards from Story 2.5), an "Edit" action/button exists for each Comparison Scenario.
+    - [x] Clicking "Edit" navigates the user to `ScenarioEditorView.tsx`, loading the selected scenario's data for editing. This might involve passing the `scenarioId` as a route parameter or prop.
+- [x] **Task 2: Develop/Enhance `ScenarioEditorView.tsx` for Editing (AC: 2, 3, 8)**
+    - [x] Ensure `ScenarioEditorView.tsx` can load and display data for an existing `Scenario` object fetched from the Zustand store based on its ID.
+    - [x] Implement form sections (visually guided by the mockup) for editing:
         - Scenario `name` (or `displayLocationName`).
         - Location components: `locationCountry`, `locationState`, `locationCity`.
         - `projectionPeriodYears` (numeric input).
         - `residencyStartDate` (optional date picker).
-    - [ ] Ensure changes to these fields trigger updates to the specific scenario in the Zustand store via `updateScenario` action.
-- [ ] **Task 3: Implement Editing of Income Sources within Scenario Editor (AC: 4, 8)**
-    - [ ] Re-use or adapt the UI components/logic from Story 1.3 (Task 5) for managing `incomeSources` (list, add, edit, delete forms).
-    - [ ] Ensure these operations now target the specific Comparison Scenario being edited in the `scenarios` array in the store.
-    - [ ] Style and layout should align with `scenario-editor-view.tsx` mockup.
-- [ ] **Task 4: Implement Editing of Annual Expenses within Scenario Editor (AC: 5, 8)**
-    - [ ] Re-use or adapt the UI components/logic from Story 1.3 (Task 6) for managing `annualExpenses` (categories and `additionalCosts`).
-    - [ ] Ensure these operations target the specific Comparison Scenario being edited.
-    - [ ] Style and layout should align with `scenario-editor-view.tsx` mockup.
-- [ ] **Task 5: Implement Editing of Effective CGT Rates within Scenario Editor (AC: 6, 8)**
-    - [ ] Re-use or adapt the UI components/logic from Story 1.3 (Task 4) for inputting/editing the effective Short-Term and Long-Term Capital Gains Tax rates (the first entry in `Scenario.capitalGainsTaxRates`).
-    - [ ] Ensure these operations target the specific Comparison Scenario being edited.
-    - [ ] Style and layout should align with `scenario-editor-view.tsx` mockup.
-- [ ] **Task 6: Ensure Data Persistence and UI Responsiveness (AC: 7, 8)**
-    - [ ] Verify all edits correctly update the corresponding `Scenario` object in the Zustand store and are persisted by the auto-save mechanism (Story 1.4).
-    - [ ] Thoroughly test the responsiveness of all forms and sections within `ScenarioEditorView.tsx`.
+    - [x] Ensure changes to these fields trigger updates to the specific scenario in the Zustand store via `updateScenario` action.
+- [x] **Task 3: Implement Editing of Income Sources within Scenario Editor (AC: 4, 8)**
+    - [x] Re-use or adapt the UI components/logic from Story 1.3 (Task 5) for managing `incomeSources` (list, add, edit, delete forms).
+    - [x] Ensure these operations now target the specific Comparison Scenario being edited in the `scenarios` array in the store.
+    - [x] Style and layout should align with `scenario-editor-view.tsx` mockup.
+- [x] **Task 4: Implement Editing of Annual Expenses within Scenario Editor (AC: 5, 8)**
+    - [x] Re-use or adapt the UI components/logic from Story 1.3 (Task 6) for managing `annualExpenses` (categories and `additionalCosts`).
+    - [x] Ensure these operations target the specific Comparison Scenario being edited.
+    - [x] Style and layout should align with `scenario-editor-view.tsx` mockup.
+- [x] **Task 5: Implement Editing of Effective CGT Rates within Scenario Editor (AC: 6, 8)**
+    - [x] Re-use or adapt the UI components/logic from Story 1.3 (Task 4) for inputting/editing the effective Short-Term and Long-Term Capital Gains Tax rates (the first entry in `Scenario.capitalGainsTaxRates`).
+    - [x] Ensure these operations target the specific Comparison Scenario being edited.
+    - [x] Style and layout should align with `scenario-editor-view.tsx` mockup.
+- [x] **Task 6: Ensure Data Persistence and UI Responsiveness (AC: 7, 8)**
+    - [x] Verify all edits correctly update the corresponding `Scenario` object in the Zustand store and are persisted by the auto-save mechanism (Story 1.4).
+    - [x] Thoroughly test the responsiveness of all forms and sections within `ScenarioEditorView.tsx`.
 
 **Dev Technical Guidance**
 -   **Visual Reference:** `scenario-editor-view.tsx` is paramount.
