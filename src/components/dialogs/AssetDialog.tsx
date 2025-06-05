@@ -19,11 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormField } from "@/components/shared/form-field";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toDateInputValue } from '@/lib/utils/date';
 
 interface AssetDialogProps {
   isOpen: boolean;
@@ -242,38 +239,19 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
             id="asset-acquisition-date"
             error={errors.acquisitionDate}
           >
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.acquisitionDate && "text-muted-foreground",
-                    errors.acquisitionDate ? "border-destructive" : ""
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.acquisitionDate ? (
-                    format(formData.acquisitionDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.acquisitionDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setFormData({ ...formData, acquisitionDate: date });
-                      handleFieldBlur('acquisitionDate', date);
-                    }
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              id="asset-acquisition-date"
+              type="date"
+              value={toDateInputValue(formData.acquisitionDate)}
+              onChange={e => {
+                const date = e.target.value ? new Date(e.target.value) : new Date();
+                setFormData({ ...formData, acquisitionDate: date });
+                handleFieldBlur('acquisitionDate', date);
+              }}
+              onBlur={() => handleFieldBlur('acquisitionDate', formData.acquisitionDate)}
+              required
+              className={errors.acquisitionDate ? 'border-destructive' : ''}
+            />
           </FormField>
 
           <FormField

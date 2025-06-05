@@ -5,7 +5,6 @@ import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense } from '@/ty
 import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CalendarIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { IncomeSourceDialog } from '@/components/dialogs/IncomeSourceDialog';
 import { ExpenseDialog } from '@/components/dialogs/ExpenseDialog';
@@ -13,11 +12,8 @@ import { Section } from '@/components/shared/section';
 import { FormField } from '@/components/shared/form-field';
 import { CardList } from '@/components/shared/card-list';
 import { ListItemCard } from '@/components/shared/list-item-card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { deepClone } from '@/lib/utils/clone';
+import { toDateInputValue } from '@/lib/utils/date';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -553,44 +549,19 @@ export function ScenarioEditorView() {
                 label="Residency Start Date"
                 error={errors.residencyStartDate}
               >
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="residencyStartDate"
-                      name="residencyStartDate"
-                      variant="outline"
-                      type="button"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !scenario.residencyStartDate && "text-muted-foreground",
-                        errors.residencyStartDate && "border-destructive"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {scenario.residencyStartDate ? (
-                        format(scenario.residencyStartDate, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-auto p-0" 
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                  >
-                    <Calendar
-                      mode="single"
-                      selected={scenario.residencyStartDate}
-                      onSelect={(date: Date | undefined) => {
-                        if (date) {
-                          setScenario({ ...scenario, residencyStartDate: date });
-                          handleFieldBlur('residencyStartDate', date);
-                        }
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Input
+                  id="residencyStartDate"
+                  name="residencyStartDate"
+                  type="date"
+                  value={toDateInputValue(scenario.residencyStartDate)}
+                  onChange={e => {
+                    const date = e.target.value ? new Date(e.target.value) : new Date();
+                    setScenario({ ...scenario, residencyStartDate: date });
+                    handleFieldBlur('residencyStartDate', date);
+                  }}
+                  onBlur={() => handleFieldBlur('residencyStartDate', scenario.residencyStartDate)}
+                  className={errors.residencyStartDate ? 'border-destructive' : ''}
+                />
               </FormField>
             </div>
           </div>
