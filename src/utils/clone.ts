@@ -5,46 +5,55 @@
  * @param cache Optional cache to handle circular references
  * @returns A deep clone of the object
  */
-export function deepClone<T>(obj: T, cache = new WeakMap()): T {
+export function deepClone<T>(value: T, cache = new WeakMap()): T {
   // Handle primitive values
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-
-  // Handle Date objects
-  if (obj instanceof Date) {
-    return new Date(obj.getTime()) as unknown as T;
+  if (value === null || typeof value !== 'object') {
+    return value;
   }
 
   // Handle circular references
-  if (cache.has(obj)) {
-    return cache.get(obj);
+  if (cache.has(value)) {
+    return cache.get(value);
+  }
+
+  // Handle Date objects
+  if (value instanceof Date) {
+    const date = new Date(value.getTime());
+    cache.set(value, date);
+    return date as T;
   }
 
   // Handle arrays
-  if (Array.isArray(obj)) {
-    const result = obj.map(item => deepClone(item, cache));
-    cache.set(obj, result);
-    return result as unknown as T;
+  if (Array.isArray(value)) {
+    const result = [] as unknown as T;
+    cache.set(value, result);
+    (result as unknown as Array<unknown>).push(...(value as Array<unknown>).map(item => deepClone(item, cache)));
+    return result;
   }
 
   // Handle objects
-  const result = Object.create(Object.getPrototypeOf(obj));
-  cache.set(obj, result);
+  const result = Object.create(Object.getPrototypeOf(value));
+  cache.set(value, result);
 
-  // Copy all properties (enumerable and non-enumerable)
+  // Copy all properties including Symbols and non-enumerable
   const allProps = [
-    ...Object.getOwnPropertyNames(obj),
-    ...Object.getOwnPropertySymbols(obj)
+    ...Object.getOwnPropertyNames(value),
+    ...Object.getOwnPropertySymbols(value)
   ];
 
-  for (const key of allProps) {
-    const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+  for (const prop of allProps) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, prop);
     if (descriptor) {
-      if (descriptor.value) {
-        descriptor.value = deepClone(descriptor.value, cache);
+      if (descriptor.get || descriptor.set) {
+        // Copy getters and setters
+        Object.defineProperty(result, prop, descriptor);
+      } else {
+        // Copy regular properties
+        Object.defineProperty(result, prop, {
+          ...descriptor,
+          value: deepClone(descriptor.value, cache)
+        });
       }
-      Object.defineProperty(result, key, descriptor);
     }
   }
 

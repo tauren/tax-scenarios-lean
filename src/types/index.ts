@@ -149,3 +149,40 @@ export interface PlannedAssetSale {
   quantity: number;
   salePricePerUnit: number;
 }
+
+export interface ScenarioYearlyProjection {
+  year: number;
+  taxBreakdown: {
+    capitalGainsTax: number;
+    totalTax: number;
+  };
+  netFinancialOutcome: number;
+}
+
+export interface ScenarioResults {
+  yearlyProjections: ScenarioYearlyProjection[];
+  totalNetFinancialOutcomeOverPeriod: number;
+}
+
+export interface AppCalculatedState {
+  resultsByScenario: { [scenarioId: string]: ScenarioResults };
+}
+
+export interface CapitalGainsData {
+  shortTermGains: number;
+  longTermGains: number;
+  totalGains: number;
+  taxableGains: number;
+}
+
+export interface TaxBreakdown {
+  capitalGainsTax: number;
+  totalTax: number;
+}
+
+export interface CalculationError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+  source: 'VALIDATION' | 'CALCULATION' | 'SYSTEM';
+}

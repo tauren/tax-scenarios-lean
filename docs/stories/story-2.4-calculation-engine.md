@@ -1,6 +1,6 @@
 ## Story 2.4: Implement Calculation Service Foundation
 
-**Status:** In Progress
+**Status:** Review
 
 **Story**
 - As a developer, I want to have a well-defined structure for the calculation service and its types, so I can implement the core capital gains tax calculations in a maintainable and extensible way.
@@ -32,29 +32,29 @@
    - Error handling utilities for common calculation errors
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Define Core Types**
-    - [ ] Create `ScenarioYearlyProjection` interface
-    - [ ] Create `ScenarioResults` interface
-    - [ ] Create `AppCalculatedState` interface
-    - [ ] Create `CapitalGainsData` interface
-    - [ ] Create `TaxBreakdown` interface
-- [ ] **Task 2: Set Up Calculation Service Structure**
-    - [ ] Create `calculationService.ts` file
-    - [ ] Define main function signatures
-    - [ ] Add basic function implementations (returning empty/default values)
-    - [ ] Add JSDoc documentation
-- [ ] **Task 3: Update State Management**
-    - [ ] Add `AppCalculatedState` to store type
-    - [ ] Implement store actions
-    - [ ] Add action types and creators
-- [ ] **Task 4: Implement Error Handling Types**
-    - [ ] Define `CalculationError` interface
-    - [ ] Create error handling utilities
-    - [ ] Add error type constants
-- [ ] **Task 5: Testing**
-    - [ ] Test type definitions
-    - [ ] Test store actions
-    - [ ] Test error handling utilities
+- [x] **Task 1: Define Core Types**
+    - [x] Create `ScenarioYearlyProjection` interface
+    - [x] Create `ScenarioResults` interface
+    - [x] Create `AppCalculatedState` interface
+    - [x] Create `CapitalGainsData` interface
+    - [x] Create `TaxBreakdown` interface
+- [x] **Task 2: Set Up Calculation Service Structure**
+    - [x] Create `calculationService.ts` file
+    - [x] Define main function signatures
+    - [x] Add basic function implementations (returning empty/default values)
+    - [x] Add JSDoc documentation
+- [x] **Task 3: Update State Management**
+    - [x] Add `AppCalculatedState` to store type
+    - [x] Implement store actions
+    - [x] Add action types and creators
+- [x] **Task 4: Implement Error Handling Types**
+    - [x] Define `CalculationError` interface
+    - [x] Create error handling utilities
+    - [x] Add error type constants
+- [x] **Task 5: Testing**
+    - [x] Test type definitions
+    - [x] Test store actions
+    - [x] Test error handling utilities
 
 **Dev Technical Guidance**
 - **Type Definitions:** Keep interfaces focused and minimal
@@ -67,10 +67,15 @@
 - Story 1.2 (Asset Management)
 
 **Story Progress Notes**
-* **Agent Model Used:** `<To be filled by Dev Agent>`
+* **Agent Model Used:** `Claude-3-Sonnet-20240229`
 * **Completion Notes List:**
-    * `{Dev Agent notes here}`
+    * Implemented all core types in `src/types/index.ts`
+    * Created calculation service with basic structure in `src/services/calculationService.ts`
+    * Added calculation state slice in `src/store/calculationStateSlice.ts`
+    * Implemented error handling utilities in `src/utils/calculationErrors.ts`
+    * Added tests for calculation service and error utilities
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
     * Reorganized as foundational story - May 31, 2025 - Sarah (PO)
     * Started Implementation - May 31, 2025 - Sarah (PO)
+    * Completed Implementation - May 31, 2025 - Claude (Dev Agent)
