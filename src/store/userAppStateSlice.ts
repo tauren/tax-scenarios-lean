@@ -12,6 +12,7 @@ const debouncedSave = (state: UserAppStateSlice) => {
       activePlanInternalName: state.activePlanInternalName,
       initialAssets: state.initialAssets,
       scenarios: state.scenarios,
+      selectedScenarioIds: state.selectedScenarioIds,
     });
     if (!success) {
       console.error('Failed to save state to localStorage');
@@ -23,11 +24,27 @@ const debouncedSave = (state: UserAppStateSlice) => {
 };
 
 // Initialize state from localStorage or use defaults
-const initialState = loadActivePlanFromStorage() || {
-  activePlanInternalName: '',
-  initialAssets: [],
-  scenarios: [],
-};
+function buildInitialState() {
+  const loaded = loadActivePlanFromStorage() || {
+    activePlanInternalName: '',
+    initialAssets: [],
+    scenarios: [],
+  };
+  let selectedScenarioIds: string[] = [];
+  if (loaded.scenarios && loaded.scenarios.length > 0) {
+    selectedScenarioIds = [loaded.scenarios[0].id];
+  }
+  // If loaded state already has selectedScenarioIds, use it
+  if (Array.isArray((loaded as any).selectedScenarioIds)) {
+    selectedScenarioIds = (loaded as any).selectedScenarioIds;
+  }
+  return {
+    ...loaded,
+    selectedScenarioIds,
+  };
+}
+
+const initialState = buildInitialState();
 
 export const useUserAppState = create<UserAppStateSlice>((set) => ({
   ...initialState,
@@ -35,6 +52,14 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
 
   setDirty: (isDirty: boolean) => {
     set((state) => ({ ...state, isDirty }));
+  },
+
+  setSelectedScenarioIds: (ids: string[]) => {
+    set((state) => {
+      const newState = { ...state, selectedScenarioIds: ids, isDirty: true };
+      debouncedSave(newState);
+      return newState;
+    });
   },
 
   setActivePlanInternalName: (name: string) => {
@@ -87,17 +112,19 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
   addScenario: (scenario: Scenario) => {
     set((state) => {
       const newScenario = { ...scenario, id: uuid() };
+      let selectedScenarioIds = state.selectedScenarioIds;
+      if (!selectedScenarioIds || selectedScenarioIds.length === 0) {
+        selectedScenarioIds = [newScenario.id];
+      }
       const newState = {
         ...state,
         scenarios: [...state.scenarios, newScenario],
+        selectedScenarioIds,
         isDirty: true,
       };
-
-      // Set the active plan name if it's not set
       if (!state.activePlanInternalName) {
         newState.activePlanInternalName = scenario.name;
       }
-
       debouncedSave(newState);
       return newState;
     });
@@ -119,9 +146,12 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
 
   deleteScenario: (scenarioId: string) => {
     set((state) => {
+      const newScenarios = state.scenarios.filter((scenario) => scenario.id !== scenarioId);
+      const newSelectedScenarioIds = state.selectedScenarioIds.filter(id => newScenarios.some(s => s.id === id));
       const newState = {
         ...state,
-        scenarios: state.scenarios.filter((scenario) => scenario.id !== scenarioId),
+        scenarios: newScenarios,
+        selectedScenarioIds: newSelectedScenarioIds,
         isDirty: true,
       };
       debouncedSave(newState);
@@ -168,6 +198,8 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
         ...newState,
         isDirty: false, // Reset dirty state when loading new plan
       };
+      // Filter selectedScenarioIds to only those present in scenarios
+      mergedState.selectedScenarioIds = (mergedState.selectedScenarioIds || []).filter(id => mergedState.scenarios.some(s => s.id === id));
       debouncedSave(mergedState);
       return mergedState;
     });

@@ -22,8 +22,8 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
   const [selectedTemplate, setSelectedTemplate] = useState<Scenario | null>(null);
   const [selectedMyScenario, setSelectedMyScenario] = useState<Scenario | null>(null);
 
-  const handleCreateFromTemplate = () => {
-    const template = selectedTemplate || selectedMyScenario;
+  const handleCreateFromTemplate = (scenarioArg?: Scenario | null) => {
+    const template = scenarioArg || selectedTemplate || selectedMyScenario;
     if (template) {
       navigate('/scenarios/new', { 
         state: { template }
@@ -48,6 +48,11 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
       }
     };
 
+    const grossIncome = scenario.incomeSources?.reduce((sum, src) => sum + (src.annualAmount || 0), 0) || 0;
+    const expenses = (scenario.annualExpenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0) +
+                     (scenario.oneTimeExpenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0);
+    const netIncome = grossIncome - expenses;
+
     return (
       <Card 
         key={scenario.id} 
@@ -68,15 +73,15 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Gross Income:</span>
-              <span>{formatCurrency(scenario.financial?.income?.grossIncome || 0)}</span>
+              <span>{formatCurrency(grossIncome)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Expenses:</span>
-              <span>{formatCurrency(scenario.financial?.expenses?.total || 0)}</span>
+              <span>{formatCurrency(expenses)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Net Income:</span>
-              <span>{formatCurrency((scenario.financial?.income?.grossIncome || 0) - (scenario.financial?.expenses?.total || 0))}</span>
+              <span>{formatCurrency(netIncome)}</span>
             </div>
           </div>
         </CardContent>
@@ -87,7 +92,8 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
             className="w-full"
             onClick={(e) => {
               e.stopPropagation();
-              handleCreateFromTemplate();
+              handleSelect();
+              handleCreateFromTemplate(scenario);
             }}
           >
             Use This {isTemplate ? 'Template' : 'Scenario'}
@@ -137,7 +143,7 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
             Cancel
           </Button>
           <Button 
-            onClick={handleCreateFromTemplate}
+            onClick={() => handleCreateFromTemplate()}
             disabled={!selectedTemplate && !selectedMyScenario}
           >
             Continue

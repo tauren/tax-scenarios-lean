@@ -42,9 +42,13 @@ export function setCompressionEnabled(enabled: boolean): void {
  */
 export function saveActivePlanToStorage(planState: UserAppState): boolean {
   try {
+    const stateToSave = { ...planState };
+    if ('selectedScenarioIds' in planState) {
+      stateToSave.selectedScenarioIds = planState.selectedScenarioIds;
+    }
     const data = isCompressionEnabled()
-      ? compressToEncodedURIComponent(JSON.stringify(planState))
-      : JSON.stringify(planState);
+      ? compressToEncodedURIComponent(JSON.stringify(stateToSave))
+      : JSON.stringify(stateToSave);
     localStorage.setItem(STORAGE_KEY, data);
     return true;
   } catch (error) {
@@ -65,9 +69,17 @@ export function loadActivePlanFromStorage(): UserAppState | null {
     if (isCompressionEnabled()) {
       const jsonString = decompressFromEncodedURIComponent(storedData);
       if (!jsonString) return null;
-      return JSON.parse(jsonString) as UserAppState;
+      const loaded: any = JSON.parse(jsonString);
+      if (loaded && !('selectedScenarioIds' in loaded)) {
+        loaded.selectedScenarioIds = loaded.scenarios && loaded.scenarios.length > 0 ? [loaded.scenarios[0].id] : [];
+      }
+      return loaded;
     } else {
-      return JSON.parse(storedData) as UserAppState;
+      const loaded: any = JSON.parse(storedData);
+      if (loaded && !('selectedScenarioIds' in loaded)) {
+        loaded.selectedScenarioIds = loaded.scenarios && loaded.scenarios.length > 0 ? [loaded.scenarios[0].id] : [];
+      }
+      return loaded;
     }
   } catch (error) {
     console.error('Error loading plan from localStorage:', error);

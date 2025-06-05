@@ -190,11 +190,10 @@ export function ScenarioEditorView() {
             },
             incomeRate: templateCopy.tax?.incomeRate
           },
-          // Use the deep cloned arrays directly
-          incomeSources: templateCopy.incomeSources,
-          annualExpenses: templateCopy.annualExpenses,
-          oneTimeExpenses: templateCopy.oneTimeExpenses,
-          plannedAssetSales: templateCopy.plannedAssetSales,
+          incomeSources: templateCopy.incomeSources ?? [],
+          annualExpenses: templateCopy.annualExpenses ?? [],
+          oneTimeExpenses: templateCopy.oneTimeExpenses ?? [],
+          plannedAssetSales: templateCopy.plannedAssetSales ?? [],
         };
         setScenario(newScenario);
       }

@@ -1,6 +1,6 @@
 ## Story 2.6: Implement "Overview Comparison Table" (CGT & Financial Outcome)
 
-**Status:** Complete
+**Status:** Done
 
 **Story**
 - As a user, I want to select scenarios for an "Overview Comparison Table" that shows key financial metrics like gross income (for context), expenses, total estimated Capital Gains Tax, and net financial outcome side-by-side for those selected scenarios, and I want this table to be sortable by these metrics, so I can effectively compare different planning options.
@@ -71,6 +71,10 @@
     * No outstanding issues or TODOs for this story.
 
 **Change Log:**
+- 2024-06-09:
+    - Final QA and UX review by Dev Agent.
+    - Ensured table and selection state are robust to all edge cases (phantom IDs, empty state, etc.).
+    - Confirmed all tasks and acceptance criteria are fully met.
 - 2024-06-08:
     - Final implementation and review by Dev Agent.
     - Added compact baseline indicator with icon and tooltip.

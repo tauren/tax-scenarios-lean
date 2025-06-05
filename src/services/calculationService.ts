@@ -88,7 +88,7 @@ export const calculateCapitalGainsForYear = (
   let longTermGains = 0;
 
   // Get planned sales for the current year
-  const salesForYear = scenario.plannedAssetSales.filter(sale => sale.year === currentYear);
+  const salesForYear = (scenario.plannedAssetSales ?? []).filter(sale => sale.year === currentYear);
 
   // Process each sale
   for (const sale of salesForYear) {
@@ -170,7 +170,7 @@ export const calculateTaxesForYear = (
  * @returns The total income for the year
  */
 const calculateIncomeForYear = (currentYear: number, scenario: Scenario): number => {
-  return scenario.incomeSources.reduce((total, source) => {
+  return (scenario.incomeSources ?? []).reduce((total, source) => {
     // Check if the income source is active in the current year
     if (currentYear >= source.startYear && (!source.endYear || currentYear <= source.endYear)) {
       return total + source.annualAmount;
@@ -189,7 +189,7 @@ const calculateExpensesForYear = (currentYear: number, scenario: Scenario): numb
   let totalExpenses = 0;
 
   // Add annual expenses
-  totalExpenses += scenario.annualExpenses.reduce((total, expense) => {
+  totalExpenses += (scenario.annualExpenses ?? []).reduce((total, expense) => {
     // Check if the expense is active in the current year
     if (currentYear >= (expense.startYear || 0) && (!expense.endYear || currentYear <= expense.endYear)) {
       return total + expense.amount;
@@ -198,7 +198,7 @@ const calculateExpensesForYear = (currentYear: number, scenario: Scenario): numb
   }, 0);
 
   // Add one-time expenses
-  totalExpenses += scenario.oneTimeExpenses.reduce((total, expense) => {
+  totalExpenses += (scenario.oneTimeExpenses ?? []).reduce((total, expense) => {
     if (expense.year === currentYear) {
       return total + expense.amount;
     }

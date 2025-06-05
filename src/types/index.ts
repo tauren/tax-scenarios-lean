@@ -2,6 +2,7 @@ export interface UserAppState {
   activePlanInternalName: string;
   initialAssets: Asset[];
   scenarios: Scenario[];
+  selectedScenarioIds: string[];
 }
 
 export interface UserAppStateSlice extends UserAppState {
@@ -17,6 +18,7 @@ export interface UserAppStateSlice extends UserAppState {
   setScenarioAsPrimary: (scenarioId: string) => void;
   setAppState: (newState: UserAppState) => void;
   clearStoredState: () => void;
+  setSelectedScenarioIds: (ids: string[]) => void;
 }
 
 export interface Asset {
