@@ -2,7 +2,7 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import { useCalculationState } from '@/store/calculationStateSlice';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { ArrowLeft, PlusCircle, ArrowUpDown, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { CreateScenarioDialog } from '@/components/dialogs/CreateScenarioDialog';
 import { ScenarioSummaryCard } from '@/components/shared/ScenarioSummaryCard';
@@ -19,6 +19,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { calculateScenarioResults } from '@/services/calculationService';
 import type { Scenario } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+type SortDirection = 'asc' | 'desc' | null;
+type SortKey = 'scenario' | 'totalGrossIncome' | 'totalExpenses' | 'estimatedCapitalGainsTax' | 'netFinancialOutcome' | 'qualitativeFitScore';
 
 export function ScenarioHubView() {
   const { scenarios, deleteScenario, setScenarioAsPrimary, initialAssets } = useUserAppState();
@@ -27,6 +32,10 @@ export function ScenarioHubView() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState<Set<string>>(new Set());
   const [scenarioToDelete, setScenarioToDelete] = useState<Scenario | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey | null; direction: SortDirection }>({
+    key: null,
+    direction: null
+  });
 
   // Calculate results for scenarios when they change
   useEffect(() => {
@@ -68,13 +77,71 @@ export function ScenarioHubView() {
 
   const selectedScenariosData = scenarios.filter((scenario) => selectedScenarios.has(scenario.id));
 
-  const comparisonMetrics = [
-    { key: 'totalGrossIncome', label: 'Total Gross Income', format: formatCurrency },
-    { key: 'totalExpenses', label: 'Total Expenses', format: formatCurrency },
-    { key: 'estimatedCapitalGainsTax', label: 'Est. Capital Gains Tax', format: formatCurrency, highlight: true },
-    { key: 'netFinancialOutcome', label: 'Net Financial Outcome', format: formatCurrency },
-    { key: 'qualitativeFitScore', label: 'Qualitative Fit Score', format: (val: number) => `${val}/100` },
-  ];
+  const handleSort = (key: SortKey) => {
+    let direction: SortDirection = 'asc';
+    if (sortConfig.key === key) {
+      if (sortConfig.direction === 'asc') {
+        direction = 'desc';
+      } else if (sortConfig.direction === 'desc') {
+        direction = null;
+      }
+    }
+    setSortConfig({ key: direction ? key : null, direction });
+  };
+
+  const getSortedScenarios = () => {
+    if (!sortConfig.key || !sortConfig.direction) {
+      return selectedScenariosData;
+    }
+
+    return [...selectedScenariosData].sort((a, b) => {
+      if (sortConfig.key === 'scenario') {
+        const comparison = a.name.localeCompare(b.name);
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      }
+
+      let aValue = 0;
+      let bValue = 0;
+
+      switch (sortConfig.key) {
+        case 'totalGrossIncome':
+          aValue = getTotalIncome(a.id);
+          bValue = getTotalIncome(b.id);
+          break;
+        case 'totalExpenses':
+          aValue = getTotalExpenses(a.id);
+          bValue = getTotalExpenses(b.id);
+          break;
+        case 'estimatedCapitalGainsTax':
+          aValue = getTotalCapitalGainsTax(a.id);
+          bValue = getTotalCapitalGainsTax(b.id);
+          break;
+        case 'netFinancialOutcome':
+          aValue = getTotalNetFinancialOutcome(a.id);
+          bValue = getTotalNetFinancialOutcome(b.id);
+          break;
+        case 'qualitativeFitScore':
+          aValue = resultsByScenario[a.id]?.qualitativeFitScore || 0;
+          bValue = resultsByScenario[b.id]?.qualitativeFitScore || 0;
+          break;
+      }
+
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+  };
+
+  const getSortIcon = (key: SortKey) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown className="h-4 w-4 ml-1" />;
+    }
+    if (sortConfig.direction === 'asc') {
+      return <ArrowUp className="h-4 w-4 ml-1" />;
+    }
+    if (sortConfig.direction === 'desc') {
+      return <ArrowDown className="h-4 w-4 ml-1" />;
+    }
+    return <ArrowUpDown className="h-4 w-4 ml-1" />;
+  };
 
   const handleDeleteClick = (scenario: Scenario) => {
     setScenarioToDelete(scenario);
@@ -128,6 +195,14 @@ export function ScenarioHubView() {
     if (!results) return 0;
     return results.yearlyProjections.reduce((sum, year) => sum + year.expenses, 0);
   };
+
+  const comparisonMetrics = [
+    { key: 'totalGrossIncome' as SortKey, label: 'Total Gross Income', format: formatCurrency },
+    { key: 'totalExpenses' as SortKey, label: 'Total Expenses', format: formatCurrency },
+    { key: 'estimatedCapitalGainsTax' as SortKey, label: 'Est. Capital Gains Tax', format: formatCurrency, highlight: true },
+    { key: 'netFinancialOutcome' as SortKey, label: 'Net Financial Outcome', format: formatCurrency },
+    { key: 'qualitativeFitScore' as SortKey, label: 'Qualitative Fit Score', format: (val: number) => `${val}/100` },
+  ];
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
@@ -202,21 +277,60 @@ export function ScenarioHubView() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Comparison Table</h2>
           <div className="border rounded-lg">
-            <Table>
+            <Table style={{ tableLayout: 'fixed', width: '100%' }}>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Metric</TableHead>
-                  {selectedScenariosData.map((scenario) => (
-                    <TableHead key={scenario.id}>{scenario.name}</TableHead>
+                  <TableHead className="w-[150px] max-w-[150px] break-words">
+                    <button
+                      onClick={() => handleSort('scenario')}
+                      className="flex items-center hover:text-primary transition-colors text-left w-full"
+                    >
+                      <span className="whitespace-normal break-words">
+                        Scenario
+                      </span>
+                      <span className="flex-shrink-0 ml-1">
+                        {getSortIcon('scenario')}
+                      </span>
+                    </button>
+                  </TableHead>
+                  {comparisonMetrics.map((metric) => (
+                    <TableHead key={metric.key} className="w-auto">
+                      <button
+                        onClick={() => handleSort(metric.key)}
+                        className="flex items-center hover:text-primary transition-colors text-left w-full"
+                      >
+                        <span className="whitespace-normal break-words">
+                          {metric.label}
+                        </span>
+                        <span className="flex-shrink-0 ml-1">
+                          {getSortIcon(metric.key)}
+                        </span>
+                      </button>
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {comparisonMetrics.map((metric) => (
-                  <TableRow key={metric.key}>
-                    <TableCell className="font-medium">{metric.label}</TableCell>
-                    {selectedScenariosData.map((scenario) => {
-                      const results = resultsByScenario[scenario.id];
+                {getSortedScenarios().map((scenario) => (
+                  <TableRow key={scenario.id}>
+                    <TableCell className="font-medium w-[150px] max-w-[150px] break-words">
+                      <div className="flex items-center gap-2">
+                        <span className="line-clamp-2 break-words">{scenario.name}</span>
+                        {scenario.id === scenarios[0]?.id && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                                  <Target className="h-3 w-3 mr-1 text-primary" />
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>Baseline scenario</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                    </TableCell>
+                    {comparisonMetrics.map((metric) => {
                       let value = 0;
                       switch (metric.key) {
                         case 'estimatedCapitalGainsTax':
@@ -226,7 +340,7 @@ export function ScenarioHubView() {
                           value = getTotalNetFinancialOutcome(scenario.id);
                           break;
                         case 'qualitativeFitScore':
-                          value = results?.qualitativeFitScore || 0;
+                          value = resultsByScenario[scenario.id]?.qualitativeFitScore || 0;
                           break;
                         case 'totalGrossIncome':
                           value = getTotalIncome(scenario.id);
@@ -237,8 +351,8 @@ export function ScenarioHubView() {
                       }
                       return (
                         <TableCell
-                          key={scenario.id}
-                          className={metric.highlight ? 'bg-muted/50 font-medium' : ''}
+                          key={metric.key}
+                          className={`${metric.highlight ? 'bg-muted/50 font-medium' : ''} text-right w-auto`}
                         >
                           {metric.format(value)}
                         </TableCell>

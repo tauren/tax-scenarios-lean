@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Eye, Pencil, Copy, Trash2, MoreVertical } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, Pencil, Copy, Trash2, MoreVertical, Target } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +63,8 @@ export function ScenarioSummaryCard({
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
               {isBaseline && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                  <Target className="h-3 w-3 mr-1 text-primary" />
                   Baseline
                 </Badge>
               )}

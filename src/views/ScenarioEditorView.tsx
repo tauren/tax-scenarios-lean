@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
-import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale, Asset } from '@/types';
+import type { Scenario, FormScenario, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale, Asset } from '@/types';
 import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import { TableListItem } from '@/components/shared/TableListItem';
 import { CardList } from '@/components/shared/CardList';
 import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
 import { PlannedAssetSaleDialog } from '@/components/dialogs/PlannedAssetSaleDialog';
+import { convertFormScenarioToScenario } from '@/types';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -28,9 +29,7 @@ interface ValidationErrors {
   residencyStartDate?: string;
   shortTermRate?: string;
   longTermRate?: string;
-  incomeSources?: string;
-  annualExpenses?: string;
-  oneTimeExpenses?: string;
+  incomeRate?: string;
 }
 
 type ValidationField = keyof ValidationErrors;
@@ -38,92 +37,56 @@ type ValidationField = keyof ValidationErrors;
 interface ValidationRule {
   field: ValidationField;
   validate: (value: any) => string | undefined;
-  getValue: (scenario: Partial<Scenario>) => any;
+  getValue: (scenario: FormScenario) => any;
 }
 
 const validationRules: ValidationRule[] = [
   {
     field: 'name',
-    validate: (value) => !value?.trim() ? 'Please enter a name for this scenario' : undefined,
-    getValue: (scenario) => scenario.name
+    validate: (value: string) => !value ? 'Name is required' : undefined,
+    getValue: (scenario: FormScenario) => scenario.name
   },
   {
     field: 'country',
-    validate: (value) => !value?.trim() ? 'Please select a country for this scenario' : undefined,
-    getValue: (scenario) => scenario.location?.country
+    validate: (value: string) => !value ? 'Country is required' : undefined,
+    getValue: (scenario: FormScenario) => scenario.location?.country
   },
   {
     field: 'projectionPeriod',
-    validate: (value) => !value || value <= 0 ? 'Projection period must be at least 1 year' : undefined,
-    getValue: (scenario) => scenario.projectionPeriod
+    validate: (value: number | undefined) => {
+      if (value === undefined || value === 0) return 'Projection period must be at least 1 year';
+      return value < 1 ? 'Projection period must be at least 1 year' : undefined;
+    },
+    getValue: (scenario: FormScenario) => scenario.projectionPeriod
   },
   {
     field: 'residencyStartDate',
-    validate: (value) => !value ? 'Please select a residency start date' : undefined,
-    getValue: (scenario) => scenario.residencyStartDate
+    validate: (value: Date | string) => !value ? 'Residency start date is required' : undefined,
+    getValue: (scenario: FormScenario) => scenario.residencyStartDate
   },
   {
     field: 'shortTermRate',
-    validate: (value) => value === undefined || value < 0 || value > 100 
-      ? 'Short term rate must be between 0% and 100%' 
-      : undefined,
-    getValue: (scenario) => scenario.tax?.capitalGains?.shortTermRate
+    validate: (value: number | undefined) => {
+      if (value === undefined) return undefined;
+      return value < 0 || value > 100 ? 'Must be between 0% and 100%' : undefined;
+    },
+    getValue: (scenario: FormScenario) => scenario.tax?.capitalGains?.shortTermRate
   },
   {
     field: 'longTermRate',
-    validate: (value) => value === undefined || value < 0 || value > 100 
-      ? 'Long term rate must be between 0% and 100%' 
-      : undefined,
-    getValue: (scenario) => scenario.tax?.capitalGains?.longTermRate
+    validate: (value: number | undefined) => {
+      if (value === undefined) return undefined;
+      return value < 0 || value > 100 ? 'Must be between 0% and 100%' : undefined;
+    },
+    getValue: (scenario: FormScenario) => scenario.tax?.capitalGains?.longTermRate
   },
   {
-    field: 'incomeSources',
-    validate: (sources: IncomeSource[] | undefined) => {
-      if (!sources?.length) return undefined; // Income sources are optional
-      
-      const hasValidSource = sources.every((source: IncomeSource) => {
-        if (!source.name?.trim()) return false;
-        if (!source.annualAmount || source.annualAmount <= 0) return false;
-        if (!source.startYear || source.startYear < new Date().getFullYear()) return false;
-        if (source.endYear && source.endYear < source.startYear) return false;
-        return true;
-      });
-
-      return hasValidSource ? undefined : 'All income sources must have valid details';
+    field: 'incomeRate',
+    validate: (value: number | undefined) => {
+      if (value === undefined) return undefined;
+      return value < 0 || value > 100 ? 'Must be between 0% and 100%' : undefined;
     },
-    getValue: (scenario) => scenario.incomeSources
-  },
-  {
-    field: 'annualExpenses',
-    validate: (expenses: AnnualExpense[] | undefined) => {
-      if (!expenses?.length) return undefined; // Annual expenses are optional
-      
-      const hasValidExpense = expenses.every((expense: AnnualExpense) => {
-        if (!expense.name?.trim()) return false;
-        if (!expense.amount || expense.amount <= 0) return false;
-        return true;
-      });
-
-      return hasValidExpense ? undefined : 'All annual expenses must have valid details';
-    },
-    getValue: (scenario) => scenario.annualExpenses
-  },
-  {
-    field: 'oneTimeExpenses',
-    validate: (expenses: OneTimeExpense[] | undefined) => {
-      if (!expenses?.length) return undefined; // One-time expenses are optional
-      
-      const currentYear = new Date().getFullYear();
-      const hasValidExpense = expenses.every((expense: OneTimeExpense) => {
-        if (!expense.name?.trim()) return false;
-        if (!expense.amount || expense.amount <= 0) return false;
-        if (!expense.year || expense.year < currentYear) return false;
-        return true;
-      });
-
-      return hasValidExpense ? undefined : 'All one-time expenses must have valid details';
-    },
-    getValue: (scenario) => scenario.oneTimeExpenses
+    getValue: (scenario: FormScenario) => scenario.tax?.incomeRate
   }
 ];
 
@@ -132,26 +95,44 @@ export function ScenarioEditorView() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { addScenario, updateScenario, scenarios, initialAssets } = useUserAppState();
-  const [scenario, setScenario] = useState<Scenario>({
-    id: uuidv4(),
-    name: '',
-    projectionPeriod: 30,
-    residencyStartDate: new Date(),
-    location: {
-      country: '',
-      state: '',
-      city: '',
-    },
-    tax: {
-      capitalGains: {
-        shortTermRate: 0,
-        longTermRate: 0,
+  const [scenario, setScenario] = useState<FormScenario>(() => {
+    if (id && id !== 'new') {
+      const existingScenario = scenarios.find(s => s.id === id);
+      if (existingScenario) {
+        return {
+          ...existingScenario,
+          tax: {
+            capitalGains: {
+              shortTermRate: existingScenario.tax?.capitalGains?.shortTermRate,
+              longTermRate: existingScenario.tax?.capitalGains?.longTermRate
+            },
+            incomeRate: existingScenario.tax?.incomeRate
+          }
+        };
+      }
+    }
+    return {
+      id: '',
+      name: '',
+      projectionPeriod: undefined,
+      residencyStartDate: new Date(),
+      location: {
+        country: '',
+        state: '',
+        city: ''
       },
-    },
-    incomeSources: [],
-    annualExpenses: [],
-    oneTimeExpenses: [],
-    plannedAssetSales: [],
+      tax: {
+        capitalGains: {
+          shortTermRate: undefined,
+          longTermRate: undefined
+        },
+        incomeRate: undefined
+      },
+      incomeSources: [],
+      annualExpenses: [],
+      oneTimeExpenses: [],
+      plannedAssetSales: []
+    };
   });
   const [errors, setErrors] = useState<ScenarioValidationErrors>({});
   const [isIncomeSourceDialogOpen, setIsIncomeSourceDialogOpen] = useState(false);
@@ -178,7 +159,7 @@ export function ScenarioEditorView() {
     if (id && !isNewScenario) {
       const existingScenario = scenarios.find(s => s.id === id);
       if (existingScenario) {
-        setScenario(deepClone(existingScenario));
+        setScenario(deepClone(existingScenario) as FormScenario);
       } else {
         // If scenario not found, redirect to scenarios list
         navigate('/scenarios');
@@ -191,11 +172,11 @@ export function ScenarioEditorView() {
         const templateCopy = deepClone(state.template);
         
         // Create a new scenario from the template
-        const newScenario = {
+        const newScenario: FormScenario = {
           ...templateCopy,
           id: uuidv4(), // Ensure new ID for new scenario
           name: templateCopy.name || templateCopy.location.country,
-          projectionPeriod: templateCopy.projectionPeriod || 10,
+          projectionPeriod: templateCopy.projectionPeriod,
           residencyStartDate: templateCopy.residencyStartDate instanceof Date ? templateCopy.residencyStartDate : new Date(),
           location: {
             country: templateCopy.location?.country || '',
@@ -204,10 +185,10 @@ export function ScenarioEditorView() {
           },
           tax: {
             capitalGains: {
-              shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate || 0,
-              longTermRate: templateCopy.tax?.capitalGains?.longTermRate || 0,
-              specialConditions: templateCopy.tax?.capitalGains?.specialConditions,
+              shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate,
+              longTermRate: templateCopy.tax?.capitalGains?.longTermRate,
             },
+            incomeRate: templateCopy.tax?.incomeRate
           },
           // Use the deep cloned arrays directly
           incomeSources: templateCopy.incomeSources,
@@ -221,20 +202,9 @@ export function ScenarioEditorView() {
   }, [id, location.state, location.pathname, scenarios, navigate]);
 
   const validateField = (field: ValidationField, value: any): string | undefined => {
-    const rule = validationRules.find(r => r.field === field);
-    if (!rule) return undefined;
-
-    const error = rule.validate(value);
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      if (error) {
-        newErrors[field] = error;
-      } else {
-        delete newErrors[field];
-      }
-      return newErrors;
-    });
-    return error;
+    const validationRule = validationRules.find(r => r.field === field);
+    if (!validationRule) return undefined;
+    return validationRule.validate(value);
   };
 
   const handleFieldBlur = (field: ValidationField, value: any) => {
@@ -245,11 +215,11 @@ export function ScenarioEditorView() {
     const newErrors: ValidationErrors = {};
 
     // Validate each field using the validation rules
-    validationRules.forEach(rule => {
-      const value = rule.getValue(scenario);
-      const error = rule.validate(value);
+    validationRules.forEach(validationRule => {
+      const value = validationRule.getValue(scenario);
+      const error = validationRule.validate(value);
       if (error) {
-        newErrors[rule.field] = error;
+        newErrors[validationRule.field] = error;
       }
     });
 
@@ -266,35 +236,11 @@ export function ScenarioEditorView() {
   const handleSave = () => {
     if (!validateForm()) return;
 
-    // Ensure all required fields are present and properly typed
-    const scenarioToSave: Scenario = {
-      id: scenario.id, // Keep the existing ID
-      name: scenario.name || '',
-      projectionPeriod: scenario.projectionPeriod || 30,
-      residencyStartDate: scenario.residencyStartDate!, // We know this is valid because of validation
-      location: {
-        country: scenario.location?.country || '',
-        state: scenario.location?.state || '',
-        city: scenario.location?.city || '',
-      },
-      tax: {
-        capitalGains: {
-          shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
-          longTermRate: scenario.tax?.capitalGains?.longTermRate || 0,
-          specialConditions: scenario.tax?.capitalGains?.specialConditions,
-        },
-      },
-      incomeSources: scenario.incomeSources || [],
-      annualExpenses: scenario.annualExpenses || [],
-      oneTimeExpenses: scenario.oneTimeExpenses || [],
-      plannedAssetSales: scenario.plannedAssetSales || [],
-    };
+    const scenarioToSave = convertFormScenarioToScenario(scenario);
 
     if (id && id !== 'new') {
-      // Update existing scenario
       updateScenario(id, scenarioToSave);
     } else {
-      // Create new scenario
       addScenario(scenarioToSave);
     }
     navigate('/scenarios');
@@ -617,10 +563,10 @@ export function ScenarioEditorView() {
                   name="projectionPeriod"
                   type="number"
                   min="1"
-                  value={scenario.projectionPeriod}
+                  value={scenario.projectionPeriod ?? ''}
                   onChange={(e) => setScenario({
                     ...scenario,
-                    projectionPeriod: Number(e.target.value)
+                    projectionPeriod: e.target.value === '' ? undefined : Number(e.target.value)
                   })}
                   onBlur={() => handleFieldBlur('projectionPeriod', scenario.projectionPeriod)}
                   className={errors.projectionPeriod ? 'border-destructive' : ''}
@@ -650,11 +596,11 @@ export function ScenarioEditorView() {
           </div>
         </Section>
 
-        <Section title="Capital Gains Tax Rates">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Section title="Capital Gains and Income Tax Rates">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               id="shortTermRate"
-              label="Short-Term Capital Gains Tax Rate (%)"
+              label="Short-Term CGT Rate (%)"
               error={errors.shortTermRate}
             >
               <Input
@@ -664,14 +610,14 @@ export function ScenarioEditorView() {
                 min="0"
                 max="100"
                 step="0.1"
-                value={scenario.tax?.capitalGains?.shortTermRate}
+                value={scenario.tax?.capitalGains?.shortTermRate ?? ''}
                 onChange={(e) => setScenario({
                   ...scenario,
                   tax: {
                     ...scenario.tax,
                     capitalGains: {
-                      shortTermRate: Number(e.target.value),
-                      longTermRate: scenario.tax?.capitalGains?.longTermRate || 0
+                      shortTermRate: e.target.value === '' ? undefined : Number(e.target.value),
+                      longTermRate: scenario.tax?.capitalGains?.longTermRate
                     }
                   }
                 })}
@@ -682,7 +628,7 @@ export function ScenarioEditorView() {
 
             <FormField
               id="longTermRate"
-              label="Long-Term Capital Gains Tax Rate (%)"
+              label="Long-Term CGT Rate (%)"
               error={errors.longTermRate}
             >
               <Input
@@ -692,19 +638,44 @@ export function ScenarioEditorView() {
                 min="0"
                 max="100"
                 step="0.1"
-                value={scenario.tax?.capitalGains?.longTermRate}
+                value={scenario.tax?.capitalGains?.longTermRate ?? ''}
                 onChange={(e) => setScenario({
                   ...scenario,
                   tax: {
                     ...scenario.tax,
                     capitalGains: {
-                      shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
-                      longTermRate: Number(e.target.value)
+                      shortTermRate: scenario.tax?.capitalGains?.shortTermRate,
+                      longTermRate: e.target.value === '' ? undefined : Number(e.target.value)
                     }
                   }
                 })}
                 onBlur={() => handleFieldBlur('longTermRate', scenario.tax?.capitalGains?.longTermRate)}
                 className={errors.longTermRate ? 'border-destructive' : ''}
+              />
+            </FormField>
+
+            <FormField
+              id="incomeRate"
+              label="Income Tax Rate (%)"
+              error={errors.incomeRate}
+            >
+              <Input
+                id="incomeRate"
+                name="incomeRate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={scenario.tax?.incomeRate ?? ''}
+                onChange={(e) => setScenario({
+                  ...scenario,
+                  tax: {
+                    ...scenario.tax,
+                    incomeRate: e.target.value === '' ? undefined : Number(e.target.value)
+                  }
+                })}
+                onBlur={() => handleFieldBlur('incomeRate', scenario.tax?.incomeRate)}
+                className={errors.incomeRate ? 'border-destructive' : ''}
               />
             </FormField>
           </div>
@@ -987,7 +958,7 @@ export function ScenarioEditorView() {
         sale={editingPlannedAssetSale}
         mode={!editingPlannedAssetSale ? 'add' : scenario.plannedAssetSales?.some(s => s.id === editingPlannedAssetSale.id) ? 'edit' : 'duplicate'}
         assets={initialAssets}
-        projectionPeriod={scenario.projectionPeriod}
+        projectionPeriod={scenario.projectionPeriod ?? 0}
       />
 
       <CopyItemsDialog

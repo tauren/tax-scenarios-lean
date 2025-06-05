@@ -183,3 +183,30 @@ export interface CalculationError extends Error {
   details?: Record<string, unknown>;
   source: 'VALIDATION' | 'CALCULATION' | 'SYSTEM';
 }
+
+// Form-specific type that allows undefined values for numeric fields
+export interface FormScenario extends Omit<Scenario, 'projectionPeriod' | 'tax'> {
+  projectionPeriod: number | undefined;
+  tax: {
+    capitalGains: {
+      shortTermRate: number | undefined;
+      longTermRate: number | undefined;
+    };
+    incomeRate: number | undefined;
+  };
+}
+
+// Helper function to convert FormScenario to Scenario
+export function convertFormScenarioToScenario(formScenario: FormScenario): Scenario {
+  return {
+    ...formScenario,
+    projectionPeriod: formScenario.projectionPeriod ?? 0,
+    tax: {
+      capitalGains: {
+        shortTermRate: formScenario.tax.capitalGains.shortTermRate ?? 0,
+        longTermRate: formScenario.tax.capitalGains.longTermRate ?? 0
+      },
+      incomeRate: formScenario.tax.incomeRate ?? 0
+    }
+  };
+}

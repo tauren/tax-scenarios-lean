@@ -206,7 +206,7 @@ describe('calculationService', () => {
           income: 0,
         },
         scenario
-      )).toThrow('Capital gains tax rates not defined in scenario');
+      )).toThrow('Required tax rates not defined in scenario');
     });
   });
 
