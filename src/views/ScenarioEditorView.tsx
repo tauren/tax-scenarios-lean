@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
-import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense } from '@/types';
+import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale, Asset } from '@/types';
 import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { v4 as uuidv4 } from 'uuid';
 import { IncomeSourceDialog } from '@/components/dialogs/IncomeSourceDialog';
 import { ExpenseDialog } from '@/components/dialogs/ExpenseDialog';
+import { CopyItemsDialog } from '@/components/dialogs/CopyItemsDialog';
 import { Section } from '@/components/shared/Section';
 import { FormField } from '@/components/shared/FormField';
 import { ListItemCard } from '@/components/shared/ListItemCard';
@@ -16,8 +17,8 @@ import { toDateInputValue } from '@/utils/date';
 import { TableList } from '@/components/shared/TableList';
 import { TableListItem } from '@/components/shared/TableListItem';
 import { CardList } from '@/components/shared/CardList';
-import { SectionHeaderWithToggle } from '@/components/shared/SectionHeaderWithToggle';
 import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
+import { PlannedAssetSaleDialog } from '@/components/dialogs/PlannedAssetSaleDialog';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -130,7 +131,7 @@ export function ScenarioEditorView() {
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addScenario, updateScenario, scenarios } = useUserAppState();
+  const { addScenario, updateScenario, scenarios, initialAssets } = useUserAppState();
   const [scenario, setScenario] = useState<Scenario>({
     id: uuidv4(),
     name: '',
@@ -150,16 +151,22 @@ export function ScenarioEditorView() {
     incomeSources: [],
     annualExpenses: [],
     oneTimeExpenses: [],
+    plannedAssetSales: [],
   });
   const [errors, setErrors] = useState<ScenarioValidationErrors>({});
   const [isIncomeSourceDialogOpen, setIsIncomeSourceDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isPlannedAssetSaleDialogOpen, setIsPlannedAssetSaleDialogOpen] = useState(false);
+  const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
   const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | undefined>();
   const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
+  const [editingPlannedAssetSale, setEditingPlannedAssetSale] = useState<PlannedAssetSale | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
   const [incomeSourceView, setIncomeSourceView] = useState<'card' | 'table'>('card');
   const [annualExpenseView, setAnnualExpenseView] = useState<'card' | 'table'>('card');
   const [oneTimeExpenseView, setOneTimeExpenseView] = useState<'card' | 'table'>('card');
+  const [plannedAssetSaleView, setPlannedAssetSaleView] = useState<'card' | 'table'>('card');
+  const [copyDialogType, setCopyDialogType] = useState<'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale'>('incomeSource');
   
   const isCreating = id === 'new';
 
@@ -206,6 +213,7 @@ export function ScenarioEditorView() {
           incomeSources: templateCopy.incomeSources,
           annualExpenses: templateCopy.annualExpenses,
           oneTimeExpenses: templateCopy.oneTimeExpenses,
+          plannedAssetSales: templateCopy.plannedAssetSales,
         };
         setScenario(newScenario);
       }
@@ -279,6 +287,7 @@ export function ScenarioEditorView() {
       incomeSources: scenario.incomeSources || [],
       annualExpenses: scenario.annualExpenses || [],
       oneTimeExpenses: scenario.oneTimeExpenses || [],
+      plannedAssetSales: scenario.plannedAssetSales || [],
     };
 
     if (id && id !== 'new') {
@@ -361,12 +370,8 @@ export function ScenarioEditorView() {
 
   const handleEditExpense = (expense: AnnualExpense | OneTimeExpense) => {
     setEditingExpense(expense);
+    setExpenseType('year' in expense ? 'oneTime' : 'annual');
     setIsExpenseDialogOpen(true);
-  };
-
-  const handleAddIncomeSource = () => {
-    setEditingIncomeSource(undefined);
-    setIsIncomeSourceDialogOpen(true);
   };
 
   const handleAddExpense = (type: 'annual' | 'oneTime') => {
@@ -425,6 +430,77 @@ export function ScenarioEditorView() {
   const handleExpenseDialogClose = () => {
     setIsExpenseDialogOpen(false);
     setEditingExpense(undefined);
+  };
+
+  const handleCopyItemsSave = (items: any[]) => {
+    const updatedScenario = deepClone(scenario);
+    
+    switch (copyDialogType) {
+      case 'incomeSource':
+        updatedScenario.incomeSources = [...(updatedScenario.incomeSources || []), ...items];
+        break;
+      case 'annualExpense':
+        updatedScenario.annualExpenses = [...(updatedScenario.annualExpenses || []), ...items];
+        break;
+      case 'oneTimeExpense':
+        updatedScenario.oneTimeExpenses = [...(updatedScenario.oneTimeExpenses || []), ...items];
+        break;
+      case 'plannedAssetSale':
+        updatedScenario.plannedAssetSales = [...(updatedScenario.plannedAssetSales || []), ...items];
+        break;
+    }
+    
+    setScenario(updatedScenario);
+    setIsCopyDialogOpen(false);
+  };
+
+  const handleCopyDialogClose = () => {
+    setIsCopyDialogOpen(false);
+  };
+
+  const handlePlannedAssetSaleSave = (sale: PlannedAssetSale) => {
+    const updatedScenario = deepClone(scenario);
+    
+    if (editingPlannedAssetSale && scenario.plannedAssetSales?.some(s => s.id === sale.id)) {
+      // Update existing sale
+      const index = updatedScenario.plannedAssetSales.findIndex(s => s.id === sale.id);
+      if (index !== -1) {
+        updatedScenario.plannedAssetSales[index] = sale;
+      }
+    } else {
+      // Add new sale (either from duplicate or new)
+      updatedScenario.plannedAssetSales = [...(updatedScenario.plannedAssetSales || []), sale];
+    }
+    
+    setScenario(updatedScenario);
+    handlePlannedAssetSaleDialogClose();
+  };
+
+  const handleEditPlannedAssetSale = (sale: PlannedAssetSale) => {
+    setEditingPlannedAssetSale(sale);
+    setIsPlannedAssetSaleDialogOpen(true);
+  };
+
+  const handleAddPlannedAssetSale = () => {
+    setEditingPlannedAssetSale(undefined);
+    setIsPlannedAssetSaleDialogOpen(true);
+  };
+
+  const removePlannedAssetSale = (id: string) => {
+    const updatedScenario = deepClone(scenario);
+    updatedScenario.plannedAssetSales = updatedScenario.plannedAssetSales.filter(s => s.id !== id);
+    setScenario(updatedScenario);
+  };
+
+  const handlePlannedAssetSaleDialogClose = () => {
+    setIsPlannedAssetSaleDialogOpen(false);
+    setEditingPlannedAssetSale(undefined);
+  };
+
+  const duplicatePlannedAssetSale = (sale: PlannedAssetSale) => {
+    const duplicatedSale = { ...sale, id: uuidv4() };
+    setEditingPlannedAssetSale(duplicatedSale);
+    setIsPlannedAssetSaleDialogOpen(true);
   };
 
   return (
@@ -574,9 +650,7 @@ export function ScenarioEditorView() {
           </div>
         </Section>
 
-        <Section 
-          title="Capital Gains Tax Rates"
-        >
+        <Section title="Capital Gains Tax Rates">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               id="shortTermRate"
@@ -638,14 +712,16 @@ export function ScenarioEditorView() {
 
         <Section
           title="Income Sources"
-          action={
-            <SectionHeaderWithToggle
-              view={incomeSourceView}
-              setView={setIncomeSourceView}
-              onAdd={handleAddIncomeSource}
-              addLabel="Add Income Source"
-            />
-          }
+          view={incomeSourceView}
+          onViewChange={setIncomeSourceView}
+          onCopy={() => {
+            setCopyDialogType('incomeSource');
+            setIsCopyDialogOpen(true);
+          }}
+          onAdd={() => {
+            setEditingIncomeSource(undefined);
+            setIsIncomeSourceDialogOpen(true);
+          }}
           error={errors.incomeSources}
           hasItems={(scenario.incomeSources?.length ?? 0) > 0}
           emptyMessage="No income sources added yet. Add your first income source to get started."
@@ -704,14 +780,13 @@ export function ScenarioEditorView() {
 
         <Section
           title="Annual Expenses"
-          action={
-            <SectionHeaderWithToggle
-              view={annualExpenseView}
-              setView={setAnnualExpenseView}
-              onAdd={() => handleAddExpense('annual')}
-              addLabel="Add Annual Expense"
-            />
-          }
+          view={annualExpenseView}
+          onViewChange={setAnnualExpenseView}
+          onCopy={() => {
+            setCopyDialogType('annualExpense');
+            setIsCopyDialogOpen(true);
+          }}
+          onAdd={() => handleAddExpense('annual')}
           error={errors.annualExpenses}
           hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
           emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
@@ -760,14 +835,13 @@ export function ScenarioEditorView() {
 
         <Section
           title="One-Time Expenses"
-          action={
-            <SectionHeaderWithToggle
-              view={oneTimeExpenseView}
-              setView={setOneTimeExpenseView}
-              onAdd={() => handleAddExpense('oneTime')}
-              addLabel="Add One-Time Expense"
-            />
-          }
+          view={oneTimeExpenseView}
+          onViewChange={setOneTimeExpenseView}
+          onCopy={() => {
+            setCopyDialogType('oneTimeExpense');
+            setIsCopyDialogOpen(true);
+          }}
+          onAdd={() => handleAddExpense('oneTime')}
           error={errors.oneTimeExpenses}
           hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
           emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
@@ -816,6 +890,77 @@ export function ScenarioEditorView() {
             </TableList>
           )}
         </Section>
+
+        <Section
+          title="Planned Asset Sales"
+          view={plannedAssetSaleView}
+          onViewChange={setPlannedAssetSaleView}
+          onCopy={() => {
+            setCopyDialogType('plannedAssetSale');
+            setIsCopyDialogOpen(true);
+          }}
+          onAdd={handleAddPlannedAssetSale}
+          hasItems={(scenario.plannedAssetSales?.length ?? 0) > 0}
+          emptyMessage="No planned asset sales added yet. Add your first planned sale to get started."
+        >
+          {plannedAssetSaleView === 'card' ? (
+            <CardList>
+              {(scenario.plannedAssetSales || []).map((sale) => {
+                const asset = initialAssets.find((a: Asset) => a.id === sale.assetId);
+                return (
+                  <ListItemCard
+                    key={sale.id}
+                    title={asset?.name || 'Unknown Asset'}
+                    lines={[
+                      `Sell ${sale.quantity} in ${sale.year}`,
+                      `Each: $${sale.salePricePerUnit.toFixed(2)}`,
+                      `Total: $${(sale.quantity * sale.salePricePerUnit).toFixed(2)}`
+                    ]}
+                    onEdit={() => handleEditPlannedAssetSale(sale)}
+                    onDelete={() => removePlannedAssetSale(sale.id)}
+                    onDuplicate={() => duplicatePlannedAssetSale(sale)}
+                  />
+                );
+              })}
+            </CardList>
+          ) : (
+            <TableList
+              columns={[
+                { key: 'asset', label: 'Asset' },
+                { key: 'year', label: 'Year' },
+                { key: 'quantity', label: 'Quantity' },
+                { key: 'price', label: 'Sale Price/Unit' },
+                { key: 'total', label: 'Total' }
+              ]}
+            >
+              {(scenario.plannedAssetSales || []).map((sale) => {
+                const asset = initialAssets.find((a: Asset) => a.id === sale.assetId);
+                return (
+                  <TableListItem
+                    key={sale.id}
+                    data={{
+                      asset: asset?.name || 'Unknown Asset',
+                      year: sale.year.toString(),
+                      quantity: sale.quantity.toString(),
+                      price: `$${sale.salePricePerUnit.toFixed(2)}`,
+                      total: `$${(sale.quantity * sale.salePricePerUnit).toFixed(2)}`
+                    }}
+                    columns={[
+                      { key: 'asset', label: 'Asset' },
+                      { key: 'year', label: 'Year' },
+                      { key: 'quantity', label: 'Quantity' },
+                      { key: 'price', label: 'Sale Price/Unit' },
+                      { key: 'total', label: 'Total' }
+                    ]}
+                    onEdit={() => handleEditPlannedAssetSale(sale)}
+                    onDelete={() => removePlannedAssetSale(sale.id)}
+                    onDuplicate={() => duplicatePlannedAssetSale(sale)}
+                  />
+                );
+              })}
+            </TableList>
+          )}
+        </Section>
       </div>
 
       <IncomeSourceDialog
@@ -830,9 +975,29 @@ export function ScenarioEditorView() {
         open={isExpenseDialogOpen}
         onOpenChange={handleExpenseDialogClose}
         expense={editingExpense}
-        type={editingExpense && 'year' in editingExpense ? 'oneTime' : 'annual'}
+        type={expenseType}
         mode={!editingExpense ? 'add' : (scenario.annualExpenses?.some(e => e.id === editingExpense.id) || scenario.oneTimeExpenses?.some(e => e.id === editingExpense.id)) ? 'edit' : 'duplicate'}
         onSave={handleExpenseSave}
+      />
+
+      <PlannedAssetSaleDialog
+        open={isPlannedAssetSaleDialogOpen}
+        onOpenChange={handlePlannedAssetSaleDialogClose}
+        onSave={handlePlannedAssetSaleSave}
+        sale={editingPlannedAssetSale}
+        mode={!editingPlannedAssetSale ? 'add' : scenario.plannedAssetSales?.some(s => s.id === editingPlannedAssetSale.id) ? 'edit' : 'duplicate'}
+        assets={initialAssets}
+        projectionPeriod={scenario.projectionPeriod}
+      />
+
+      <CopyItemsDialog
+        open={isCopyDialogOpen}
+        onOpenChange={handleCopyDialogClose}
+        onSave={handleCopyItemsSave}
+        scenarios={scenarios}
+        currentScenarioId={scenario.id}
+        type={copyDialogType}
+        assets={initialAssets}
       />
     </div>
   );

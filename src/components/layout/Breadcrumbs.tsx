@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { useUserAppState } from '@/store/userAppStateSlice';
-import { cn } from '@/utils/classnames';
+import { cn } from "@/lib/utils"
 import { Link } from 'react-router-dom';
 
 interface BreadcrumbItem {

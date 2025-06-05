@@ -28,7 +28,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/utils/classnames';
+import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from 'uuid';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
@@ -42,6 +42,12 @@ interface ExpenseDialogProps {
   onSave: (expense: AnnualExpense | OneTimeExpense) => void;
 }
 
+interface FormData {
+  name: string;
+  amount: string;
+  year?: number;
+}
+
 export function ExpenseDialog({
   open,
   onOpenChange,
@@ -50,9 +56,9 @@ export function ExpenseDialog({
   mode = 'add',
   onSave,
 }: ExpenseDialogProps) {
-  const [formData, setFormData] = useState<Partial<AnnualExpense | OneTimeExpense>>({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
-    amount: 0,
+    amount: '',
     ...(type === 'oneTime' ? { year: new Date().getFullYear() } : {}),
   });
   const [errors, setErrors] = useState<AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors>({});
@@ -63,15 +69,14 @@ export function ExpenseDialog({
     if (open) {
       if (expense) {
         setFormData({
-          ...expense,
           name: expense.name || '',
-          amount: expense.amount || 0,
+          amount: expense.amount?.toString() || '',
           ...(type === 'oneTime' && { year: (expense as OneTimeExpense).year || new Date().getFullYear() }),
         });
       } else {
         setFormData({
           name: '',
-          amount: 0,
+          amount: '',
           ...(type === 'oneTime' && { year: new Date().getFullYear() }),
         });
       }
@@ -139,13 +144,13 @@ export function ExpenseDialog({
       ? {
           id: expense?.id || uuidv4(),
           name: formData.name || '',
-          amount: formData.amount || 0,
+          amount: Number(formData.amount) || 0,
         } as AnnualExpense
       : {
           id: expense?.id || uuidv4(),
           name: formData.name || '',
-          amount: formData.amount || 0,
-          year: (formData as OneTimeExpense).year || new Date().getFullYear(),
+          amount: Number(formData.amount) || 0,
+          year: formData.year || new Date().getFullYear(),
         } as OneTimeExpense;
 
     onSave(expenseToSave);
@@ -255,14 +260,11 @@ export function ExpenseDialog({
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.amount || ''}
+                value={formData.amount}
                 onChange={(e) => {
-                  const value = e.target.value ? Number(e.target.value) : 0;
-                  setFormData({ ...formData, amount: value });
-                  setFieldError('amount', value);
+                  setFormData({ ...formData, amount: e.target.value });
+                  setFieldError('amount', e.target.value ? Number(e.target.value) : undefined);
                 }}
-                onBlur={() => setFieldError('amount', formData.amount)}
-                placeholder="0.00"
                 className={errors.amount ? 'border-destructive' : ''}
               />
             </FormField>
@@ -277,13 +279,11 @@ export function ExpenseDialog({
                   id="year"
                   type="number"
                   min={new Date().getFullYear()}
-                  value={(formData as OneTimeExpense).year || ''}
+                  value={formData.year}
                   onChange={(e) => {
-                    const value = e.target.value ? Number(e.target.value) : new Date().getFullYear();
-                    setFormData({ ...formData, year: value });
-                    setFieldError('year', value);
+                    setFormData({ ...formData, year: e.target.value ? Number(e.target.value) : undefined });
+                    setFieldError('year', e.target.value ? Number(e.target.value) : undefined);
                   }}
-                  onBlur={() => setFieldError('year', (formData as OneTimeExpense).year)}
                   className={errors.year ? 'border-destructive' : ''}
                 />
               </FormField>
@@ -294,12 +294,7 @@ export function ExpenseDialog({
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button 
-              onClick={handleSave}
-              disabled={Object.keys(errors).length > 0}
-            >
-              Save
-            </Button>
+            <Button type="submit">Save</Button>
           </DialogFooter>
         </form>
       </DialogContent>

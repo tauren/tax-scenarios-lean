@@ -54,6 +54,7 @@ export interface Scenario {
   incomeSources: IncomeSource[];
   annualExpenses: AnnualExpense[];
   oneTimeExpenses: OneTimeExpense[];
+  plannedAssetSales: PlannedAssetSale[];
 }
 
 export interface IncomeSource {
@@ -140,3 +141,11 @@ export const INCOME_SOURCE_TYPE_LABELS: Record<IncomeSource['type'], string> = {
   RENTAL_PROPERTY: 'Rental Property',
   OTHER: 'Other'
 };
+
+export interface PlannedAssetSale {
+  id: string;
+  assetId: string;
+  year: number;
+  quantity: number;
+  salePricePerUnit: number;
+}
