@@ -10,7 +10,7 @@
 2.  For each projection year within the scenario, the engine correctly identifies `PlannedAssetSale`s for that year.
 3.  For each sale, the engine calculates the capital gain/loss by comparing `salePricePerUnit * quantity` with `costBasisPerUnit * quantity` (from the corresponding global `Asset`).
 4.  The engine correctly determines the holding period for each sold asset (from `Asset.acquisitionDate` to the `year` of the `PlannedAssetSale`) and categorizes the gain/loss as either Short-Term or Long-Term based on standard thresholds (e.g., <=1 year for Short-Term, >1 year for Long-Term).
-5.  The engine applies the scenario-specific effective Short-Term and Long-Term Capital Gains Tax rates (from the first entry in `Scenario.capitalGainsTaxRates`) to the respective aggregated Short-Term and Long-Term gains for that year to calculate the estimated Capital Gains Tax for that year.
+5.  The engine applies the scenario-specific effective Short-Term and Long-Term Capital Gains Tax rates (from scenario.tax.capitalGains.shortTermRate and scenario.tax.capitalGains.longTermRate) to the respective aggregated Short-Term and Long-Term gains for that year to calculate the estimated Capital Gains Tax for that year.
 6.  The calculated Capital Gains Tax for each year is stored in the `ScenarioYearlyProjection.taxBreakdown.capitalGainsTax` field. The `ScenarioYearlyProjection.taxBreakdown.totalTax` for MVP will primarily reflect this CGT amount (plus any STF impacts from Story 3.4).
 7.  The engine structure is designed to accommodate the future integration of `SpecialTaxFeatures` (as per Story 3.4) which may modify how gains are categorized or how tax rates are applied. For this story, the engine uses the direct scenario-level effective CGT rates.
 8.  The engine includes basic error handling for missing or invalid critical data (e.g., missing CGT rates in a scenario, missing asset for a planned sale), logging errors and potentially returning zero tax or a specific error indicator for the affected calculation.
@@ -39,7 +39,7 @@
         - Return an object like `{ totalCapitalGainsIncome, shortTermGains, longTermGains }`. (Note: `architecture-lean-v1.2.md` section 6.4 output includes pre/post residency distinction, but for this story without STFs active, all gains are effectively "post-residency" or total).
 - [ ] **Task 4: Implement CGT Application (AC: 5, 6)**
     - [ ] Create a helper function `calculateTaxes_MVP_CGT_Only(capitalGainsData, scenario)` as a simplified version of `calculateTaxes_MVP` from `architecture-lean-v1.2.md` (Section 6.6), focusing only on applying `scenario.capitalGainsTaxRates`.
-    - [ ] Retrieve `effectiveST_Rate` and `effectiveLT_Rate` from `scenario.capitalGainsTaxRates[0]`. Handle cases where rates might be missing or zero (default to 0 tax).
+    - [ ] Retrieve effectiveST_Rate and effectiveLT_Rate from scenario.tax.capitalGains.shortTermRate and scenario.tax.capitalGains.longTermRate. Handle cases where rates might be missing or zero (default to 0 tax).
     - [ ] Calculate `capitalGainsTax = (capitalGainsData.shortTermGains * effectiveST_Rate) + (capitalGainsData.longTermGains * effectiveLT_Rate)`.
     - [ ] Set `taxBreakdown.capitalGainsTax` and `taxBreakdown.totalTax = taxBreakdown.capitalGainsTax` for MVP.
 - [ ] **Task 5: Assemble `ScenarioYearlyProjection` and `ScenarioResults` (AC: 1, 6, 9)**
