@@ -16,7 +16,7 @@ export function CardActions({ onEdit, onDuplicate, onDelete, className = '' }: C
   };
 
   return (
-    <div className={`flex gap-2 ${className}`}>
+    <div className={`flex flex-col gap-1 items-center ${className}`}>
       <Button variant="ghost" size="icon" onClick={(e) => handleClick(e, onEdit)}>
         <Pencil className="h-4 w-4" />
       </Button>

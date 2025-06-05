@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { IncomeSource } from '@/types';
 import type { IncomeSourceValidationErrors } from '@/types/validation';
+import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FormField } from '@/components/shared/form-field';
+import { FormField } from '@/components/shared/FormField';
 import {
   Dialog,
   DialogContent,
@@ -60,10 +61,15 @@ export function IncomeSourceDialog({
         });
       }
       setErrors({});
-      // Run validation on load
-      validateForm();
     }
   }, [open, incomeSource]);
+
+  // Run validation after form data has been updated
+  useEffect(() => {
+    if (open) {
+      validateForm();
+    }
+  }, [open, formData]);
 
   const validateName = (value: string | undefined): string | undefined => {
     return !value?.trim() ? 'Name is required' : undefined;
@@ -221,9 +227,9 @@ export function IncomeSourceDialog({
                 onBlur={() => setFieldError('type', validateType(formData.type))}
                 className={`w-full rounded-md border ${errors.type ? 'border-destructive' : 'border-input'} bg-background px-3 py-2`}
               >
-                <option value="EMPLOYMENT">Employment</option>
-                <option value="RENTAL_PROPERTY">Rental Property</option>
-                <option value="OTHER">Other</option>
+                {Object.entries(INCOME_SOURCE_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </select>
             </FormField>
 

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { appConfigService } from '@/services/appConfigService';
 import { useState } from 'react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatting';
 import type { Scenario } from '@/types';
 
 interface CreateScenarioDialogProps {

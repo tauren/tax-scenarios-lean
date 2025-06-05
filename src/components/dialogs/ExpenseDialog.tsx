@@ -4,7 +4,7 @@ import type { AnnualExpenseValidationErrors, OneTimeExpenseValidationErrors } fr
 import { EXPENSE_CATEGORIES } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FormField } from '@/components/shared/form-field';
+import { FormField } from '@/components/shared/FormField';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/classnames';
 import { v4 as uuidv4 } from 'uuid';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
@@ -76,10 +76,15 @@ export function ExpenseDialog({
         });
       }
       setErrors({});
-      // Run validation on load
-      validateForm();
     }
   }, [open, expense, type]);
+
+  // Run validation after form data has been updated
+  useEffect(() => {
+    if (open) {
+      validateForm();
+    }
+  }, [open, formData]);
 
   const validateField = (field: keyof (AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors), value: any): string | undefined => {
     switch (field) {

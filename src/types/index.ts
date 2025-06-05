@@ -246,3 +246,9 @@ export const EXPENSE_CATEGORIES = [
   'Legal', 
   'Other'
 ] as const; 
+
+export const INCOME_SOURCE_TYPE_LABELS: Record<IncomeSource['type'], string> = {
+  EMPLOYMENT: 'Employment',
+  RENTAL_PROPERTY: 'Rental Property',
+  OTHER: 'Other'
+};

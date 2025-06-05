@@ -8,12 +8,16 @@ import { Input } from '@/components/ui/input';
 import { v4 as uuidv4 } from 'uuid';
 import { IncomeSourceDialog } from '@/components/dialogs/IncomeSourceDialog';
 import { ExpenseDialog } from '@/components/dialogs/ExpenseDialog';
-import { Section } from '@/components/shared/section';
-import { FormField } from '@/components/shared/form-field';
-import { CardList } from '@/components/shared/card-list';
-import { ListItemCard } from '@/components/shared/list-item-card';
-import { deepClone } from '@/lib/utils/clone';
-import { toDateInputValue } from '@/lib/utils/date';
+import { Section } from '@/components/shared/Section';
+import { FormField } from '@/components/shared/FormField';
+import { ListItemCard } from '@/components/shared/ListItemCard';
+import { deepClone } from '@/utils/clone';
+import { toDateInputValue } from '@/utils/date';
+import { TableList } from '@/components/shared/TableList';
+import { TableListItem } from '@/components/shared/TableListItem';
+import { CardList } from '@/components/shared/CardList';
+import { SectionHeaderWithToggle } from '@/components/shared/SectionHeaderWithToggle';
+import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -153,6 +157,9 @@ export function ScenarioEditorView() {
   const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | undefined>();
   const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
+  const [incomeSourceView, setIncomeSourceView] = useState<'card' | 'table'>('card');
+  const [annualExpenseView, setAnnualExpenseView] = useState<'card' | 'table'>('card');
+  const [oneTimeExpenseView, setOneTimeExpenseView] = useState<'card' | 'table'>('card');
   
   const isCreating = id === 'new';
 
@@ -631,68 +638,183 @@ export function ScenarioEditorView() {
 
         <Section
           title="Income Sources"
-          actionLabel="Add Income Source"
-          onAction={handleAddIncomeSource}
+          action={
+            <SectionHeaderWithToggle
+              view={incomeSourceView}
+              setView={setIncomeSourceView}
+              onAdd={handleAddIncomeSource}
+              addLabel="Add Income Source"
+            />
+          }
           error={errors.incomeSources}
           hasItems={(scenario.incomeSources?.length ?? 0) > 0}
           emptyMessage="No income sources added yet. Add your first income source to get started."
         >
-          <CardList>
-            {scenario.incomeSources?.map((source) => (
-              <ListItemCard
-                key={source.id}
-                title={source.name}
-                subtitle={`${formatCurrency(source.annualAmount)}/year • ${source.startYear} - ${source.endYear || 'Ongoing'}`}
-                onEdit={() => handleEditIncomeSource(source)}
-                onDelete={() => removeIncomeSource(source.id)}
-                onDuplicate={() => duplicateIncomeSource(source)}
-              />
-            ))}
-          </CardList>
+          {incomeSourceView === 'card' ? (
+            <CardList>
+              {scenario.incomeSources?.map((source) => (
+                <ListItemCard
+                  key={source.id}
+                  title={source.name}
+                  lines={[
+                    formatCurrency(source.annualAmount) + '/year',
+                    `${source.startYear} - ${source.endYear || 'Ongoing'}`
+                  ]}
+                  onEdit={() => handleEditIncomeSource(source)}
+                  onDelete={() => removeIncomeSource(source.id)}
+                  onDuplicate={() => duplicateIncomeSource(source)}
+                />
+              ))}
+            </CardList>
+          ) : (
+            <TableList
+              columns={[
+                { key: 'name', label: 'Name' },
+                { key: 'type', label: 'Type' },
+                { key: 'annualAmount', label: 'Annual Amount' },
+                { key: 'startYear', label: 'Start Year' },
+                { key: 'endYear', label: 'End Year' },
+              ]}
+            >
+              {scenario.incomeSources?.map((source) => (
+                <TableListItem
+                  key={source.id}
+                  data={{
+                    name: source.name,
+                    type: INCOME_SOURCE_TYPE_LABELS[source.type],
+                    annualAmount: formatCurrency(source.annualAmount),
+                    startYear: source.startYear,
+                    endYear: source.endYear || 'Ongoing',
+                  }}
+                  columns={[
+                    { key: 'name', label: 'Name' },
+                    { key: 'type', label: 'Type' },
+                    { key: 'annualAmount', label: 'Annual Amount' },
+                    { key: 'startYear', label: 'Start Year' },
+                    { key: 'endYear', label: 'End Year' },
+                  ]}
+                  onEdit={() => handleEditIncomeSource(source)}
+                  onDelete={() => removeIncomeSource(source.id)}
+                  onDuplicate={() => duplicateIncomeSource(source)}
+                />
+              ))}
+            </TableList>
+          )}
         </Section>
 
         <Section
           title="Annual Expenses"
-          actionLabel="Add Annual Expense"
-          onAction={() => handleAddExpense('annual')}
+          action={
+            <SectionHeaderWithToggle
+              view={annualExpenseView}
+              setView={setAnnualExpenseView}
+              onAdd={() => handleAddExpense('annual')}
+              addLabel="Add Annual Expense"
+            />
+          }
           error={errors.annualExpenses}
           hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
           emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
         >
-          <CardList>
-            {scenario.annualExpenses?.map((expense) => (
-              <ListItemCard
-                key={expense.id}
-                title={expense.name}
-                subtitle={formatCurrency(expense.amount)}
-                onEdit={() => handleEditExpense(expense)}
-                onDelete={() => removeExpense(expense.id, 'annual')}
-                onDuplicate={() => duplicateExpense(expense)}
-              />
-            ))}
-          </CardList>
+          {annualExpenseView === 'card' ? (
+            <CardList>
+              {scenario.annualExpenses?.map((expense) => (
+                <ListItemCard
+                  key={expense.id}
+                  title={expense.name}
+                  lines={[
+                    formatCurrency(expense.amount) + '/year'
+                  ]}
+                  onEdit={() => handleEditExpense(expense)}
+                  onDelete={() => removeExpense(expense.id, 'annual')}
+                  onDuplicate={() => duplicateExpense(expense)}
+                />
+              ))}
+            </CardList>
+          ) : (
+            <TableList
+              columns={[
+                { key: 'name', label: 'Name' },
+                { key: 'amount', label: 'Amount' },
+              ]}
+            >
+              {scenario.annualExpenses?.map((expense) => (
+                <TableListItem
+                  key={expense.id}
+                  data={{
+                    name: expense.name,
+                    amount: formatCurrency(expense.amount) + '/year',
+                  }}
+                  columns={[
+                    { key: 'name', label: 'Name' },
+                    { key: 'amount', label: 'Amount' },
+                  ]}
+                  onEdit={() => handleEditExpense(expense)}
+                  onDelete={() => removeExpense(expense.id, 'annual')}
+                  onDuplicate={() => duplicateExpense(expense)}
+                />
+              ))}
+            </TableList>
+          )}
         </Section>
 
         <Section
           title="One-Time Expenses"
-          actionLabel="Add One-Time Expense"
-          onAction={() => handleAddExpense('oneTime')}
+          action={
+            <SectionHeaderWithToggle
+              view={oneTimeExpenseView}
+              setView={setOneTimeExpenseView}
+              onAdd={() => handleAddExpense('oneTime')}
+              addLabel="Add One-Time Expense"
+            />
+          }
           error={errors.oneTimeExpenses}
           hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
           emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
         >
-          <CardList>
-            {scenario.oneTimeExpenses?.map((expense) => (
-              <ListItemCard
-                key={expense.id}
-                title={expense.name}
-                subtitle={`${formatCurrency(expense.amount)} in ${expense.year}`}
-                onEdit={() => handleEditExpense(expense)}
-                onDelete={() => removeExpense(expense.id, 'oneTime')}
-                onDuplicate={() => duplicateExpense(expense)}
-              />
-            ))}
-          </CardList>
+          {oneTimeExpenseView === 'card' ? (
+            <CardList>
+              {scenario.oneTimeExpenses?.map((expense) => (
+                <ListItemCard
+                  key={expense.id}
+                  title={expense.name}
+                  lines={[
+                    `${formatCurrency(expense.amount)} in ${expense.year}`
+                  ]}
+                  onEdit={() => handleEditExpense(expense)}
+                  onDelete={() => removeExpense(expense.id, 'oneTime')}
+                  onDuplicate={() => duplicateExpense(expense)}
+                />
+              ))}
+            </CardList>
+          ) : (
+            <TableList
+              columns={[
+                { key: 'name', label: 'Name' },
+                { key: 'amount', label: 'Amount' },
+                { key: 'year', label: 'Year' },
+              ]}
+            >
+              {scenario.oneTimeExpenses?.map((expense) => (
+                <TableListItem
+                  key={expense.id}
+                  data={{
+                    name: expense.name,
+                    amount: formatCurrency(expense.amount),
+                    year: expense.year,
+                  }}
+                  columns={[
+                    { key: 'name', label: 'Name' },
+                    { key: 'amount', label: 'Amount' },
+                    { key: 'year', label: 'Year' },
+                  ]}
+                  onEdit={() => handleEditExpense(expense)}
+                  onDelete={() => removeExpense(expense.id, 'oneTime')}
+                  onDuplicate={() => duplicateExpense(expense)}
+                />
+              ))}
+            </TableList>
+          )}
         </Section>
       </div>
 

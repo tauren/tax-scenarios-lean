@@ -4,7 +4,7 @@ import type { Asset } from '@/types';
 import { AssetDialog } from '@/components/dialogs/AssetDialog';
 import { DeleteConfirmationDialog } from '@/components/dialogs/DeleteConfirmationDialog';
 import { v4 as uuidv4 } from 'uuid';
-import { formatAssetType } from '@/utils/formatting';
+import { formatAssetType, formatDate, formatCurrency } from '@/utils/formatting';
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Pencil, Copy, Trash2, Plus } from 'lucide-react';
-import { Section } from "@/components/shared/section";
+import { Section } from "@/components/shared/Section";
 
 export function AssetManagementView() {
   const { initialAssets, addAsset, updateAsset, deleteAsset } = useUserAppState();
@@ -47,21 +47,6 @@ export function AssetManagementView() {
     const { id, ...assetData } = asset;
     setSelectedAsset({ ...assetData, id: '' } as Asset);
     setIsAddDialogOpen(true);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
   };
 
   return (
