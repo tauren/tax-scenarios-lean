@@ -1,6 +1,6 @@
 ## Story 2.4a: Implement Core Capital Gains Tax Calculation Engine
 
-**Status:** In Development
+**Status:** Completed
 
 **Story**
 - As a user, I want the system to calculate estimated Long-Term Capital Gains Tax for each scenario, using my planned asset sales and asset holding periods (derived from `Asset.acquisitionDate` and sale year), so I can see the basic CGT impact of my plans.
@@ -52,4 +52,5 @@
     * Reorganized as core calculation story - May 31, 2025 - Sarah (PO)
     * Removed duplicate Task 1 (completed in Story 2.4) - May 31, 2025 - Claude (Story Validator)
     * Removed short-term gains functionality (moved to Story 2.4b) - May 31, 2025 - Claude (Story Validator)
-    * Marked as In Development - May 31, 2025 - Claude (Story Validator) 
+    * Marked as In Development - May 31, 2025 - Claude (Story Validator)
+    * Marked as Completed - May 31, 2025 - Claude (Story Validator) 

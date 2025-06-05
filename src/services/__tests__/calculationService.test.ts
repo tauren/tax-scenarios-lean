@@ -3,9 +3,8 @@ import {
   calculateScenarioResults,
   calculateCapitalGainsForYear,
   calculateTaxesForYear,
-  createCalculationError,
 } from '../calculationService';
-import type { Scenario, Asset, PlannedAssetSale } from '../../types';
+import type { Scenario, Asset } from '../../types';
 
 describe('calculationService', () => {
   const mockScenario: Scenario = {
@@ -19,9 +18,10 @@ describe('calculationService', () => {
     },
     tax: {
       capitalGains: {
-        shortTermRate: 0.37, // Not used but kept for type compatibility
-        longTermRate: 0.20,
+        shortTermRate: 37, // Not used but kept for type compatibility
+        longTermRate: 20,
       },
+      incomeRate: 30,
     },
     incomeSources: [],
     annualExpenses: [],
@@ -144,31 +144,41 @@ describe('calculationService', () => {
 
   describe('calculateTaxesForYear', () => {
     it('should calculate taxes using long-term rate only', () => {
-      const capitalGainsData = {
-        shortTermGains: 0,
-        longTermGains: 3000,
-        totalGains: 3000,
-        taxableGains: 3000,
-      };
-
-      const taxes = calculateTaxesForYear(capitalGainsData, mockScenario);
-      expect(taxes).toEqual({
+      const taxBreakdown = calculateTaxesForYear(
+        {
+          capitalGainsData: {
+            shortTermGains: 0,
+            longTermGains: 3000,
+            totalGains: 3000,
+            taxableGains: 3000,
+          },
+          income: 0,
+        },
+        mockScenario
+      );
+      expect(taxBreakdown).toEqual({
         capitalGainsTax: 600, // 3000 * 0.20
+        incomeTax: 0,
         totalTax: 600,
       });
     });
 
     it('should handle zero gains correctly', () => {
-      const capitalGainsData = {
-        shortTermGains: 0,
-        longTermGains: 0,
-        totalGains: 0,
-        taxableGains: 0,
-      };
-
-      const taxes = calculateTaxesForYear(capitalGainsData, mockScenario);
-      expect(taxes).toEqual({
+      const taxBreakdown = calculateTaxesForYear(
+        {
+          capitalGainsData: {
+            shortTermGains: 0,
+            longTermGains: 0,
+            totalGains: 0,
+            taxableGains: 0,
+          },
+          income: 0,
+        },
+        mockScenario
+      );
+      expect(taxBreakdown).toEqual({
         capitalGainsTax: 0,
+        incomeTax: 0,
         totalTax: 0,
       });
     });
@@ -178,19 +188,25 @@ describe('calculationService', () => {
         ...mockScenario,
         tax: {
           capitalGains: {
-            shortTermRate: 0.37,
+            shortTermRate: 37,
             // longTermRate intentionally omitted to test error
           } as any,
+          incomeRate: 30,
         },
       };
 
-      expect(() => calculateTaxesForYear({
-        shortTermGains: 0,
-        longTermGains: 3000,
-        totalGains: 3000,
-        taxableGains: 3000,
-      }, scenario))
-        .toThrow('Capital gains tax rates not defined in scenario');
+      expect(() => calculateTaxesForYear(
+        {
+          capitalGainsData: {
+            shortTermGains: 0,
+            longTermGains: 3000,
+            totalGains: 3000,
+            taxableGains: 3000,
+          },
+          income: 0,
+        },
+        scenario
+      )).toThrow('Capital gains tax rates not defined in scenario');
     });
   });
 

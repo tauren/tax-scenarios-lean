@@ -20,7 +20,12 @@ export const calculateScenarioResults = (
     );
   }
 
-  const startYear = scenario.residencyStartDate.getFullYear();
+  // Convert residencyStartDate to Date if it's a string
+  const startDate = typeof scenario.residencyStartDate === 'string' 
+    ? new Date(scenario.residencyStartDate)
+    : scenario.residencyStartDate;
+
+  const startYear = startDate.getFullYear();
   const endYear = startYear + scenario.projectionPeriod - 1;
   const yearlyProjections = [];
   let totalNetFinancialOutcomeOverPeriod = 0;
@@ -30,24 +35,39 @@ export const calculateScenarioResults = (
     // Calculate capital gains for the year
     const capitalGainsData = calculateCapitalGainsForYear(year, scenario, globalAssets);
     
-    // Calculate taxes based on gains
-    const taxBreakdown = calculateTaxesForYear(capitalGainsData, scenario);
+    // Calculate income for the year
+    const incomeForYear = calculateIncomeForYear(year, scenario);
+
+    // Calculate expenses for the year
+    const expensesForYear = calculateExpensesForYear(year, scenario);
+
+    // Calculate taxes based on gains and income
+    const taxBreakdown = calculateTaxesForYear({
+      capitalGainsData,
+      income: incomeForYear
+    }, scenario);
 
     // Create yearly projection
     const yearlyProjection = {
       year,
       taxBreakdown,
       capitalGainsData,
-      netFinancialOutcome: capitalGainsData.totalGains - taxBreakdown.totalTax
+      income: incomeForYear,
+      expenses: expensesForYear,
+      netFinancialOutcome: incomeForYear + capitalGainsData.totalGains - taxBreakdown.totalTax - expensesForYear
     };
 
     yearlyProjections.push(yearlyProjection);
     totalNetFinancialOutcomeOverPeriod += yearlyProjection.netFinancialOutcome;
   }
 
+  // Calculate qualitative fit score based on tax rates and residency requirements
+  const qualitativeFitScore = calculateQualitativeFitScore(scenario);
+
   return {
     yearlyProjections,
-    totalNetFinancialOutcomeOverPeriod
+    totalNetFinancialOutcomeOverPeriod,
+    qualitativeFitScore
   };
 };
 
@@ -74,6 +94,7 @@ export const calculateCapitalGainsForYear = (
   for (const sale of salesForYear) {
     // Find the corresponding global asset
     const asset = globalAssets.find(a => a.id === sale.assetId);
+    
     if (!asset) {
       throw createCalculationError(
         'MISSING_ASSET',
@@ -103,35 +124,114 @@ export const calculateCapitalGainsForYear = (
 };
 
 /**
- * Calculates taxes for a specific year based on capital gains data
- * @param capitalGainsData The capital gains data for the year
+ * Calculates taxes for a specific year based on capital gains data and income
+ * @param data The capital gains data and income for the year
  * @param scenario The scenario containing tax rates and rules
  * @returns The tax breakdown for the year
  * @throws {CalculationError} If calculation fails
  */
 export const calculateTaxesForYear = (
-  capitalGainsData: CapitalGainsData,
+  data: { capitalGainsData: CapitalGainsData; income: number },
   scenario: Scenario
 ): TaxBreakdown => {
-  // Validate required tax rates
+  // Validate required capital gains tax rate
   if (!scenario.tax?.capitalGains?.longTermRate) {
     throw createCalculationError(
       'MISSING_TAX_RATES',
-      'Capital gains tax rates not defined in scenario',
+      'Required tax rates not defined in scenario',
       { scenarioId: scenario.id }
     );
   }
 
-  // Calculate taxes using only long-term rate
-  const capitalGainsTax = capitalGainsData.longTermGains * scenario.tax.capitalGains.longTermRate;
+  // Convert tax rates from percentage to decimal
+  const longTermGainsRate = scenario.tax.capitalGains.longTermRate / 100;
+  const incomeRate = (scenario.tax?.incomeRate ?? 0) / 100;
 
-  // For MVP, total tax is just capital gains tax
-  const totalTax = capitalGainsTax;
+  // Calculate capital gains tax (long-term only)
+  const capitalGainsTax = (data.capitalGainsData?.taxableGains ?? 0) * longTermGainsRate;
+
+  // Calculate income tax
+  const incomeTax = data.income * incomeRate;
+
+  // Total tax is sum of both
+  const totalTax = capitalGainsTax + incomeTax;
 
   return {
     capitalGainsTax,
+    incomeTax,
     totalTax
   };
+};
+
+/**
+ * Calculates total income for a specific year
+ * @param currentYear The year to calculate income for
+ * @param scenario The scenario containing income sources
+ * @returns The total income for the year
+ */
+const calculateIncomeForYear = (currentYear: number, scenario: Scenario): number => {
+  return scenario.incomeSources.reduce((total, source) => {
+    // Check if the income source is active in the current year
+    if (currentYear >= source.startYear && (!source.endYear || currentYear <= source.endYear)) {
+      return total + source.annualAmount;
+    }
+    return total;
+  }, 0);
+};
+
+/**
+ * Calculates total expenses for a specific year
+ * @param currentYear The year to calculate expenses for
+ * @param scenario The scenario containing expenses
+ * @returns The total expenses for the year
+ */
+const calculateExpensesForYear = (currentYear: number, scenario: Scenario): number => {
+  let totalExpenses = 0;
+
+  // Add annual expenses
+  totalExpenses += scenario.annualExpenses.reduce((total, expense) => {
+    // Check if the expense is active in the current year
+    if (currentYear >= (expense.startYear || 0) && (!expense.endYear || currentYear <= expense.endYear)) {
+      return total + expense.amount;
+    }
+    return total;
+  }, 0);
+
+  // Add one-time expenses
+  totalExpenses += scenario.oneTimeExpenses.reduce((total, expense) => {
+    if (expense.year === currentYear) {
+      return total + expense.amount;
+    }
+    return total;
+  }, 0);
+
+  return totalExpenses;
+};
+
+/**
+ * Calculates a qualitative fit score for a scenario based on tax rates and residency requirements
+ * @param scenario The scenario to calculate the score for
+ * @returns A score from 0-100 indicating how well the scenario fits the user's needs
+ */
+const calculateQualitativeFitScore = (scenario: Scenario): number => {
+  let score = 50; // Start with a neutral score
+
+  // Adjust score based on tax rates
+  if (scenario.tax?.capitalGains?.longTermRate) {
+    const longTermRate = scenario.tax.capitalGains.longTermRate;
+    if (longTermRate <= 15) {
+      score += 20; // Very favorable tax rate
+    } else if (longTermRate <= 20) {
+      score += 10; // Moderately favorable tax rate
+    } else if (longTermRate <= 25) {
+      score += 5; // Neutral tax rate
+    } else {
+      score -= 10; // Unfavorable tax rate
+    }
+  }
+
+  // Ensure score stays within 0-100 range
+  return Math.max(0, Math.min(100, score));
 };
 
 /**

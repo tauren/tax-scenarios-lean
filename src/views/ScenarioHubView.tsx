@@ -1,12 +1,11 @@
 import { useUserAppState } from '@/store/userAppStateSlice';
+import { useCalculationState } from '@/store/calculationStateSlice';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, PlusCircle, Pencil, Eye, Trash2, TrendingUp, TrendingDown, Copy, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { CreateScenarioDialog } from '@/components/dialogs/CreateScenarioDialog';
+import { ScenarioSummaryCard } from '@/components/shared/ScenarioSummaryCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   AlertDialog,
@@ -18,40 +17,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { calculateScenarioResults } from '@/services/calculationService';
 import type { Scenario } from '@/types';
 
-// Temporary interface for computed properties until we implement the calculations
-interface ComputedScenarioProperties {
-  qualitativeFitScore?: number;
-  estimatedCapitalGainsTax?: number;
-  netFinancialOutcome?: number;
-  isBaseline?: boolean;
-}
-
-// Temporary function to get computed properties for a scenario
-// This will be replaced with actual calculations later
-const getComputedProperties = (scenario: Scenario): ComputedScenarioProperties => {
-  // For now, return dummy data
-  return {
-    qualitativeFitScore: 75, // Dummy score
-    estimatedCapitalGainsTax: 50000, // Dummy tax amount
-    netFinancialOutcome: 100000, // Dummy outcome
-    isBaseline: false, // Dummy baseline flag
-  };
-};
-
 export function ScenarioHubView() {
-  const { scenarios, deleteScenario, setScenarioAsPrimary } = useUserAppState();
+  const { scenarios, deleteScenario, setScenarioAsPrimary, initialAssets } = useUserAppState();
+  const { resultsByScenario, setScenarioResults } = useCalculationState();
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState<Set<string>>(new Set());
   const [scenarioToDelete, setScenarioToDelete] = useState<Scenario | null>(null);
+
+  // Calculate results for scenarios when they change
+  useEffect(() => {
+    scenarios.forEach(scenario => {
+      try {
+        console.log('Calculating results for scenario:', {
+          id: scenario.id,
+          name: scenario.name,
+          plannedSales: scenario.plannedAssetSales,
+          assets: initialAssets
+        });
+        const results = calculateScenarioResults(scenario, initialAssets);
+        console.log('Calculation results:', results);
+        setScenarioResults(scenario.id, results);
+      } catch (error) {
+        console.error(`Failed to calculate results for scenario ${scenario.id}:`, error);
+      }
+    });
+  }, [scenarios, initialAssets, setScenarioResults]);
 
   const handleScenarioSelection = (scenarioId: string, checked: boolean) => {
     const newSelected = new Set(selectedScenarios);
@@ -63,14 +57,6 @@ export function ScenarioHubView() {
     setSelectedScenarios(newSelected);
   };
 
-  // const handleCreateScenario = (template?: Scenario) => {
-  //   if (template) {
-  //     navigate('/scenarios/new', { state: { template } });
-  //   } else {
-  //     navigate('/scenarios/new');
-  //   }
-  // };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -78,18 +64,6 @@ export function ScenarioHubView() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
-
-  // const getScoreColor = (score: number) => {
-  //   if (score >= 80) return 'text-green-600';
-  //   if (score >= 60) return 'text-yellow-600';
-  //   return 'text-red-600';
-  // };
-
-  const getScoreBadgeVariant = (score: number) => {
-    if (score >= 80) return 'default';
-    if (score >= 60) return 'secondary';
-    return 'destructive';
   };
 
   const selectedScenariosData = scenarios.filter((scenario) => selectedScenarios.has(scenario.id));
@@ -127,6 +101,34 @@ export function ScenarioHubView() {
     setScenarioAsPrimary(scenario.id);
   };
 
+  // Get the total capital gains tax for a scenario
+  const getTotalCapitalGainsTax = (scenarioId: string) => {
+    const results = resultsByScenario[scenarioId];
+    if (!results) return 0;
+    return results.yearlyProjections.reduce((sum, year) => sum + year.taxBreakdown.capitalGainsTax, 0);
+  };
+
+  // Get the total net financial outcome for a scenario
+  const getTotalNetFinancialOutcome = (scenarioId: string) => {
+    const results = resultsByScenario[scenarioId];
+    if (!results) return 0;
+    return results.totalNetFinancialOutcomeOverPeriod;
+  };
+
+  // Get the total income for a scenario
+  const getTotalIncome = (scenarioId: string) => {
+    const results = resultsByScenario[scenarioId];
+    if (!results) return 0;
+    return results.yearlyProjections.reduce((sum, year) => sum + year.income, 0);
+  };
+
+  // Get the total expenses for a scenario
+  const getTotalExpenses = (scenarioId: string) => {
+    const results = resultsByScenario[scenarioId];
+    if (!results) return 0;
+    return results.yearlyProjections.reduce((sum, year) => sum + year.expenses, 0);
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* View Header */}
@@ -154,13 +156,13 @@ export function ScenarioHubView() {
           <div>
             <span className="text-muted-foreground">Best Qualitative Fit: </span>
             <span className="font-medium">
-              {Math.max(...scenarios.map((s) => getComputedProperties(s).qualitativeFitScore || 0))}/100
+              {Math.max(...scenarios.map((s) => resultsByScenario[s.id]?.qualitativeFitScore || 0))}/100
             </span>
           </div>
           <div>
             <span className="text-muted-foreground">Best Net Outcome: </span>
             <span className="font-medium">
-              {formatCurrency(Math.max(...scenarios.map((s) => getComputedProperties(s).netFinancialOutcome || 0)))}
+              {formatCurrency(Math.max(...scenarios.map((s) => getTotalNetFinancialOutcome(s.id))))}
             </span>
           </div>
         </div>
@@ -171,109 +173,25 @@ export function ScenarioHubView() {
         <h2 className="text-xl font-semibold mb-4">Scenario Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {scenarios.map((scenario, index) => {
-            const computed = getComputedProperties(scenario);
-            const isFirstScenario = index === 0;
+            const results = resultsByScenario[scenario.id];
             return (
-              <Card key={scenario.id} className="relative">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
-                        {isFirstScenario && (
-                          <Badge variant="outline" className="text-xs">
-                            Baseline
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={selectedScenarios.has(scenario.id)}
-                        onCheckedChange={(checked) => handleScenarioSelection(scenario.id, !!checked)}
-                        className="data-[state=checked]:bg-primary"
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Qualitative Fit:</span>
-                    <Badge variant={getScoreBadgeVariant(computed.qualitativeFitScore || 0)}>
-                      {computed.qualitativeFitScore || 0}/100
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Est. CGT:</span>
-                    <span className="text-sm font-medium">
-                      {formatCurrency(computed.estimatedCapitalGainsTax || 0)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Net Outcome:</span>
-                    <div className="flex items-center gap-1">
-                      {(computed.netFinancialOutcome || 0) > 80000 ? (
-                        <TrendingUp className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <TrendingDown className="h-3 w-3 text-red-600" />
-                      )}
-                      <span className="text-sm font-medium">
-                        {formatCurrency(computed.netFinancialOutcome || 0)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="pt-3 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/scenarios/${scenario.id}/edit`)}
-                    className="flex-1 text-xs"
-                  >
-                    <Pencil className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/scenarios/${scenario.id}`)}
-                    className="flex-1 text-xs"
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Details
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {!isFirstScenario && (
-                        <DropdownMenuItem onClick={() => handleSetAsBaseline(scenario)}>
-                          <TrendingUp className="h-4 w-4 mr-2" />
-                          Set as Baseline
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => handleDuplicateScenario(scenario)}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Duplicate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => handleDeleteClick(scenario)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardFooter>
-              </Card>
+              <ScenarioSummaryCard
+                key={scenario.id}
+                scenario={scenario}
+                results={{
+                  estimatedCapitalGainsTax: getTotalCapitalGainsTax(scenario.id),
+                  netFinancialOutcome: getTotalNetFinancialOutcome(scenario.id),
+                  qualitativeFitScore: results?.qualitativeFitScore || 0,
+                }}
+                isSelectedForCompare={selectedScenarios.has(scenario.id)}
+                onToggleSelection={handleScenarioSelection}
+                onViewDetails={(id) => navigate(`/scenarios/${id}`)}
+                onEdit={(id) => navigate(`/scenarios/${id}/edit`)}
+                onDuplicate={handleDuplicateScenario}
+                onDelete={handleDeleteClick}
+                onSetAsBaseline={handleSetAsBaseline}
+                isBaseline={index === 0}
+              />
             );
           })}
         </div>
@@ -298,13 +216,31 @@ export function ScenarioHubView() {
                   <TableRow key={metric.key}>
                     <TableCell className="font-medium">{metric.label}</TableCell>
                     {selectedScenariosData.map((scenario) => {
-                      const computed = getComputedProperties(scenario);
+                      const results = resultsByScenario[scenario.id];
+                      let value = 0;
+                      switch (metric.key) {
+                        case 'estimatedCapitalGainsTax':
+                          value = getTotalCapitalGainsTax(scenario.id);
+                          break;
+                        case 'netFinancialOutcome':
+                          value = getTotalNetFinancialOutcome(scenario.id);
+                          break;
+                        case 'qualitativeFitScore':
+                          value = results?.qualitativeFitScore || 0;
+                          break;
+                        case 'totalGrossIncome':
+                          value = getTotalIncome(scenario.id);
+                          break;
+                        case 'totalExpenses':
+                          value = getTotalExpenses(scenario.id);
+                          break;
+                      }
                       return (
                         <TableCell
                           key={scenario.id}
                           className={metric.highlight ? 'bg-muted/50 font-medium' : ''}
                         >
-                          {metric.format(computed[metric.key as keyof ComputedScenarioProperties] as number || 0)}
+                          {metric.format(value)}
                         </TableCell>
                       );
                     })}

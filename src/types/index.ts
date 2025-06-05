@@ -33,7 +33,7 @@ export interface Scenario {
   id: string;
   name: string;
   projectionPeriod: number; // in years
-  residencyStartDate: Date;
+  residencyStartDate: Date | string; // Can be either a Date object or ISO string
   location: {
     country: string;
     state?: string;
@@ -43,13 +43,8 @@ export interface Scenario {
     capitalGains: {
       shortTermRate: number;
       longTermRate: number;
-      specialConditions?: string;
     };
-    residencyRequirements?: {
-      minimumStayDays: number;
-      visaOptions: string[];
-      specialPrograms?: string[];
-    };
+    incomeRate: number; // Effective tax rate for income
   };
   incomeSources: IncomeSource[];
   annualExpenses: AnnualExpense[];
@@ -152,17 +147,17 @@ export interface PlannedAssetSale {
 
 export interface ScenarioYearlyProjection {
   year: number;
-  taxBreakdown: {
-    capitalGainsTax: number;
-    totalTax: number;
-  };
+  taxBreakdown: TaxBreakdown;
   capitalGainsData: CapitalGainsData;
+  income: number;
+  expenses: number;
   netFinancialOutcome: number;
 }
 
 export interface ScenarioResults {
   yearlyProjections: ScenarioYearlyProjection[];
   totalNetFinancialOutcomeOverPeriod: number;
+  qualitativeFitScore: number;
 }
 
 export interface AppCalculatedState {
@@ -178,6 +173,7 @@ export interface CapitalGainsData {
 
 export interface TaxBreakdown {
   capitalGainsTax: number;
+  incomeTax: number;
   totalTax: number;
 }
 
