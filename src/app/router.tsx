@@ -5,6 +5,7 @@ import { GetStartedView } from "@/views/GetStartedView";
 import { ScenarioEditorView } from "@/views/ScenarioEditorView";
 import { ScenarioHubView } from "@/views/ScenarioHubView";
 import { PlanOverview } from "@/views/PlanOverview";
+import PersonalGoalsManagementView from "@/views/PersonalGoalsManagementView";
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
       {
         path: 'scenarios/:id/edit',
         element: <ScenarioEditorView />,
+      },
+      {
+        path: 'personal-goals',
+        element: <PersonalGoalsManagementView />,
       },
     ],
   },

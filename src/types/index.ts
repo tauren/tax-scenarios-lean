@@ -3,6 +3,7 @@ export interface UserAppState {
   initialAssets: Asset[];
   scenarios: Scenario[];
   selectedScenarioIds: string[];
+  userQualitativeGoals: UserQualitativeGoal[];
 }
 
 export interface UserAppStateSlice extends UserAppState {
@@ -19,6 +20,9 @@ export interface UserAppStateSlice extends UserAppState {
   setAppState: (newState: UserAppState) => void;
   clearStoredState: () => void;
   setSelectedScenarioIds: (ids: string[]) => void;
+  addQualitativeGoal: (goal: UserQualitativeGoal) => void;
+  updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => void;
+  deleteQualitativeGoal: (goalId: string) => void;
 }
 
 export interface Asset {
@@ -211,4 +215,13 @@ export function convertFormScenarioToScenario(formScenario: FormScenario): Scena
       incomeRate: formScenario.tax.incomeRate ?? 0
     }
   };
+}
+
+export interface UserQualitativeGoal {
+  id: string;
+  conceptId: string;
+  name: string;
+  category: string;
+  description: string;
+  weight: "Low" | "Medium" | "High" | "Critical";
 }

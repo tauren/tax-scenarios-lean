@@ -32,14 +32,7 @@ export function ScenarioHubView() {
   useEffect(() => {
     scenarios.forEach(scenario => {
       try {
-        console.log('Calculating results for scenario:', {
-          id: scenario.id,
-          name: scenario.name,
-          plannedSales: scenario.plannedAssetSales,
-          assets: initialAssets
-        });
         const results = calculateScenarioResults(scenario, initialAssets);
-        console.log('Calculation results:', results);
         setScenarioResults(scenario.id, results);
       } catch (error) {
         console.error(`Failed to calculate results for scenario ${scenario.id}:`, error);

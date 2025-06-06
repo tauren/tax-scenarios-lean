@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { UserAppStateSlice, Asset, Scenario, UserAppState } from '@/types';
+import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { loadActivePlanFromStorage, saveActivePlanToStorage, clearActivePlanFromStorage } from '../services/localStorageService';
 
@@ -13,6 +13,7 @@ const debouncedSave = (state: UserAppStateSlice) => {
       initialAssets: state.initialAssets,
       scenarios: state.scenarios,
       selectedScenarioIds: state.selectedScenarioIds,
+      userQualitativeGoals: state.userQualitativeGoals,
     });
     if (!success) {
       console.error('Failed to save state to localStorage');
@@ -29,6 +30,7 @@ function buildInitialState() {
     activePlanInternalName: '',
     initialAssets: [],
     scenarios: [],
+    userQualitativeGoals: [],
   };
   let selectedScenarioIds: string[] = [];
   if (loaded.scenarios && loaded.scenarios.length > 0) {
@@ -181,12 +183,51 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
     });
   },
 
+  addQualitativeGoal: (goal: UserQualitativeGoal) => {
+    set((state) => {
+      const newState = {
+        ...state,
+        userQualitativeGoals: [...(state.userQualitativeGoals || []), goal],
+        isDirty: true,
+      };
+      debouncedSave(newState);
+      return newState;
+    });
+  },
+
+  updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => {
+    set((state) => {
+      const newState = {
+        ...state,
+        userQualitativeGoals: (state.userQualitativeGoals || []).map((goal) =>
+          goal.id === goalId ? { ...goal, ...updatedGoal } : goal
+        ),
+        isDirty: true,
+      };
+      debouncedSave(newState);
+      return newState;
+    });
+  },
+
+  deleteQualitativeGoal: (goalId: string) => {
+    set((state) => {
+      const newState = {
+        ...state,
+        userQualitativeGoals: (state.userQualitativeGoals || []).filter((goal) => goal.id !== goalId),
+        isDirty: true,
+      };
+      debouncedSave(newState);
+      return newState;
+    });
+  },
+
   clearStoredState: () => {
     clearActivePlanFromStorage();
     set({
       activePlanInternalName: '',
       initialAssets: [],
       scenarios: [],
+      userQualitativeGoals: [],
       isDirty: false,
     });
   },
@@ -196,10 +237,8 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       const mergedState = {
         ...state,
         ...newState,
-        isDirty: false, // Reset dirty state when loading new plan
+        isDirty: true,
       };
-      // Filter selectedScenarioIds to only those present in scenarios
-      mergedState.selectedScenarioIds = (mergedState.selectedScenarioIds || []).filter(id => mergedState.scenarios.some(s => s.id === id));
       debouncedSave(mergedState);
       return mergedState;
     });

@@ -8,7 +8,7 @@ import { Pencil, ArrowRight } from 'lucide-react';
 
 export function PlanOverview() {
   const navigate = useNavigate();
-  const { activePlanInternalName, setActivePlanInternalName, initialAssets, scenarios } = useUserAppState();
+  const { activePlanInternalName, setActivePlanInternalName, initialAssets, scenarios, userQualitativeGoals = [] } = useUserAppState();
   const [isEditingName, setIsEditingName] = useState(false);
   const [planName, setPlanName] = useState(activePlanInternalName || 'Untitled Plan');
   
@@ -59,7 +59,7 @@ export function PlanOverview() {
       </div>
 
       {/* Plan Components Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Scenarios Card */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
@@ -93,6 +93,25 @@ export function PlanOverview() {
               className="w-full justify-between"
             >
               View Assets
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Qualitative Goals Card */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle>Personal Goals</CardTitle>
+            <CardDescription>
+              {userQualitativeGoals.length} {userQualitativeGoals.length === 1 ? 'goal' : 'goals'} defined
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => navigate('/personal-goals')}
+              className="w-full justify-between"
+            >
+              View Goals
               <ArrowRight className="h-4 w-4" />
             </Button>
           </CardContent>

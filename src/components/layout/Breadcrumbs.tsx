@@ -78,6 +78,11 @@ export function Breadcrumbs() {
         label: 'Assets',
         isCurrentPage: true,
       });
+    } else if (pathSegments[0] === 'personal-goals') {
+      items.push({
+        label: 'Personal Goals',
+        isCurrentPage: true,
+      });
     }
 
     return items;
