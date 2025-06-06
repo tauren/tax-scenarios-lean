@@ -1,31 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Share2 } from 'lucide-react';
-import { isCompressionEnabled, setCompressionEnabled } from '@/services/localStorageService';
-import { useEffect, useState } from 'react';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import type { UserAppState } from '@/types';
 import { generateShareableString } from '@/services/planSharingService';
 import { Link, useNavigate } from 'react-router-dom';
 import { SharePlanDialog } from '@/components/dialogs/SharePlanDialog';
+import { DevTools } from '@/components/dev/DevTools';
+import { useState } from 'react';
 
 export function Header() {
   const navigate = useNavigate();
-  const [compressionEnabled, setCompressionEnabledState] = useState(isCompressionEnabled());
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareableUrl, setShareableUrl] = useState('');
   const activePlanInternalName = useUserAppState((state: UserAppState) => state.activePlanInternalName);
   const state = useUserAppState((state: UserAppState) => state);
-
-  useEffect(() => {
-    setCompressionEnabledState(isCompressionEnabled());
-  }, []);
-
-  const toggleCompression = () => {
-    const willEnable = !isCompressionEnabled();
-    setCompressionEnabled(willEnable);
-    setCompressionEnabledState(willEnable);
-    window.location.reload(); // Reload to apply new compression setting
-  };
 
   const handleShare = () => {
     const shareableString = generateShareableString(state);
@@ -62,9 +50,7 @@ export function Header() {
           )}
         </div>
         <div className="w-1/4 flex justify-end items-center space-x-2">
-          <Button variant="outline" onClick={toggleCompression}>
-            {compressionEnabled ? 'Disable Compression' : 'Enable Compression'}
-          </Button>
+          <DevTools />
           <Button variant="ghost" size="icon" onClick={handleShare}>
             <Share2 className="w-5 h-5" />
           </Button>
