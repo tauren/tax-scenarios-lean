@@ -135,7 +135,7 @@ export const calculateTaxesForYear = (
   scenario: Scenario
 ): TaxBreakdown => {
   // Validate required capital gains tax rate
-  if (scenario.tax?.capitalGains?.longTermRate === undefined) {
+  if (scenario.tax?.capitalGains?.longTermRate === undefined || scenario.tax.capitalGains.longTermRate === 0) {
     throw createCalculationError(
       'MISSING_TAX_RATES',
       'Required tax rates not defined in scenario',
