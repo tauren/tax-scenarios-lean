@@ -11,17 +11,15 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { QUALITATIVE_CONCEPTS } from "@/data/qualitative-categories.data"
+import { qualitativeConcepts } from "@/data/qualitativeConcepts.data"
 import { FormField } from "@/components/shared/FormField"
 import type { UserQualitativeGoal } from "@/types"
-
-const weightOptions = ["Low", "Medium", "High", "Critical"] as const
-type WeightOption = typeof weightOptions[number]
+import { WeightSelector } from "@/components/shared/WeightSelector"
+import type { WeightOption } from "@/components/shared/WeightSelector"
 
 interface GoalValidationErrors {
   name?: string;
   conceptId?: string;
-  description?: string;
   weight?: string;
 }
 
@@ -50,7 +48,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
         setFormData({
           name: editingGoal.name,
           conceptId: editingGoal.conceptId,
-          description: editingGoal.description,
+          description: editingGoal.description || "",
           weight: editingGoal.weight
         })
       } else {
@@ -80,12 +78,8 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
     return !value ? 'Base concept is required' : undefined
   }
 
-  const validateDescription = (value: string | undefined): string | undefined => {
-    return !value?.trim() ? 'Description is required' : undefined
-  }
-
   const validateWeight = (value: WeightOption | undefined): string | undefined => {
-    return !value ? 'Weight is required' : undefined
+    return !value ? 'Importance is required' : undefined
   }
 
   const setFieldError = (field: keyof GoalValidationErrors, error: string | undefined) => {
@@ -106,13 +100,11 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
     // Validate all fields
     const nameError = validateName(formData.name)
     const conceptError = validateConcept(formData.conceptId)
-    const descriptionError = validateDescription(formData.description)
     const weightError = validateWeight(formData.weight)
 
     // Only add errors that exist
     if (nameError) newErrors.name = nameError
     if (conceptError) newErrors.conceptId = conceptError
-    if (descriptionError) newErrors.description = descriptionError
     if (weightError) newErrors.weight = weightError
 
     setErrors(newErrors)
@@ -122,14 +114,13 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
   const handleSave = () => {
     if (!validateForm()) return
 
-    const concept = QUALITATIVE_CONCEPTS.find(c => c.id === formData.conceptId)
+    const concept = qualitativeConcepts.find(c => c.id === formData.conceptId)
     if (!concept) return
 
     const goalData = {
       name: formData.name,
       conceptId: formData.conceptId,
-      category: concept.category,
-      description: formData.description,
+      description: formData.description || undefined,
       weight: formData.weight
     }
 
@@ -145,7 +136,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
           <DialogDescription>
             {editingGoal
               ? "Modify your personal goal details below."
-              : "Select a base concept and customize it to create your personal goal."}
+              : "Create a new personal goal by selecting a base concept and customizing it to your needs."}
           </DialogDescription>
         </DialogHeader>
 
@@ -167,7 +158,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
               <Select
                 value={formData.conceptId}
                 onValueChange={(value) => {
-                  setFormData({ ...formData, conceptId: value })
+                  setFormData(prev => ({ ...prev, conceptId: value }))
                   setFieldError('conceptId', validateConcept(value))
                 }}
               >
@@ -175,7 +166,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                   <SelectValue placeholder="Select a concept" />
                 </SelectTrigger>
                 <SelectContent>
-                  {QUALITATIVE_CONCEPTS.map((concept) => (
+                  {qualitativeConcepts.map((concept) => (
                     <SelectItem key={concept.id} value={concept.id}>
                       {concept.name}
                     </SelectItem>
@@ -194,7 +185,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                 value={formData.name}
                 onChange={(e) => {
                   const value = e.target.value
-                  setFormData({ ...formData, name: value })
+                  setFormData(prev => ({ ...prev, name: value }))
                   setFieldError('name', validateName(value))
                 }}
                 onBlur={() => setFieldError('name', validateName(formData.name))}
@@ -205,54 +196,39 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
 
             <FormField
               id="description"
-              label="Description"
-              error={errors.description}
+              label="Description (Optional)"
             >
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => {
                   const value = e.target.value
-                  setFormData({ ...formData, description: value })
-                  setFieldError('description', validateDescription(value))
+                  setFormData(prev => ({ ...prev, description: value }))
                 }}
-                onBlur={() => setFieldError('description', validateDescription(formData.description))}
-                placeholder="Describe your goal"
-                className={errors.description ? 'border-destructive' : ''}
+                placeholder="Describe your goal (optional)"
               />
             </FormField>
 
             <FormField
               id="weight"
-              label="Weight"
               error={errors.weight}
+              label="Importance"
             >
-              <Select
+              <WeightSelector
                 value={formData.weight}
-                onValueChange={(value: WeightOption) => {
-                  setFormData({ ...formData, weight: value })
-                  setFieldError('weight', validateWeight(value))
-                }}
-              >
-                <SelectTrigger className={errors.weight ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Select weight" />
-                </SelectTrigger>
-                <SelectContent>
-                  {weightOptions.map((weight) => (
-                    <SelectItem key={weight} value={weight}>
-                      {weight}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(weight) => setFormData((prev) => ({ ...prev, weight }))}
+                error={errors.weight}
+              />
             </FormField>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">
+              {editingGoal ? "Save Changes" : "Add Goal"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -54,7 +54,6 @@ The qualitative assessment feature is being refactored to improve its data model
     id: string;
     conceptId: string;
     statementText: string;
-    sentiment: "positive" | "neutral" | "negative";
   }
 
   interface UserQualitativeGoal {

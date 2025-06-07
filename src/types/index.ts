@@ -98,14 +98,6 @@ export interface CapitalGainsTaxRate {
   longTermRate: number;
 }
 
-export interface QualitativeCategory {
-  id: string;
-  name: string;
-  description: string;
-  rationale: string;
-  exampleConcepts: string[];
-}
-
 export interface SpecialTaxFeature {
   id: string;
   name: string;
@@ -118,13 +110,6 @@ export interface SpecialTaxFeature {
     placeholder?: string;
   }[];
   requiresGainBifurcation?: boolean;
-}
-
-export interface GlobalQualitativeConcept {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
 }
 
 export interface ExamplePlan {
@@ -231,11 +216,22 @@ export function convertFormScenarioToScenario(formScenario: FormScenario): Scena
   };
 }
 
+export interface QualitativeConcept {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface QualitativeStatement {
+  id: string;
+  conceptId: string;
+  statementText: string;
+}
+
 export interface UserQualitativeGoal {
   id: string;
   conceptId: string;
   name: string;
-  category: string;
-  description: string;
+  description?: string;
   weight: "Low" | "Medium" | "High" | "Critical";
 }
