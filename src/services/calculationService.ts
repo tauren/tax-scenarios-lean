@@ -130,17 +130,8 @@ export const calculateTaxesForYear = (
   data: { capitalGainsData: CapitalGainsData; income: number },
   scenario: Scenario
 ): TaxBreakdown => {
-  // Validate required capital gains tax rate
-  if (scenario.tax?.capitalGains?.longTermRate === undefined || scenario.tax.capitalGains.longTermRate === 0) {
-    throw createCalculationError(
-      'MISSING_TAX_RATES',
-      'Required tax rates not defined in scenario',
-      { scenarioId: scenario.id }
-    );
-  }
-
-  // Convert tax rates from percentage to decimal
-  const longTermGainsRate = scenario.tax.capitalGains.longTermRate / 100;
+  // Use default values if tax rates are missing
+  const longTermGainsRate = (scenario.tax?.capitalGains?.longTermRate ?? 0) / 100;
   const incomeRate = (scenario.tax?.incomeRate ?? 0) / 100;
 
   // Calculate capital gains tax (long-term only)

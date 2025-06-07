@@ -24,6 +24,55 @@ const debouncedSave = (state: UserAppStateSlice) => {
   }, 1000);
 };
 
+// Simple function to ensure scenario data is valid
+function ensureValidScenario(scenario: Scenario): Scenario {
+  return {
+    ...scenario,
+    projectionPeriod: scenario.projectionPeriod || 10,
+    residencyStartDate: scenario.residencyStartDate || new Date(),
+    location: {
+      country: scenario.location?.country || '',
+      state: scenario.location?.state || '',
+      city: scenario.location?.city || '',
+    },
+    tax: {
+      capitalGains: {
+        shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
+        longTermRate: scenario.tax?.capitalGains?.longTermRate || 0,
+      },
+      incomeRate: scenario.tax?.incomeRate || 0,
+    },
+    incomeSources: scenario.incomeSources || [],
+    annualExpenses: scenario.annualExpenses || [],
+    oneTimeExpenses: scenario.oneTimeExpenses || [],
+    plannedAssetSales: scenario.plannedAssetSales || [],
+  };
+}
+
+// Simple function to ensure asset data is valid
+function ensureValidAsset(asset: Asset): Asset {
+  return {
+    ...asset,
+    name: asset.name || '',
+    quantity: asset.quantity || 0,
+    costBasisPerUnit: asset.costBasisPerUnit || 0,
+    acquisitionDate: asset.acquisitionDate || new Date(),
+    assetType: asset.assetType || '',
+    fmvPerUnit: asset.fmvPerUnit || 0,
+  };
+}
+
+// Simple function to ensure personal goal data is valid
+function ensureValidPersonalGoal(goal: UserQualitativeGoal): UserQualitativeGoal {
+  return {
+    ...goal,
+    name: goal.name || '',
+    category: goal.category || '',
+    description: goal.description || '',
+    weight: goal.weight || 'Medium',
+  };
+}
+
 // Initialize state from localStorage or use defaults
 function buildInitialState() {
   const loaded = loadActivePlanFromStorage() || {
@@ -42,6 +91,9 @@ function buildInitialState() {
   }
   return {
     ...loaded,
+    scenarios: loaded.scenarios.map(ensureValidScenario),
+    initialAssets: loaded.initialAssets.map(ensureValidAsset),
+    userQualitativeGoals: loaded.userQualitativeGoals.map(ensureValidPersonalGoal),
     selectedScenarioIds,
   };
 }

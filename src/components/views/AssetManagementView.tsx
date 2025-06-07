@@ -53,17 +53,10 @@ export function AssetManagementView() {
     <div className="container mx-auto px-4 py-8">
       <Section
         title="Asset Management"
-        action={
-          <Button
-            onClick={() => {
-              setSelectedAsset(null);
-              setIsAddDialogOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Asset
-          </Button>
-        }
+        onAdd={() => {
+          setSelectedAsset(null);
+          setIsAddDialogOpen(true);
+        }}
       >
         {initialAssets.length === 0 ? (
           <div className="mt-8 p-12 text-center border rounded-lg bg-muted/5">
