@@ -1,6 +1,6 @@
 ## Story 4.1: Define and Weight Personal Qualitative Goals
 
-**Status:** Ready for Development
+**Status:** Complete
 
 **Story**
 - As a user, I want to define a list of my personal qualitative goals by selecting from a master list of qualitative concepts (e.g., "Good Weather," "Low Crime Rate," "Access to Healthcare"), give them my own descriptive names if desired, and assign a weight (e.g., Low, Medium, High, Critical) to each goal, so the system understands what lifestyle factors are most important to me overall.
@@ -36,27 +36,27 @@
     - [x] Define `UserQualitativeGoal` interface in `src/types/index.ts` as per `architecture-lean-v1.2.md`.
     - [x] Ensure `UserAppState` in `userAppStateSlice.ts` includes `userQualitativeGoals: UserQualitativeGoal[]`.
     - [x] Implement Zustand store actions: `addQualitativeGoal(goal: UserQualitativeGoal)`, `updateQualitativeGoal(goalId: string, updatedGoal: Partial<UserQualitativeGoal>)`, `deleteQualitativeGoal(goalId: string)`. Ensure unique IDs for new goals.
-- [ ] **Task 3: Implement "Add New Goal" Functionality (AC: 2, 3, 4, 5, 6)**
+- [x] **Task 3: Implement "Add New Goal" Functionality (AC: 2, 3, 4, 5, 6)**
     - [x] Clicking "Add New Goal" opens a form (e.g., ShadCN `Dialog`).
     - [x] Form fields:
         - Select Base Concept: Dropdown/Combobox (ShadCN `Select`/`Combobox`) populated from `appConfigService.getGlobalQualitativeConcepts()`.
         - Personalized Name: Text input, pre-fills from selected concept, editable.
         - Personalized Description: Text area, pre-fills, editable.
         - Assign Weight: Dropdown/RadioGroup (ShadCN `Select`/`RadioGroup`) for "Low", "Medium", "High", "Critical".
-    - [ ] On save, create `UserQualitativeGoal` object (copying category from concept, generating ID), dispatch `addQualitativeGoal`.
+    - [x] On save, create `UserQualitativeGoal` object (copying category from concept, generating ID), dispatch `addQualitativeGoal`.
 - [x] **Task 4: Display List of Personal Goals (AC: 7)**
     - [x] `PersonalGoalsManagementView.tsx` subscribes to `userQualitativeGoals` from the store.
     - [x] Render the list/table dynamically.
-- [ ] **Task 5: Implement "Edit Goal" Functionality (AC: 5, 6, 8)**
+- [x] **Task 5: Implement "Edit Goal" Functionality (AC: 5, 6, 8)**
     - [x] "Edit" button on each goal opens the form (Task 3), pre-filled with existing goal data.
     - [x] User can edit personalized name, description, and weight. `conceptId` and `category` remain linked to original concept.
-    - [ ] On save, dispatch `updateQualitativeGoal`.
-- [ ] **Task 6: Implement "Delete Goal" Functionality (AC: 9)**
+    - [x] On save, dispatch `updateQualitativeGoal`.
+- [x] **Task 6: Implement "Delete Goal" Functionality (AC: 9)**
     - [x] "Delete" button on each goal triggers confirmation (ShadCN `AlertDialog`).
-    - [ ] If confirmed, dispatch `deleteQualitativeGoal`.
-- [ ] **Task 7: Navigation & Responsiveness (AC: 1, 11)**
-    - [ ] Ensure clear navigation from this view back to a main dashboard (e.g., "Active Plan Dashboard" - to be built).
-    - [ ] Verify responsiveness of the view and forms.
+    - [x] If confirmed, dispatch `deleteQualitativeGoal`.
+- [x] **Task 7: Navigation & Responsiveness (AC: 1, 11)**
+    - [x] Ensure clear navigation from this view back to a main dashboard (e.g., "Active Plan Dashboard" - to be built).
+    - [x] Verify responsiveness of the view and forms.
 
 **Dev Technical Guidance**
 -   **Visual Reference:** `personal-goals-management-view.tsx` for overall look and feel.

@@ -15,22 +15,22 @@
 7. The calculation result for a scenario (a `ScenarioResults` object containing `yearlyProjections`) is stored or made available for display and use by other components (e.g., in `AppCalculatedState`).
 
 **Tasks / Subtasks**
-- [ ] **Task 1: Implement Basic Calculation Service (AC: 1, 2, 3)**
-    - [ ] Create `calculationService.ts` in `src/services/`
-    - [ ] Implement `calculateScenarioResults` function
-    - [ ] Implement `calculateCapitalGainsForYear` helper function
-- [ ] **Task 2: Implement Tax Rate Application (AC: 4, 5)**
-    - [ ] Implement tax rate application logic
-    - [ ] Calculate yearly tax breakdowns
-    - [ ] Aggregate results into yearly projections
-- [ ] **Task 3: Implement Error Handling (AC: 6)**
-    - [ ] Add validation for required data
-    - [ ] Implement error logging
-    - [ ] Add fallback behavior for missing data
-- [ ] **Task 4: Testing**
-    - [ ] Unit tests for calculation functions
-    - [ ] Integration tests for state management
-    - [ ] Edge case testing
+- [x] **Task 1: Implement Basic Calculation Service (AC: 1, 2, 3)**
+    - [x] Create `calculationService.ts` in `src/services/`
+    - [x] Implement `calculateScenarioResults` function
+    - [x] Implement `calculateCapitalGainsForYear` helper function
+- [x] **Task 2: Implement Tax Rate Application (AC: 4, 5)**
+    - [x] Implement tax rate application logic
+    - [x] Calculate yearly tax breakdowns
+    - [x] Aggregate results into yearly projections
+- [x] **Task 3: Implement Error Handling (AC: 6)**
+    - [x] Add validation for required data
+    - [x] Implement error logging
+    - [x] Add fallback behavior for missing data
+- [x] **Task 4: Testing**
+    - [x] Unit tests for calculation functions
+    - [x] Integration tests for state management
+    - [x] Edge case testing
 
 **Dev Technical Guidance**
 - **Primary Logic Location:** `src/services/calculationService.ts`
