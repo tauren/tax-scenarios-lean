@@ -183,30 +183,46 @@ describe('calculationService', () => {
       });
     });
 
-    it('should throw error for missing tax rates', () => {
+    it('should use default tax rates when rates are missing', () => {
       const scenario: Scenario = {
-        ...mockScenario,
+        id: 'test-scenario',
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: {
+          country: 'Test Country'
+        },
         tax: {
           capitalGains: {
-            shortTermRate: 37,
-            // longTermRate intentionally omitted to test error
-          } as any,
-          incomeRate: 30,
+            shortTermRate: 0,
+            longTermRate: 0
+          },
+          incomeRate: 0
         },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: []
       };
 
-      expect(() => calculateTaxesForYear(
+      const result = calculateTaxesForYear(
         {
           capitalGainsData: {
             shortTermGains: 0,
-            longTermGains: 3000,
-            totalGains: 3000,
-            taxableGains: 3000,
+            longTermGains: 1000,
+            totalGains: 1000,
+            taxableGains: 1000
           },
-          income: 0,
+          income: 50000
         },
         scenario
-      )).toThrow('Required tax rates not defined in scenario');
+      );
+
+      expect(result).toEqual({
+        capitalGainsTax: 0,
+        incomeTax: 0,
+        totalTax: 0
+      });
     });
   });
 

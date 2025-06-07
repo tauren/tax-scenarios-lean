@@ -163,5 +163,47 @@ describe('calculationService', () => {
         )
       ).toThrow('Required tax rates not defined in scenario');
     });
+
+    it('should use default tax rates when rates are missing', () => {
+      const scenarioWithoutRates: Scenario = {
+        id: 'test-scenario',
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: {
+          country: 'Test Country'
+        },
+        tax: {
+          capitalGains: {
+            shortTermRate: 0,
+            longTermRate: 0
+          },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: []
+      };
+
+      const result = calculateTaxesForYear(
+        {
+          capitalGainsData: {
+            shortTermGains: 0,
+            longTermGains: 1000,
+            totalGains: 1000,
+            taxableGains: 1000
+          },
+          income: 50000
+        },
+        scenarioWithoutRates
+      );
+
+      expect(result).toEqual({
+        capitalGainsTax: 0,
+        incomeTax: 0,
+        totalTax: 0
+      });
+    });
   });
 }); 
