@@ -30,6 +30,7 @@ import {
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from 'uuid';
+import { dateService } from '@/services/dateService';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
 
@@ -59,7 +60,7 @@ export function ExpenseDialog({
   const [formData, setFormData] = useState<FormData>({
     name: '',
     amount: '',
-    ...(type === 'oneTime' ? { year: new Date().getFullYear() } : {}),
+    ...(type === 'oneTime' ? { year: dateService.getCurrentYear() } : {}),
   });
   const [errors, setErrors] = useState<AnnualExpenseValidationErrors | OneTimeExpenseValidationErrors>({});
   const [openCombobox, setOpenCombobox] = useState(false);
@@ -71,13 +72,13 @@ export function ExpenseDialog({
         setFormData({
           name: expense.name || '',
           amount: expense.amount?.toString() || '',
-          ...(type === 'oneTime' && { year: (expense as OneTimeExpense).year || new Date().getFullYear() }),
+          ...(type === 'oneTime' && { year: (expense as OneTimeExpense).year || dateService.getCurrentYear() }),
         });
       } else {
         setFormData({
           name: '',
           amount: '',
-          ...(type === 'oneTime' && { year: new Date().getFullYear() }),
+          ...(type === 'oneTime' && { year: dateService.getCurrentYear() }),
         });
       }
       setErrors({});
@@ -99,7 +100,7 @@ export function ExpenseDialog({
         return !value || value <= 0 ? 'Amount must be greater than 0' : undefined;
       case 'year':
         if (type !== 'oneTime') return undefined;
-        return !value || value < new Date().getFullYear() ? 'Year must be current year or later' : undefined;
+        return !value || value < dateService.getCurrentYear() ? 'Year must be current year or later' : undefined;
       default:
         return undefined;
     }
@@ -150,7 +151,7 @@ export function ExpenseDialog({
           id: expense?.id || uuidv4(),
           name: formData.name || '',
           amount: Number(formData.amount) || 0,
-          year: formData.year || new Date().getFullYear(),
+          year: formData.year || dateService.getCurrentYear(),
         } as OneTimeExpense;
 
     onSave(expenseToSave);
@@ -278,7 +279,7 @@ export function ExpenseDialog({
                 <Input
                   id="year"
                   type="number"
-                  min={new Date().getFullYear()}
+                  min={dateService.getCurrentYear()}
                   value={formData.year}
                   onChange={(e) => {
                     setFormData({ ...formData, year: e.target.value ? Number(e.target.value) : undefined });

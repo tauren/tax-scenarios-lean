@@ -13,7 +13,7 @@ import { Section } from '@/components/shared/Section';
 import { FormField } from '@/components/shared/FormField';
 import { ListItemCard } from '@/components/shared/ListItemCard';
 import { deepClone } from '@/utils/clone';
-import { toDateInputValue } from '@/utils/date';
+import { dateService } from '@/services/dateService';
 import { TableList } from '@/components/shared/TableList';
 import { TableListItem } from '@/components/shared/TableListItem';
 import { CardList } from '@/components/shared/CardList';
@@ -61,7 +61,11 @@ const validationRules: ValidationRule[] = [
   },
   {
     field: 'residencyStartDate',
-    validate: (value: Date | string) => !value ? 'Residency start date is required' : undefined,
+    validate: (value: Date) => {
+      if (!value) return 'Residency start date is required';
+      if (!dateService.isValidDate(value)) return 'Invalid date';
+      return undefined;
+    },
     getValue: (scenario: FormScenario) => scenario.residencyStartDate
   },
   {
@@ -177,7 +181,9 @@ export function ScenarioEditorView() {
           id: uuidv4(), // Ensure new ID for new scenario
           name: templateCopy.name || templateCopy.location.country,
           projectionPeriod: templateCopy.projectionPeriod,
-          residencyStartDate: templateCopy.residencyStartDate instanceof Date ? templateCopy.residencyStartDate : new Date(),
+          residencyStartDate: dateService.isValidDate(templateCopy.residencyStartDate) 
+            ? templateCopy.residencyStartDate 
+            : new Date(),
           location: {
             country: templateCopy.location?.country || '',
             state: templateCopy.location?.state || '',
@@ -581,11 +587,14 @@ export function ScenarioEditorView() {
                   id="residencyStartDate"
                   name="residencyStartDate"
                   type="date"
-                  value={toDateInputValue(scenario.residencyStartDate)}
+                  value={dateService.formatForInput(scenario.residencyStartDate)}
                   onChange={e => {
-                    const date = e.target.value ? new Date(e.target.value) : new Date();
-                    setScenario({ ...scenario, residencyStartDate: date });
-                    handleFieldBlur('residencyStartDate', date);
+                    try {
+                      const date = dateService.fromString(e.target.value);
+                      setScenario({ ...scenario, residencyStartDate: date });
+                    } catch (error) {
+                      console.error('Invalid date:', error);
+                    }
                   }}
                   onBlur={() => handleFieldBlur('residencyStartDate', scenario.residencyStartDate)}
                   className={errors.residencyStartDate ? 'border-destructive' : ''}

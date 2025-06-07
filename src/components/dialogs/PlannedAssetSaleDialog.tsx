@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FormField } from '@/components/shared/FormField';
 import type { PlannedAssetSale, Asset } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { dateService } from '@/services/dateService';
 
 interface PlannedAssetSaleDialogProps {
   open: boolean;
@@ -83,7 +84,7 @@ export function PlannedAssetSaleDialog({
       case 'quantity':
         return !value || Number(value) <= 0 ? 'Quantity must be greater than 0' : undefined;
       case 'year':
-        const currentYear = new Date().getFullYear();
+        const currentYear = dateService.getCurrentYear();
         return !value || Number(value) < currentYear ? `Year must be ${currentYear} or later` : undefined;
       case 'salePricePerUnit':
         return !value || Number(value) <= 0 ? 'Sale price must be greater than 0' : undefined;
@@ -149,7 +150,7 @@ export function PlannedAssetSaleDialog({
     return `${action} planned asset sale${mode === 'duplicate' ? ' with a new name' : ''}.`;
   };
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = dateService.getCurrentYear();
   const years = Array.from({ length: projectionPeriod }, (_, i) => currentYear + i);
 
   return (

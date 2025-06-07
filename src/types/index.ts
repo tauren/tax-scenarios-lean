@@ -1,3 +1,6 @@
+/**
+ * Core application state representing the active plan.
+ */
 export interface UserAppState {
   activePlanInternalName: string;
   initialAssets: Asset[];
@@ -25,21 +28,29 @@ export interface UserAppStateSlice extends UserAppState {
   deleteQualitativeGoal: (goalId: string) => void;
 }
 
+/**
+ * Represents an asset in the user's portfolio.
+ * All dates are stored as native JavaScript Date objects.
+ */
 export interface Asset {
   id: string;
   name: string;
   quantity: number;
   costBasisPerUnit: number;
-  acquisitionDate: Date;
+  acquisitionDate: Date; // Native JavaScript Date object
   assetType?: string;
   fmvPerUnit?: number;
 }
 
+/**
+ * Represents a tax scenario with all its associated data.
+ * All dates are stored as native JavaScript Date objects.
+ */
 export interface Scenario {
   id: string;
   name: string;
   projectionPeriod: number; // in years
-  residencyStartDate: Date | string; // Can be either a Date object or ISO string
+  residencyStartDate: Date; // Native JavaScript Date object
   location: {
     country: string;
     state?: string;
@@ -190,7 +201,10 @@ export interface CalculationError extends Error {
   source: 'VALIDATION' | 'CALCULATION' | 'SYSTEM';
 }
 
-// Form-specific type that allows undefined values for numeric fields
+/**
+ * Form-specific type that allows undefined values for numeric fields.
+ * All dates are stored as native JavaScript Date objects.
+ */
 export interface FormScenario extends Omit<Scenario, 'projectionPeriod' | 'tax'> {
   projectionPeriod: number | undefined;
   tax: {

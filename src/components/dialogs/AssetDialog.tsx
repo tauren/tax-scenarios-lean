@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { FormField } from "@/components/shared/FormField";
 import { cn } from "@/lib/utils"
-import { toDateInputValue } from '@/utils/date';
+import { dateService } from '@/services/dateService';
 
 interface AssetDialogProps {
   isOpen: boolean;
@@ -242,13 +242,12 @@ export function AssetDialog({ isOpen, onClose, onSave, asset }: AssetDialogProps
             <Input
               id="asset-acquisition-date"
               type="date"
-              value={toDateInputValue(formData.acquisitionDate)}
+              value={dateService.formatForInput(formData.acquisitionDate)}
               onChange={e => {
-                const date = e.target.value ? new Date(e.target.value) : new Date();
+                const date = e.target.value ? dateService.fromString(e.target.value) : new Date();
                 setFormData({ ...formData, acquisitionDate: date });
                 handleFieldBlur('acquisitionDate', date);
               }}
-              onBlur={() => handleFieldBlur('acquisitionDate', formData.acquisitionDate)}
               required
               className={errors.acquisitionDate ? 'border-destructive' : ''}
             />

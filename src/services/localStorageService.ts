@@ -1,5 +1,6 @@
 import type { UserAppState } from '@/types';
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+import { dateHydrationService } from './dateHydrationService';
 
 const STORAGE_KEY = 'tax-scenarios-active-plan';
 const COMPRESSION_KEY = 'tax-scenarios-use-compression';
@@ -15,14 +16,14 @@ export function setCompressionEnabled(enabled: boolean): void {
     try {
       // Load the current state in its current format
       const currentState = isCompressionEnabled()
-        ? JSON.parse(decompressFromEncodedURIComponent(currentData))
-        : JSON.parse(currentData);
+        ? JSON.parse(decompressFromEncodedURIComponent(currentData), dateHydrationService.reviver)
+        : JSON.parse(currentData, dateHydrationService.reviver);
 
       if (currentState) {
         // Save the state in the new format
         const newData = enabled
-          ? compressToEncodedURIComponent(JSON.stringify(currentState))
-          : JSON.stringify(currentState);
+          ? compressToEncodedURIComponent(JSON.stringify(currentState, dateHydrationService.replacer))
+          : JSON.stringify(currentState, dateHydrationService.replacer);
         
         localStorage.setItem(STORAGE_KEY, newData);
       }
@@ -47,8 +48,8 @@ export function saveActivePlanToStorage(planState: UserAppState): boolean {
       stateToSave.selectedScenarioIds = planState.selectedScenarioIds;
     }
     const data = isCompressionEnabled()
-      ? compressToEncodedURIComponent(JSON.stringify(stateToSave))
-      : JSON.stringify(stateToSave);
+      ? compressToEncodedURIComponent(JSON.stringify(stateToSave, dateHydrationService.replacer))
+      : JSON.stringify(stateToSave, dateHydrationService.replacer);
     localStorage.setItem(STORAGE_KEY, data);
     return true;
   } catch (error) {
@@ -69,13 +70,13 @@ export function loadActivePlanFromStorage(): UserAppState | null {
     if (isCompressionEnabled()) {
       const jsonString = decompressFromEncodedURIComponent(storedData);
       if (!jsonString) return null;
-      const loaded: any = JSON.parse(jsonString);
+      const loaded: any = JSON.parse(jsonString, dateHydrationService.reviver);
       if (loaded && !('selectedScenarioIds' in loaded)) {
         loaded.selectedScenarioIds = loaded.scenarios && loaded.scenarios.length > 0 ? [loaded.scenarios[0].id] : [];
       }
       return loaded;
     } else {
-      const loaded: any = JSON.parse(storedData);
+      const loaded: any = JSON.parse(storedData, dateHydrationService.reviver);
       if (loaded && !('selectedScenarioIds' in loaded)) {
         loaded.selectedScenarioIds = loaded.scenarios && loaded.scenarios.length > 0 ? [loaded.scenarios[0].id] : [];
       }

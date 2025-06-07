@@ -15,6 +15,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { v4 as uuidv4 } from 'uuid';
+import { dateService } from '@/services/dateService';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
 
@@ -37,7 +38,7 @@ export function IncomeSourceDialog({
     name: '',
     type: 'EMPLOYMENT',
     annualAmount: 0,
-    startYear: new Date().getFullYear(),
+    startYear: dateService.getCurrentYear(),
     endYear: undefined,
   });
   const [errors, setErrors] = useState<IncomeSourceValidationErrors>({});
@@ -48,7 +49,7 @@ export function IncomeSourceDialog({
       if (incomeSource) {
         setFormData({
           ...incomeSource,
-          startYear: incomeSource.startYear || new Date().getFullYear(),
+          startYear: incomeSource.startYear || dateService.getCurrentYear(),
           endYear: incomeSource.endYear || undefined,
         });
       } else {
@@ -56,7 +57,7 @@ export function IncomeSourceDialog({
           name: '',
           type: 'EMPLOYMENT',
           annualAmount: 0,
-          startYear: new Date().getFullYear(),
+          startYear: dateService.getCurrentYear(),
           endYear: undefined,
         });
       }
@@ -84,7 +85,7 @@ export function IncomeSourceDialog({
   };
 
   const validateStartYear = (value: number | undefined): string | undefined => {
-    const currentYear = new Date().getFullYear();
+    const currentYear = dateService.getCurrentYear();
     return !value || value < currentYear ? `Start year must be ${currentYear} or later` : undefined;
   };
 
@@ -107,7 +108,7 @@ export function IncomeSourceDialog({
 
   const validateForm = (): boolean => {
     const newErrors: IncomeSourceValidationErrors = {};
-    const currentYear = new Date().getFullYear();
+    const currentYear = dateService.getCurrentYear();
 
     // Validate all fields
     const nameError = validateName(formData.name);
@@ -135,7 +136,7 @@ export function IncomeSourceDialog({
       name: formData.name || '',
       type: formData.type || 'EMPLOYMENT',
       annualAmount: formData.annualAmount || 0,
-      startYear: formData.startYear || new Date().getFullYear(),
+      startYear: formData.startYear || dateService.getCurrentYear(),
       endYear: formData.endYear,
     };
 
@@ -263,7 +264,7 @@ export function IncomeSourceDialog({
               <Input
                 id="startYear"
                 type="number"
-                min={new Date().getFullYear()}
+                min={dateService.getCurrentYear()}
                 value={formData.startYear}
                 onChange={(e) => {
                   const value = Number(e.target.value);
@@ -273,7 +274,7 @@ export function IncomeSourceDialog({
                 }}
                 onBlur={() => {
                   setFieldError('startYear', validateStartYear(formData.startYear));
-                  setFieldError('endYear', validateEndYear(formData.endYear, formData.startYear || new Date().getFullYear()));
+                  setFieldError('endYear', validateEndYear(formData.endYear, formData.startYear || dateService.getCurrentYear()));
                 }}
                 className={errors.startYear ? 'border-destructive' : ''}
               />
@@ -287,14 +288,14 @@ export function IncomeSourceDialog({
               <Input
                 id="endYear"
                 type="number"
-                min={formData.startYear || new Date().getFullYear()}
+                min={formData.startYear || dateService.getCurrentYear()}
                 value={formData.endYear || ''}
                 onChange={(e) => {
                   const value = e.target.value ? Number(e.target.value) : undefined;
                   setFormData({ ...formData, endYear: value });
-                  setFieldError('endYear', validateEndYear(value, formData.startYear || new Date().getFullYear()));
+                  setFieldError('endYear', validateEndYear(value, formData.startYear || dateService.getCurrentYear()));
                 }}
-                onBlur={() => setFieldError('endYear', validateEndYear(formData.endYear, formData.startYear || new Date().getFullYear()))}
+                onBlur={() => setFieldError('endYear', validateEndYear(formData.endYear, formData.startYear || dateService.getCurrentYear()))}
                 placeholder="Leave empty for ongoing"
                 className={errors.endYear ? 'border-destructive' : ''}
               />

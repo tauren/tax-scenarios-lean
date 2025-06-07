@@ -11,6 +11,7 @@ export const templateScenarios: Scenario[] = [
     ],
     oneTimeExpenses: [
     ],
+    plannedAssetSales: [],
     location: {
       country: "Blank"
     },
@@ -18,7 +19,8 @@ export const templateScenarios: Scenario[] = [
       capitalGains: {
         shortTermRate: 0,
         longTermRate: 0,
-      }
+      },
+      incomeRate: 0
     }
   },
   {
@@ -127,6 +129,7 @@ export const templateScenarios: Scenario[] = [
         year: 2025,
       }
     ],
+    plannedAssetSales: [],
     location: {
       country: "Portugal"
     },
@@ -134,7 +137,8 @@ export const templateScenarios: Scenario[] = [
       capitalGains: {
         shortTermRate: 28,
         longTermRate: 28,
-      }
+      },
+      incomeRate: 28
     }
   }
 ]; 

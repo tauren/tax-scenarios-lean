@@ -1,4 +1,5 @@
 import type { Scenario, Asset, ScenarioResults, CapitalGainsData, TaxBreakdown, CalculationError } from '../types';
+import { dateService } from './dateService';
 
 /**
  * Calculates the complete results for a given scenario
@@ -20,12 +21,7 @@ export const calculateScenarioResults = (
     );
   }
 
-  // Convert residencyStartDate to Date if it's a string
-  const startDate = typeof scenario.residencyStartDate === 'string' 
-    ? new Date(scenario.residencyStartDate)
-    : scenario.residencyStartDate;
-
-  const startYear = startDate.getFullYear();
+  const startYear = dateService.getCurrentYear();
   const endYear = startYear + scenario.projectionPeriod - 1;
   const yearlyProjections = [];
   let totalNetFinancialOutcomeOverPeriod = 0;

@@ -1,5 +1,6 @@
 import type { UserAppState } from '@/types';
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+import { dateHydrationService } from './dateHydrationService';
 
 /**
  * Generates a shareable URL string from a UserAppState object
@@ -12,7 +13,7 @@ export function generateShareableString(planState: UserAppState): string | null 
   }
 
   try {
-    const jsonString = JSON.stringify(planState);
+    const jsonString = JSON.stringify(planState, dateHydrationService.replacer);
     return compressToEncodedURIComponent(jsonString);
   } catch (error) {
     console.error('Error generating shareable string:', error);
@@ -34,7 +35,7 @@ export function parseShareableString(encodedString: string): UserAppState | null
     const jsonString = decompressFromEncodedURIComponent(encodedString);
     if (!jsonString) return null;
 
-    const parsedState = JSON.parse(jsonString) as UserAppState;
+    const parsedState = JSON.parse(jsonString, dateHydrationService.reviver) as UserAppState;
     
     // Basic structural validation
     if (!parsedState || typeof parsedState !== 'object') {
