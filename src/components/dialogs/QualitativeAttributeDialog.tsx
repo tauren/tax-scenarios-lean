@@ -33,9 +33,9 @@ export function QualitativeAttributeDialog({
   onSave,
 }: QualitativeAttributeDialogProps) {
   const [formData, setFormData] = useState<Partial<ScenarioQualitativeAttribute>>({
-    text: '',
-    sentiment: 'neutral',
-    significance: 'Medium',
+    text: attribute?.text || '',
+    sentiment: attribute?.sentiment || 'Neutral',
+    significance: attribute?.significance || 'Medium',
   });
   const [errors, setErrors] = useState<{ text?: string }>({});
 
@@ -49,7 +49,7 @@ export function QualitativeAttributeDialog({
       } else {
         setFormData({
           text: '',
-          sentiment: 'neutral',
+          sentiment: 'Neutral',
           significance: 'Medium',
         });
       }
@@ -98,7 +98,7 @@ export function QualitativeAttributeDialog({
       id: attribute?.id || uuidv4(),
       scenarioId: attribute?.scenarioId || '',
       text: formData.text || '',
-      sentiment: formData.sentiment || 'neutral',
+      sentiment: formData.sentiment || 'Neutral',
       significance: formData.significance || 'Medium',
       mappedGoalId: attribute?.mappedGoalId,
     };
@@ -178,7 +178,7 @@ export function QualitativeAttributeDialog({
               label="How do you feel about this?"
             >
               <SentimentSelector
-                value={formData.sentiment || 'neutral'}
+                value={formData.sentiment || 'Neutral'}
                 onChange={(value) => setFormData({ ...formData, sentiment: value })}
               />
             </FormField>

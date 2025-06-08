@@ -22,7 +22,6 @@ import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
 import { PlannedAssetSaleDialog } from '@/components/dialogs/PlannedAssetSaleDialog';
 import { convertFormScenarioToScenario } from '@/types';
 import { QualitativeAttributesContainer } from '@/components/shared/QualitativeAttributesContainer';
-import { convertToQualitativeAttribute } from '@/types/qualitative';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -709,10 +708,7 @@ export function ScenarioEditorView() {
         <TabsContent value="qualitative">
           <QualitativeAttributesContainer
             scenarioId={scenario.id}
-            goals={userQualitativeGoals}
-            initialAttributes={(scenario.scenarioSpecificAttributes || []).map(attr => 
-              convertToQualitativeAttribute(attr, scenario.id)
-            )}
+            disabled={false}
           />
         </TabsContent>
 

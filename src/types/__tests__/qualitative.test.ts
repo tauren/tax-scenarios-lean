@@ -1,8 +1,8 @@
 import type { 
   UserQualitativeGoal, 
-  QualitativeGoalAlignment, 
-  ScenarioAttribute 
+  QualitativeGoalAlignment
 } from '../index';
+import type { ScenarioQualitativeAttribute } from '../qualitative';
 
 describe('Qualitative Types', () => {
   describe('UserQualitativeGoal', () => {
@@ -89,59 +89,60 @@ describe('Qualitative Types', () => {
     });
   });
 
-  describe('ScenarioAttribute', () => {
+  describe('ScenarioQualitativeAttribute', () => {
     it('should have all required properties', () => {
-      const attribute: ScenarioAttribute = {
+      const attribute: ScenarioQualitativeAttribute = {
         id: 'attr-1',
-        conceptId: 'concept-1',
-        userSentiment: 'Positive',
-        significanceToUser: 'High'
+        scenarioId: 'scenario-1',
+        text: 'Test text',
+        sentiment: 'positive',
+        significance: 'High'
       };
 
       expect(attribute).toHaveProperty('id');
-      expect(attribute).toHaveProperty('conceptId');
-      expect(attribute).toHaveProperty('userSentiment');
-      expect(attribute).toHaveProperty('significanceToUser');
+      expect(attribute).toHaveProperty('scenarioId');
+      expect(attribute).toHaveProperty('text');
+      expect(attribute).toHaveProperty('sentiment');
+      expect(attribute).toHaveProperty('significance');
     });
 
     it('should allow optional properties', () => {
-      const attribute: ScenarioAttribute = {
+      const attribute: ScenarioQualitativeAttribute = {
         id: 'attr-1',
-        conceptId: 'concept-1',
-        userSentiment: 'Positive',
-        significanceToUser: 'High',
-        statementId: 'statement-1',
-        notes: 'Test notes',
+        scenarioId: 'scenario-1',
+        text: 'Test text',
+        sentiment: 'positive',
+        significance: 'High',
         mappedGoalId: 'goal-1'
       };
 
-      expect(attribute.statementId).toBe('statement-1');
-      expect(attribute.notes).toBe('Test notes');
       expect(attribute.mappedGoalId).toBe('goal-1');
     });
 
     it('should enforce sentiment enum values', () => {
-      const attribute: ScenarioAttribute = {
+      const attribute: ScenarioQualitativeAttribute = {
         id: 'attr-1',
-        conceptId: 'concept-1',
-        userSentiment: 'Positive',
-        significanceToUser: 'High'
+        scenarioId: 'scenario-1',
+        text: 'Test text',
+        sentiment: 'positive',
+        significance: 'High'
       };
 
       // @ts-expect-error - Invalid sentiment value
-      attribute.userSentiment = 'Invalid';
+      attribute.sentiment = 'Invalid';
     });
 
     it('should enforce significance enum values', () => {
-      const attribute: ScenarioAttribute = {
+      const attribute: ScenarioQualitativeAttribute = {
         id: 'attr-1',
-        conceptId: 'concept-1',
-        userSentiment: 'Positive',
-        significanceToUser: 'High'
+        scenarioId: 'scenario-1',
+        text: 'Test text',
+        sentiment: 'positive',
+        significance: 'High'
       };
 
       // @ts-expect-error - Invalid significance value
-      attribute.significanceToUser = 'Invalid';
+      attribute.significance = 'Invalid';
     });
   });
 }); 

@@ -10,7 +10,7 @@ describe('dateService', () => {
     });
 
     it('should throw error for invalid date string', () => {
-      expect(() => dateService.fromString('invalid-date')).toThrow();
+      expect(() => dateService.fromString('invalid-date')).toThrow(/Invalid date string/);
     });
   });
 
@@ -26,8 +26,7 @@ describe('dateService', () => {
     it('should format date for display', () => {
       const date = new Date('2024-01-01T00:00:00.000Z');
       const formatted = dateService.formatForDisplay(date);
-      expect(typeof formatted).toBe('string');
-      expect(formatted).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+      expect(formatted).toBe('01/01/2024');
     });
   });
 
@@ -41,7 +40,8 @@ describe('dateService', () => {
 
   describe('isValidDate', () => {
     it('should return true for valid Date', () => {
-      expect(dateService.isValidDate(new Date())).toBe(true);
+      const date = new Date();
+      expect(dateService.isValidDate(date)).toBe(true);
     });
 
     it('should return false for invalid Date', () => {

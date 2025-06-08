@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import React from "react"
 
-export const sentimentOptions = ["negative", "neutral", "positive"] as const
+export const sentimentOptions = ["Negative", "Neutral", "Positive"] as const
 export type SentimentOption = typeof sentimentOptions[number]
 
 interface SentimentSelectorProps {
@@ -31,7 +31,7 @@ export const SentimentSelector: React.FC<SentimentSelectorProps> = ({
           type="button"
           disabled={disabled}
         >
-          {sentiment.charAt(0).toUpperCase() + sentiment.slice(1)}
+          {sentiment}
         </Button>
       ))}
     </div>

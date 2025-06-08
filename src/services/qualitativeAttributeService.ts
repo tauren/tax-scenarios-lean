@@ -62,16 +62,16 @@ export class QualitativeAttributeService {
       const goal = goals.find((g) => g.id === attribute.mappedGoalId);
       if (!goal) return;
 
-      const sentimentScore = attribute.sentiment === 'positive' ? 1 : 
-                           attribute.sentiment === 'negative' ? -1 : 0;
+      const sentimentScore = attribute.sentiment === 'Positive' ? 1 :
+        attribute.sentiment === 'Negative' ? -1 : 0;
 
       const significanceScore = attribute.significance === 'Critical' ? 1 :
-                              attribute.significance === 'High' ? 0.75 :
-                              attribute.significance === 'Medium' ? 0.5 : 0.25;
+        attribute.significance === 'High' ? 0.75 :
+        attribute.significance === 'Medium' ? 0.5 : 0.25;
 
       const goalWeight = goal.weight === 'Critical' ? 1 :
-                        goal.weight === 'High' ? 0.75 :
-                        goal.weight === 'Medium' ? 0.5 : 0.25;
+        goal.weight === 'High' ? 0.75 :
+        goal.weight === 'Medium' ? 0.5 : 0.25;
 
       const attributeScore = sentimentScore * significanceScore * goalWeight;
       totalScore += attributeScore;

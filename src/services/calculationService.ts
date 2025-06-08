@@ -6,9 +6,9 @@ import type {
   TaxBreakdown, 
   CalculationError,
   UserQualitativeGoal,
-  ScenarioAttribute,
   QualitativeGoalAlignment
 } from '../types';
+import type { ScenarioQualitativeAttribute } from '../types/qualitative';
 import { dateService } from './dateService';
 
 /**
@@ -253,11 +253,11 @@ export const calculateQualitativeFitScore = (
 
     for (const attr of mappedAttributes) {
       // Skip neutral or insignificant attributes
-      if (attr.userSentiment === "Neutral" || attr.significanceToUser === "None") continue;
+      if (attr.sentiment === "Neutral" || attr.significance === "Low") continue;
 
       // Convert sentiment and significance to numeric values
-      const sentimentValue = getSentimentValue(attr.userSentiment);
-      const significanceValue = getSignificanceValue(attr.significanceToUser);
+      const sentimentValue = getSentimentValue(attr.sentiment);
+      const significanceValue = getSignificanceValue(attr.significance);
 
       // Calculate attribute's contribution
       const attributeContribution = sentimentValue * significanceValue * goalWeight;
@@ -266,8 +266,7 @@ export const calculateQualitativeFitScore = (
       // Track contributing attributes
       contributingAttributes.push({
         attributeId: attr.id,
-        conceptName: attr.conceptId, // Note: This should be the concept name, not ID
-        statementText: attr.statementId, // Note: This should be the statement text, not ID
+        conceptName: attr.text, // Use the attribute text as the concept name
         contribution: attributeContribution
       });
     }
@@ -338,26 +337,32 @@ const getWeightValue = (weight: UserQualitativeGoal['weight']): number => {
 /**
  * Converts a sentiment string to a numeric value
  */
-const getSentimentValue = (sentiment: ScenarioAttribute['userSentiment']): number => {
+const getSentimentValue = (sentiment: ScenarioQualitativeAttribute['sentiment']): number => {
   switch (sentiment) {
-    case "Positive": return 1;
-    case "Neutral": return 0;
-    case "Negative": return -1;
-    default: return 0;
+    case 'Positive':
+      return 1;
+    case 'Negative':
+      return -1;
+    case 'Neutral':
+    default:
+      return 0;
   }
 };
 
 /**
  * Converts a significance string to a numeric value
  */
-const getSignificanceValue = (significance: ScenarioAttribute['significanceToUser']): number => {
+const getSignificanceValue = (significance: ScenarioQualitativeAttribute['significance']): number => {
   switch (significance) {
-    case "Critical": return 1.0;
-    case "High": return 0.75;
-    case "Medium": return 0.5;
-    case "Low": return 0.25;
-    case "None": return 0;
-    default: return 0;
+    case 'Critical':
+      return 1;
+    case 'High':
+      return 0.75;
+    case 'Medium':
+      return 0.5;
+    case 'Low':
+    default:
+      return 0.25;
   }
 };
 

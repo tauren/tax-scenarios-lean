@@ -14,7 +14,7 @@ describe('QualitativeAttributeService', () => {
     it('should add a new attribute with generated id', () => {
       const attribute: Omit<ScenarioQualitativeAttribute, 'id' | 'scenarioId'> = {
         text: 'Test attribute',
-        sentiment: 'positive',
+        sentiment: 'Positive',
         significance: 'High',
       };
 
@@ -32,7 +32,7 @@ describe('QualitativeAttributeService', () => {
     it('should remove the attribute with the specified id', () => {
       const attribute = service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'positive',
+        sentiment: 'Positive',
         significance: 'High',
       });
 
@@ -47,7 +47,7 @@ describe('QualitativeAttributeService', () => {
     it('should map an attribute to a goal', () => {
       const attribute = service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'positive',
+        sentiment: 'Positive',
         significance: 'High',
       });
 
@@ -63,7 +63,7 @@ describe('QualitativeAttributeService', () => {
     it('should remove the goal mapping from an attribute', () => {
       const attribute = service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'positive',
+        sentiment: 'Positive',
         significance: 'High',
       });
 
@@ -79,7 +79,7 @@ describe('QualitativeAttributeService', () => {
     it('should return 0 when no attributes are mapped to goals', () => {
       service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'positive',
+        sentiment: 'Positive',
         significance: 'High',
       });
 
@@ -97,7 +97,7 @@ describe('QualitativeAttributeService', () => {
     it('should calculate correct score for positive sentiment with Critical significance and Critical goal weight', () => {
       const attribute = service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'positive',
+        sentiment: 'Positive',
         significance: 'Critical',
       });
 
@@ -119,7 +119,7 @@ describe('QualitativeAttributeService', () => {
     it('should calculate correct score for negative sentiment with High significance and High goal weight', () => {
       const attribute = service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'negative',
+        sentiment: 'Negative',
         significance: 'High',
       });
 
@@ -141,7 +141,7 @@ describe('QualitativeAttributeService', () => {
     it('should calculate correct score for neutral sentiment with Medium significance and Medium goal weight', () => {
       const attribute = service.addAttribute(mockScenarioId, {
         text: 'Test attribute',
-        sentiment: 'neutral',
+        sentiment: 'Neutral',
         significance: 'Medium',
       });
 

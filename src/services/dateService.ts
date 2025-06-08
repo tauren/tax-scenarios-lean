@@ -27,9 +27,15 @@ export const dateService = {
   /**
    * Formats a date for display in the UI.
    * @param date - The Date object to format
-   * @returns A localized date string
+   * @returns A localized date string in MM/DD/YYYY format
    */
-  formatForDisplay: (date: Date): string => date.toLocaleDateString(),
+  formatForDisplay: (date: Date): string => {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
+  },
 
   /**
    * Formats a date for use in HTML date inputs.
@@ -44,7 +50,10 @@ export const dateService = {
    * @returns True if the value is a valid Date object
    */
   isValidDate: (value: unknown): value is Date => {
-    return value instanceof Date && !isNaN(value.getTime());
+    if (!(value instanceof Date)) {
+      return false;
+    }
+    return !isNaN(value.getTime());
   },
 
   /**

@@ -1,26 +1,28 @@
 import { create } from 'zustand';
-import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal } from '@/types';
+import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, ScenarioQualitativeAttribute } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { loadActivePlanFromStorage, saveActivePlanToStorage, clearActivePlanFromStorage } from '../services/localStorageService';
 
 // Create a debounced save function
 let saveTimeout: NodeJS.Timeout;
-const debouncedSave = (state: UserAppStateSlice) => {
+const debouncedSave = (state: Partial<UserAppStateSlice>) => {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     const success = saveActivePlanToStorage({
-      activePlanInternalName: state.activePlanInternalName,
-      initialAssets: state.initialAssets,
-      scenarios: state.scenarios,
-      selectedScenarioIds: state.selectedScenarioIds,
-      userQualitativeGoals: state.userQualitativeGoals,
+      activePlanInternalName: state.activePlanInternalName || '',
+      initialAssets: state.initialAssets || [],
+      scenarios: state.scenarios || [],
+      selectedScenarioIds: state.selectedScenarioIds || [],
+      userQualitativeGoals: state.userQualitativeGoals || [],
     });
     if (!success) {
       console.error('Failed to save state to localStorage');
       // TODO: Add UI notification when uiSlice is available
     }
     // Clear dirty state after successful save
-    state.setDirty(false);
+    if (state.setDirty) {
+      state.setDirty(false);
+    }
   }, 1000);
 };
 
@@ -67,8 +69,6 @@ function ensureValidPersonalGoal(goal: UserQualitativeGoal): UserQualitativeGoal
   return {
     ...goal,
     name: goal.name || '',
-    category: goal.category || '',
-    description: goal.description || '',
     weight: goal.weight || 'Medium',
   };
 }
@@ -98,181 +98,118 @@ function buildInitialState() {
   };
 }
 
-const initialState = buildInitialState();
-
 export const useUserAppState = create<UserAppStateSlice>((set) => ({
-  ...initialState,
+  ...buildInitialState(),
   isDirty: false,
+  setDirty: (isDirty: boolean) => set({ isDirty }),
+  setActivePlanInternalName: (name: string) => set({ activePlanInternalName: name, isDirty: true }),
+  addAsset: (asset: Asset) => set((state) => ({
+    initialAssets: [...state.initialAssets, { ...asset, id: uuid() }],
+    isDirty: true
+  })),
+  updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => set((state) => ({
+    initialAssets: state.initialAssets.map((asset) =>
+      asset.id === assetId ? { ...asset, ...updatedAsset } : asset
+    ),
+    isDirty: true
+  })),
+  deleteAsset: (assetId: string) => set((state) => ({
+    initialAssets: state.initialAssets.filter((asset) => asset.id !== assetId),
+    isDirty: true
+  })),
+  addScenario: (scenario: Scenario, options?: { isBaseline?: boolean }) => set((state) => {
+    const newScenario = { ...scenario, id: uuid() };
+    let selectedScenarioIds = state.selectedScenarioIds;
+    if (!selectedScenarioIds || selectedScenarioIds.length === 0) {
+      selectedScenarioIds = [newScenario.id];
+    }
+    return {
+      scenarios: [...state.scenarios, newScenario],
+      selectedScenarioIds,
+      isDirty: true
+    };
+  }),
+  updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => set((state) => ({
+    scenarios: state.scenarios.map((scenario) =>
+      scenario.id === scenarioId ? { ...scenario, ...updatedScenario } : scenario
+    ),
+    isDirty: true
+  })),
+  deleteScenario: (scenarioId: string) => set((state) => ({
+    scenarios: state.scenarios.filter((scenario) => scenario.id !== scenarioId),
+    selectedScenarioIds: state.selectedScenarioIds.filter(id => state.scenarios.some(s => s.id === id)),
+    isDirty: true
+  })),
+  setScenarioAsPrimary: (scenarioId: string) => set((state) => {
+    const scenarioToMakePrimary = state.scenarios.find(s => s.id === scenarioId);
+    if (!scenarioToMakePrimary) return state;
 
-  setDirty: (isDirty: boolean) => {
-    set((state) => ({ ...state, isDirty }));
-  },
+    const newScenarios = [
+      scenarioToMakePrimary,
+      ...state.scenarios.filter(s => s.id !== scenarioId)
+    ];
 
-  setSelectedScenarioIds: (ids: string[]) => {
-    set((state) => {
-      const newState = { ...state, selectedScenarioIds: ids, isDirty: true };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
+    return {
+      scenarios: newScenarios,
+      isDirty: true
+    };
+  }),
+  addQualitativeGoal: (goal: UserQualitativeGoal) => set((state) => ({
+    userQualitativeGoals: [...(state.userQualitativeGoals || []), goal],
+    isDirty: true
+  })),
+  updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => set((state) => ({
+    userQualitativeGoals: (state.userQualitativeGoals || []).map((goal) =>
+      goal.id === goalId ? { ...goal, ...updatedGoal } : goal
+    ),
+    isDirty: true
+  })),
+  deleteQualitativeGoal: (goalId: string) => set((state) => ({
+    userQualitativeGoals: (state.userQualitativeGoals || []).filter((goal) => goal.id !== goalId),
+    isDirty: true
+  })),
+  updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => set((state) => {
+    const scenario = state.scenarios.find(s => s.id === scenarioId);
+    if (!scenario) return state;
 
-  setActivePlanInternalName: (name: string) => {
-    set((state) => {
-      const newState = { ...state, activePlanInternalName: name, isDirty: true };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
+    const existingIndex = scenario.scenarioSpecificAttributes.findIndex(
+      attr => attr.id === attribute.id
+    );
 
-  addAsset: (asset: Asset) => {
-    set((state) => {
-      const newAsset = { ...asset, id: uuid() };
-      const newState = {
-        ...state,
-        initialAssets: [...state.initialAssets, newAsset],
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
+    const updatedScenario = { ...scenario };
+    if (existingIndex >= 0) {
+      updatedScenario.scenarioSpecificAttributes[existingIndex] = attribute;
+    } else {
+      updatedScenario.scenarioSpecificAttributes.push(attribute);
+    }
 
-  updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => {
-    set((state) => {
-      const newState = {
-        ...state,
-        initialAssets: state.initialAssets.map((asset) =>
-          asset.id === assetId ? { ...asset, ...updatedAsset } : asset
-        ),
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
+    return {
+      scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s),
+      isDirty: true
+    };
+  }),
+  deleteScenarioAttribute: (scenarioId: string, attributeId: string) => set((state) => {
+    const scenario = state.scenarios.find(s => s.id === scenarioId);
+    if (!scenario) return state;
 
-  deleteAsset: (assetId: string) => {
-    set((state) => {
-      const newState = {
-        ...state,
-        initialAssets: state.initialAssets.filter((asset) => asset.id !== assetId),
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
+    const updatedScenario = {
+      ...scenario,
+      scenarioSpecificAttributes: scenario.scenarioSpecificAttributes.filter(
+        attr => attr.id !== attributeId
+      )
+    };
 
-  addScenario: (scenario: Scenario) => {
-    set((state) => {
-      const newScenario = { ...scenario, id: uuid() };
-      let selectedScenarioIds = state.selectedScenarioIds;
-      if (!selectedScenarioIds || selectedScenarioIds.length === 0) {
-        selectedScenarioIds = [newScenario.id];
-      }
-      const newState = {
-        ...state,
-        scenarios: [...state.scenarios, newScenario],
-        selectedScenarioIds,
-        isDirty: true,
-      };
-      if (!state.activePlanInternalName) {
-        newState.activePlanInternalName = scenario.name;
-      }
-      debouncedSave(newState);
-      return newState;
-    });
-  },
+    const newState = {
+      ...state,
+      scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s),
+      isDirty: true
+    };
 
-  updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => {
-    set((state) => {
-      const newState = {
-        ...state,
-        scenarios: state.scenarios.map((scenario) =>
-          scenario.id === scenarioId ? { ...scenario, ...updatedScenario } : scenario
-        ),
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
-
-  deleteScenario: (scenarioId: string) => {
-    set((state) => {
-      const newScenarios = state.scenarios.filter((scenario) => scenario.id !== scenarioId);
-      const newSelectedScenarioIds = state.selectedScenarioIds.filter(id => newScenarios.some(s => s.id === id));
-      const newState = {
-        ...state,
-        scenarios: newScenarios,
-        selectedScenarioIds: newSelectedScenarioIds,
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
-
-  setScenarioAsPrimary: (scenarioId: string) => {
-    set((state) => {
-      // Find the scenario to make primary
-      const scenarioToMakePrimary = state.scenarios.find(s => s.id === scenarioId);
-      if (!scenarioToMakePrimary) return state;
-
-      // Create new array with the selected scenario first
-      const newScenarios = [
-        scenarioToMakePrimary,
-        ...state.scenarios.filter(s => s.id !== scenarioId)
-      ];
-
-      const newState = {
-        ...state,
-        scenarios: newScenarios,
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
-
-  addQualitativeGoal: (goal: UserQualitativeGoal) => {
-    set((state) => {
-      const newState = {
-        ...state,
-        userQualitativeGoals: [...(state.userQualitativeGoals || []), goal],
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
-
-  updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => {
-    set((state) => {
-      const newState = {
-        ...state,
-        userQualitativeGoals: (state.userQualitativeGoals || []).map((goal) =>
-          goal.id === goalId ? { ...goal, ...updatedGoal } : goal
-        ),
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
-
-  deleteQualitativeGoal: (goalId: string) => {
-    set((state) => {
-      const newState = {
-        ...state,
-        userQualitativeGoals: (state.userQualitativeGoals || []).filter((goal) => goal.id !== goalId),
-        isDirty: true,
-      };
-      debouncedSave(newState);
-      return newState;
-    });
-  },
-
+    // Save to localStorage
+    debouncedSave(newState);
+    
+    return newState;
+  }),
   clearStoredState: () => {
     clearActivePlanFromStorage();
     set({
@@ -280,19 +217,16 @@ export const useUserAppState = create<UserAppStateSlice>((set) => ({
       initialAssets: [],
       scenarios: [],
       userQualitativeGoals: [],
-      isDirty: false,
+      isDirty: false
     });
   },
-
   setAppState: (newState: UserAppState) => {
-    set((state) => {
-      const mergedState = {
-        ...state,
-        ...newState,
-        isDirty: true,
-      };
-      debouncedSave(mergedState);
-      return mergedState;
-    });
+    const mergedState = {
+      ...newState,
+      isDirty: true,
+    };
+    debouncedSave(mergedState);
+    set(mergedState);
   },
+  setSelectedScenarioIds: (ids: string[]) => set({ selectedScenarioIds: ids, isDirty: true }),
 })); 

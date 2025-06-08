@@ -26,6 +26,8 @@ export interface UserAppStateSlice extends UserAppState {
   addQualitativeGoal: (goal: UserQualitativeGoal) => void;
   updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => void;
   deleteQualitativeGoal: (goalId: string) => void;
+  updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => void;
+  deleteScenarioAttribute: (scenarioId: string, attributeId: string) => void;
 }
 
 /**
@@ -67,7 +69,7 @@ export interface Scenario {
   annualExpenses: AnnualExpense[];
   oneTimeExpenses: OneTimeExpense[];
   plannedAssetSales: PlannedAssetSale[];
-  scenarioSpecificAttributes: ScenarioAttribute[];
+  scenarioSpecificAttributes: ScenarioQualitativeAttribute[];
 }
 
 export interface IncomeSource {
@@ -244,11 +246,17 @@ export interface QualitativeStatement {
 export interface UserQualitativeGoal {
   id: string;
   conceptId: string;
-  statementId?: string;
   name: string;
-  description?: string;
   weight: "Low" | "Medium" | "High" | "Critical";
-  notes?: string;
+}
+
+export interface ScenarioQualitativeAttribute {
+  id: string;
+  scenarioId: string;
+  text: string;
+  sentiment: "Positive" | "Negative" | "Neutral";
+  significance: "Low" | "Medium" | "High" | "Critical";
+  mappedGoalId?: string;
 }
 
 export interface QualitativeGoalAlignment {
@@ -262,14 +270,4 @@ export interface QualitativeGoalAlignment {
     statementText?: string;
     contribution: number;
   }[];
-}
-
-export interface ScenarioAttribute {
-  id: string;
-  conceptId: string;
-  statementId?: string;
-  userSentiment: "Positive" | "Neutral" | "Negative";
-  significanceToUser: "None" | "Low" | "Medium" | "High" | "Critical";
-  notes?: string;
-  mappedGoalId?: string;
 }
