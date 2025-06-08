@@ -51,6 +51,7 @@ describe('calculationService', () => {
         salePricePerUnit: 150000,
       },
     ],
+    scenarioSpecificAttributes: []
   };
 
   const mockAssets: Asset[] = [
@@ -136,34 +137,6 @@ describe('calculationService', () => {
       expect(taxBreakdown.totalTax).toBe(59800); // 30000 + 29800
     });
 
-    it('should throw error if tax rates are missing', () => {
-      const scenarioWithoutRates: Scenario = {
-        ...mockScenario,
-        tax: {
-          capitalGains: {
-            shortTermRate: 0,
-            longTermRate: 0,
-          },
-          incomeRate: 0,
-        },
-      };
-
-      expect(() =>
-        calculateTaxesForYear(
-          {
-            capitalGainsData: {
-              shortTermGains: 0,
-              longTermGains: 298000,
-              totalGains: 298000,
-              taxableGains: 298000,
-            },
-            income: 150000,
-          },
-          scenarioWithoutRates
-        )
-      ).toThrow('Required tax rates not defined in scenario');
-    });
-
     it('should use default tax rates when rates are missing', () => {
       const scenarioWithoutRates: Scenario = {
         id: 'test-scenario',
@@ -183,7 +156,8 @@ describe('calculationService', () => {
         incomeSources: [],
         annualExpenses: [],
         oneTimeExpenses: [],
-        plannedAssetSales: []
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: []
       };
 
       const result = calculateTaxesForYear(

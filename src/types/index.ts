@@ -67,6 +67,7 @@ export interface Scenario {
   annualExpenses: AnnualExpense[];
   oneTimeExpenses: OneTimeExpense[];
   plannedAssetSales: PlannedAssetSale[];
+  scenarioSpecificAttributes: ScenarioAttribute[];
 }
 
 export interface IncomeSource {
@@ -160,6 +161,15 @@ export interface ScenarioResults {
   yearlyProjections: ScenarioYearlyProjection[];
   totalNetFinancialOutcomeOverPeriod: number;
   qualitativeFitScore: number;
+  goalAlignments: QualitativeGoalAlignment[];
+  qualitativeScoreDetails?: {
+    mappedAttributesCount: number;
+    unmappedAttributesCount: number;
+    goalContributions: {
+      goalId: string;
+      contribution: number;
+    }[];
+  };
 }
 
 export interface AppCalculatedState {
@@ -220,18 +230,46 @@ export interface QualitativeConcept {
   id: string;
   name: string;
   description: string;
+  category: string;
+  statements: QualitativeStatement[];
 }
 
 export interface QualitativeStatement {
   id: string;
   conceptId: string;
   statementText: string;
+  description?: string;
 }
 
 export interface UserQualitativeGoal {
   id: string;
   conceptId: string;
+  statementId?: string;
   name: string;
   description?: string;
   weight: "Low" | "Medium" | "High" | "Critical";
+  notes?: string;
+}
+
+export interface QualitativeGoalAlignment {
+  goalId: string;
+  goalName: string;
+  isAligned: boolean;
+  alignmentScore: number;
+  contributingAttributes: {
+    attributeId: string;
+    conceptName: string;
+    statementText?: string;
+    contribution: number;
+  }[];
+}
+
+export interface ScenarioAttribute {
+  id: string;
+  conceptId: string;
+  statementId?: string;
+  userSentiment: "Positive" | "Neutral" | "Negative";
+  significanceToUser: "None" | "Low" | "Medium" | "High" | "Critical";
+  notes?: string;
+  mappedGoalId?: string;
 }

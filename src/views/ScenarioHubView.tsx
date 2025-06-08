@@ -22,7 +22,15 @@ import { ScenarioSummaryDashboard } from '@/components/shared/ScenarioSummaryDas
 import { ScenarioComparisonTable } from '@/components/shared/ScenarioComparisonTable';
 
 export function ScenarioHubView() {
-  const { scenarios, deleteScenario, setScenarioAsPrimary, initialAssets, selectedScenarioIds, setSelectedScenarioIds } = useUserAppState();
+  const { 
+    scenarios, 
+    deleteScenario, 
+    setScenarioAsPrimary, 
+    initialAssets, 
+    selectedScenarioIds, 
+    setSelectedScenarioIds,
+    userQualitativeGoals 
+  } = useUserAppState();
   const { resultsByScenario, setScenarioResults } = useCalculationState();
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -32,13 +40,13 @@ export function ScenarioHubView() {
   useEffect(() => {
     scenarios.forEach(scenario => {
       try {
-        const results = calculateScenarioResults(scenario, initialAssets);
+        const results = calculateScenarioResults(scenario, initialAssets, userQualitativeGoals);
         setScenarioResults(scenario.id, results);
       } catch (error) {
         console.error(`Failed to calculate results for scenario ${scenario.id}:`, error);
       }
     });
-  }, [scenarios, initialAssets, setScenarioResults]);
+  }, [scenarios, initialAssets, userQualitativeGoals, setScenarioResults]);
 
   const handleScenarioSelection = (scenarioId: string, checked: boolean) => {
     let newSelected: string[] = [...selectedScenarioIds];
@@ -121,6 +129,7 @@ export function ScenarioHubView() {
                   estimatedCapitalGainsTax: getTotalCapitalGainsTax(scenario.id),
                   netFinancialOutcome: getTotalNetFinancialOutcome(scenario.id),
                   qualitativeFitScore: results?.qualitativeFitScore || 0,
+                  goalAlignments: results?.goalAlignments || []
                 }}
                 isSelectedForCompare={selectedScenarioIds.includes(scenario.id)}
                 onToggleSelection={handleScenarioSelection}

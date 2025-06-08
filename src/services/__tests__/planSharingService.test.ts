@@ -1,10 +1,61 @@
 import { generateShareableString, parseShareableString } from '../planSharingService';
-import type { UserAppState } from '@/types';
+import type { UserAppState, Asset, Scenario } from '@/types';
+
+/**
+ * ⚠️ DO NOT MODIFY THIS FACTORY FUNCTION ⚠️
+ * 
+ * This is the single source of truth for test plan state creation.
+ * Instead of modifying this function:
+ * 1. Use the overrides parameter to customize plan states
+ * 2. Use the PlanStateBuilder for complex plan states
+ * 3. Create new test-specific plan states using createTestPlanState()
+ * 
+ * Modifying this function can cause cascading test failures.
+ */
+const createTestPlanState = (overrides: Partial<UserAppState> = {}): UserAppState => ({
+  activePlanInternalName: 'Test Plan',
+  initialAssets: [],
+  scenarios: [],
+  selectedScenarioIds: [],
+  userQualitativeGoals: [],
+  ...overrides
+});
+
+/**
+ * Builder class for creating complex test plan states.
+ * Use this when you need to create plan states with specific configurations.
+ */
+class PlanStateBuilder {
+  private planState: UserAppState;
+
+  constructor() {
+    this.planState = createTestPlanState();
+  }
+
+  withAssets(assets: Asset[]) {
+    this.planState.initialAssets = assets;
+    return this;
+  }
+
+  withScenarios(scenarios: Scenario[]) {
+    this.planState.scenarios = scenarios;
+    return this;
+  }
+
+  withPlanName(name: string) {
+    this.planState.activePlanInternalName = name;
+    return this;
+  }
+
+  build(): UserAppState {
+    return { ...this.planState };
+  }
+}
 
 describe('planSharingService', () => {
-  const mockPlanState: UserAppState = {
-    activePlanInternalName: 'Test Plan',
-    initialAssets: [
+  const mockPlanState = new PlanStateBuilder()
+    .withPlanName('Test Plan')
+    .withAssets([
       {
         id: '1',
         name: 'Test Asset',
@@ -12,8 +63,8 @@ describe('planSharingService', () => {
         costBasisPerUnit: 10,
         acquisitionDate: new Date('2023-01-01'),
       },
-    ],
-    scenarios: [
+    ])
+    .withScenarios([
       {
         id: '1',
         name: 'Test Scenario',
@@ -28,13 +79,16 @@ describe('planSharingService', () => {
             shortTermRate: 0.1,
             longTermRate: 0.2,
           },
+          incomeRate: 0
         },
         incomeSources: [],
         annualExpenses: [],
         oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: []
       },
-    ],
-  };
+    ])
+    .build();
 
   describe('generateShareableString', () => {
     it('should generate a compressed string from a valid plan state', () => {
@@ -67,9 +121,9 @@ describe('planSharingService', () => {
     });
 
     it('should handle missing arrays by initializing them as empty', () => {
-      const planWithoutArrays = {
-        activePlanInternalName: 'Test Plan',
-      } as UserAppState;
+      const planWithoutArrays = createTestPlanState({
+        activePlanInternalName: 'Test Plan'
+      });
       
       const compressed = generateShareableString(planWithoutArrays);
       expect(compressed).toBeTruthy();

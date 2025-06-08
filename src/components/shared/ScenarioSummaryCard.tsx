@@ -2,14 +2,14 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Eye, Pencil, Copy, Trash2, MoreVertical, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, Pencil, Copy, Trash2, MoreVertical, Target, CheckCircle2, XCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Scenario } from '@/types';
+import type { Scenario, QualitativeGoalAlignment } from '@/types';
 
 interface ScenarioSummaryCardProps {
   scenario: Scenario;
@@ -17,6 +17,7 @@ interface ScenarioSummaryCardProps {
     estimatedCapitalGainsTax: number;
     netFinancialOutcome: number;
     qualitativeFitScore: number;
+    goalAlignments: QualitativeGoalAlignment[];
   };
   isSelectedForCompare: boolean;
   onToggleSelection: (scenarioId: string, isSelected: boolean) => void;
@@ -86,6 +87,24 @@ export function ScenarioSummaryCard({
           <Badge variant={getScoreBadgeVariant(results.qualitativeFitScore)}>
             {results.qualitativeFitScore}/100
           </Badge>
+        </div>
+
+        <div className="space-y-2">
+          {results.goalAlignments.map((alignment) => (
+            <div key={alignment.goalId} className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{alignment.goalName}:</span>
+              <div className="flex items-center gap-1">
+                {alignment.isAligned ? (
+                  <CheckCircle2 className="h-3 w-3 text-green-600" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-600" />
+                )}
+                <span className="font-medium">
+                  {alignment.isAligned ? 'Aligned' : 'Not Aligned'}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center justify-between">

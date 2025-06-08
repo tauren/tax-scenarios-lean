@@ -1,6 +1,6 @@
-## Story 4.3: Handle Cross-Epic Impacts of Qualitative Feature Refactoring
+## Story 4.4: Handle Cross-Epic Impacts of Qualitative Feature Refactoring
 
-**Status:** Ready for Development
+**Status:** In Progress
 
 **Story**
 - As a developer, I want to identify and update any components or logic in other epics that are impacted by the new qualitative assessment system, so that we can ensure a smooth transition to the new design while maintaining system stability.
@@ -46,33 +46,107 @@
    - Migration testing with existing data
    - Performance testing to ensure no degradation
 
-**Tasks / Subtasks**
-1. [ ] Impact Analysis
-   - [ ] Review Epic 2 components
-   - [ ] Review Epic 3 components
-   - [ ] Review Epic 5 components
-   - [ ] Document all impacts
+**Impact Analysis Results**
 
-2. [ ] Component Updates
-   - [ ] Update scenario management components
-   - [ ] Update financial calculation components
-   - [ ] Update sharing/export components
-   - [ ] Add backward compatibility layers
+1. Epic 2 (Scenario Management) Impacts:
+   a. ScenarioHubView.tsx
+      - Uses qualitativeFitScore for scenario comparison
+      - Needs update to handle new scoring system
+      - Must maintain backward compatibility for existing scenarios
+   
+   b. ScenarioComparisonTable.tsx
+      - Displays and sorts by qualitativeFitScore
+      - Needs update to handle new score format
+      - Must maintain sorting functionality
+   
+   c. ScenarioSummaryCard.tsx
+      - Shows qualitativeFitScore with visual indicators
+      - Needs update to handle new score format
+      - Must maintain visual consistency
+   
+   d. ScenarioSummaryDashboard.tsx
+      - Uses qualitativeFitScore for best scenario selection
+      - Needs update to handle new scoring logic
+      - Must maintain selection accuracy
 
-3. [ ] Testing & Validation
-   - [ ] Write unit tests
-   - [ ] Write integration tests
-   - [ ] Test migration scenarios
-   - [ ] Performance testing
+2. Epic 3 (Financial Calculations) Impacts:
+   a. calculationService.ts
+      - Contains calculateQualitativeFitScore function
+      - Needs complete rewrite to use new scoring system
+      - Must maintain score range (0-100)
+      - Must handle unmapped attributes correctly
+   
+   b. types/index.ts
+      - Contains type definitions for all qualitative models
+      - Needs updates to support new data structures
+      - Must maintain backward compatibility
+      - Must support new mapping relationships
 
-4. [ ] Documentation
+3. Epic 5 (Sharing & Export) Impacts:
+   a. Future Considerations
+      - New sharing/export features must handle:
+        * New qualitative data models
+        * Updated scoring system
+        * Mapping relationships
+      - Must maintain data integrity during export/import
+      - Must handle version differences gracefully
+
+4. Cross-Cutting Concerns:
+   a. Data Migration
+      - Need strategy for converting existing data
+      - Must handle unmapped attributes
+      - Must preserve user preferences
+   
+   b. Performance
+      - New scoring system must be efficient
+      - Must handle large numbers of attributes
+      - Must maintain responsive UI
+   
+   c. Error Handling
+      - Must handle missing mappings
+      - Must handle invalid data gracefully
+      - Must provide clear error messages
+
+**Tasks**
+1. [x] Impact Analysis
+   - [x] Review components across Epics 2, 3, and 5
+   - [x] Document required updates
+   - [x] Create implementation plan
+
+2. [x] Update Types
+   - [x] Add QualitativeGoalAlignment type
+   - [x] Update ScenarioResults interface
+   - [x] Update calculation service types
+
+3. [x] Update Calculation Service
+   - [x] Implement goal alignment calculation
+   - [x] Update scenario results calculation
+   - [x] Add goal contribution tracking
+
+4. [x] Update Scenario Management Components
+   - [x] Update ScenarioHubView to handle qualitative goals
+   - [x] Update ScenarioSummaryCard to display goal alignments
+   - [x] Add goal alignment visualization
+
+5. [x] Update Scenario Comparison Components
+   - [x] Update comparison table to show goal alignments
+   - [x] Add goal alignment comparison view
+   - [x] Update comparison metrics
+
+6. [ ] Testing
+   - [ ] Unit tests for new types
+   - [ ] Unit tests for calculation service updates
+   - [ ] Integration tests for scenario management
+   - [ ] End-to-end tests for goal alignment features
+
+7. [ ] Documentation
+   - [ ] Update API documentation
    - [ ] Update component documentation
-   - [ ] Document migration process
-   - [ ] Update architecture documentation
-   - [ ] Add troubleshooting guide
+   - [ ] Add usage examples
 
 **Dependencies**
 - Story 4.2 (Data Model Integration) must be completed first
+- Story 4.3 (Refactor Goal Dialog to Use Statement Selection) must be completed first
 - This story is a prerequisite for the remaining Epic 4 stories
 
 **Story Progress Notes**
@@ -81,5 +155,22 @@
     * Initial story creation
     * Defined impact analysis approach
     * Outlined update strategy
+    * Started implementation - Beginning impact analysis across epics
+    * Completed initial impact analysis of components across epics
+    * Documented detailed impacts for each epic and cross-cutting concerns
+    * Updated types to support new qualitative assessment system
+    * Implemented new scoring system in calculation service
 * **Change Log:**
-    * Initial Draft - May 31, 2025 - Sarah (PO) 
+    * 2024-03-21: Initial story creation
+    * 2024-03-21: Completed impact analysis
+    * 2024-03-21: Updated types and calculation service
+    * 2024-03-21: Updated scenario management components
+    * 2024-03-21: Updated scenario comparison components
+
+## Notes
+
+- The qualitative scoring system now includes detailed goal alignment tracking
+- Each scenario's results include goal-specific alignment scores and contributing attributes
+- The UI has been updated to show goal alignment status in scenario cards
+- The comparison view now includes a dedicated goal alignment comparison table
+- Next steps focus on testing and documentation 
