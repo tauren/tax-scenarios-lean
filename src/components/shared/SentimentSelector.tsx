@@ -1,18 +1,18 @@
 import { Button } from "@/components/ui/button"
 import React from "react"
 
-export const weightOptions = ["Low", "Medium", "High", "Critical"] as const
-export type WeightOption = typeof weightOptions[number]
+export const sentimentOptions = ["negative", "neutral", "positive"] as const
+export type SentimentOption = typeof sentimentOptions[number]
 
-interface WeightSelectorProps {
-  value: WeightOption
-  onChange: (value: WeightOption) => void
+interface SentimentSelectorProps {
+  value: SentimentOption
+  onChange: (value: SentimentOption) => void
   error?: string
   className?: string
   disabled?: boolean
 }
 
-export const WeightSelector: React.FC<WeightSelectorProps> = ({
+export const SentimentSelector: React.FC<SentimentSelectorProps> = ({
   value,
   onChange,
   error,
@@ -21,17 +21,17 @@ export const WeightSelector: React.FC<WeightSelectorProps> = ({
 }) => (
   <div className={className}>
     <div className="flex gap-1 p-1 bg-muted rounded-lg">
-      {weightOptions.map((weight) => (
+      {sentimentOptions.map((sentiment) => (
         <Button
-          key={weight}
-          variant={value === weight ? "default" : "ghost"}
+          key={sentiment}
+          variant={value === sentiment ? "default" : "ghost"}
           size="sm"
           className="flex-1 min-w-[60px]"
-          onClick={() => onChange(weight)}
+          onClick={() => onChange(sentiment)}
           type="button"
           disabled={disabled}
         >
-          {weight}
+          {sentiment.charAt(0).toUpperCase() + sentiment.slice(1)}
         </Button>
       ))}
     </div>
