@@ -1,4 +1,4 @@
-import { Pencil, Trash2, MapPin, Copy } from 'lucide-react';
+import { Pencil, Trash2, MapPin } from 'lucide-react';
 import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
 import { Textarea } from '@/components/ui/textarea';
 import { SentimentSelector, type SentimentOption } from './SentimentSelector';
@@ -18,7 +18,7 @@ interface QualitativeAttributeCardProps {
   onUpdateSentiment: (attributeId: string, sentiment: SentimentOption) => void;
   onUpdateSignificance: (attributeId: string, significance: WeightOption) => void;
   onMapToGoal: (attribute: ScenarioQualitativeAttribute) => void;
-  onDuplicate: (attribute: ScenarioQualitativeAttribute) => void;
+  getGoalNameById: (goalId: string) => string | undefined;
   disabled?: boolean;
 }
 
@@ -30,7 +30,7 @@ export function QualitativeAttributeCard({
   onUpdateSentiment,
   onUpdateSignificance,
   onMapToGoal,
-  onDuplicate,
+  getGoalNameById,
   disabled = false,
 }: QualitativeAttributeCardProps) {
   return (
@@ -83,26 +83,6 @@ export function QualitativeAttributeCard({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
-            onClick={() => onDuplicate(attribute)}
-            disabled={disabled}
-            title="Duplicate attribute"
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onMapToGoal(attribute)}
-            disabled={disabled}
-            title="Map to a goal"
-          >
-            <MapPin className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
             className="h-8 w-8 text-destructive hover:text-destructive"
             onClick={() => onDelete(attribute.id)}
             disabled={disabled}
@@ -132,11 +112,48 @@ export function QualitativeAttributeCard({
             className="mt-0"
           />
         </div>
-        {attribute.mappedGoalId && (
-          <div className="mt-2">
-            <span className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
-              Mapped to Goal
+        {attribute.mappedGoalId ? (
+          <div className="mt-2 flex items-center justify-between">
+            <span 
+              className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-md cursor-pointer hover:bg-muted/70 transition-colors"
+              onClick={() => onMapToGoal(attribute)}
+              title="Click to change goal mapping"
+            >
+              {(() => {
+                const goalName = getGoalNameById(attribute.mappedGoalId);
+                return goalName ? `Goal: ${goalName}` : 'Mapped to Goal';
+              })()}
             </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => onMapToGoal(attribute)}
+              disabled={disabled}
+              title="Change goal mapping"
+            >
+              <MapPin className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-2 flex items-center justify-between">
+            <span 
+              className="text-sm text-destructive bg-destructive/10 px-2 py-1 rounded-md border border-destructive/20 cursor-pointer hover:bg-destructive/20 transition-colors"
+              onClick={() => onMapToGoal(attribute)}
+              title="Click to map to a goal"
+            >
+              No goal mapped
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => onMapToGoal(attribute)}
+              disabled={disabled}
+              title="Map to a goal"
+            >
+              <MapPin className="h-3 w-3" />
+            </Button>
           </div>
         )}
       </div>

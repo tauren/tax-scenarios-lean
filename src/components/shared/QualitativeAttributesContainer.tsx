@@ -129,25 +129,21 @@ export function QualitativeAttributesContainer({
     deleteScenarioAttribute(scenarioId, attributeId);
   };
 
-  const handleDuplicateAttribute = (attribute: ScenarioQualitativeAttribute) => {
-    const duplicatedAttribute = {
-      ...attribute,
-      id: crypto.randomUUID()
-    };
-    setEditingAttribute(duplicatedAttribute);
-    setIsDialogOpen(true);
-  };
-
   const handleMapToGoal = (attribute: ScenarioQualitativeAttribute) => {
     handleOpenMappingDialog(attribute);
   };
 
-  const handleSaveMapping = (goalId: string) => {
+  const handleSaveMapping = (goalId: string | undefined) => {
     if (!scenario || !mappingAttribute) return;
     updateScenarioAttribute(scenarioId, {
       ...mappingAttribute,
       mappedGoalId: goalId
     });
+  };
+
+  const getGoalNameById = (goalId: string): string | undefined => {
+    const goal = userQualitativeGoals.find(g => g.id === goalId);
+    return goal?.name;
   };
 
   return (
@@ -176,7 +172,7 @@ export function QualitativeAttributesContainer({
             onUpdateSentiment={handleUpdateSentiment}
             onUpdateSignificance={handleUpdateSignificance}
             onMapToGoal={handleMapToGoal}
-            onDuplicate={handleDuplicateAttribute}
+            getGoalNameById={getGoalNameById}
             disabled={disabled}
           />
         ))}

@@ -6,7 +6,7 @@ import type { ScenarioQualitativeAttribute, UserQualitativeGoal } from '@/types/
 interface AttributeMappingDialogProps {
   attribute: ScenarioQualitativeAttribute;
   goals: UserQualitativeGoal[];
-  onMap: (attributeId: string, goalId: string) => void;
+  onMap: (attributeId: string, goalId: string | undefined) => void;
   onClose: () => void;
   open: boolean;
   initialGoalId?: string;
@@ -28,10 +28,8 @@ export const AttributeMappingDialog: React.FC<AttributeMappingDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedGoalId) {
-      onMap(attribute.id, selectedGoalId);
-      onClose();
-    }
+    onMap(attribute.id, selectedGoalId);
+    onClose();
   };
 
   return (
@@ -58,9 +56,8 @@ export const AttributeMappingDialog: React.FC<AttributeMappingDialogProps> = ({
                 value={selectedGoalId || ''}
                 onChange={(e) => setSelectedGoalId(e.target.value || undefined)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                required
               >
-                <option value="">Select a goal...</option>
+                <option value="">No goal selected</option>
                 {goals.map((goal) => (
                   <option key={goal.id} value={goal.id}>
                     {goal.name} ({goal.weight} Priority)
@@ -79,10 +76,9 @@ export const AttributeMappingDialog: React.FC<AttributeMappingDialogProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={!selectedGoalId}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:bg-gray-300 disabled:text-gray-500"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
               >
-                Map
+                Save
               </button>
             </div>
           </form>
