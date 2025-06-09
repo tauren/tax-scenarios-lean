@@ -40,66 +40,6 @@ export const QualitativeFitScoreDisplay: React.FC<QualitativeFitScoreDisplayProp
           />
         </div>
       </div>
-
-      {mappedAttributes.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">Mapped Attributes</h4>
-          <div className="space-y-2">
-            {mappedAttributes.map((attribute) => {
-              const goal = getMappedGoal(attribute);
-              if (!goal) return null;
-
-              return (
-                <div
-                  key={attribute.id}
-                  className="flex items-start gap-2 rounded-md border border-gray-200 p-3"
-                >
-                  <MapPin className="mt-0.5 h-4 w-4 text-blue-600" />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm">{attribute.text}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span>
-                        {attribute.sentiment.charAt(0).toUpperCase() + attribute.sentiment.slice(1)}
-                      </span>
-                      <span>•</span>
-                      <span>{attribute.significance} Significance</span>
-                      <span>•</span>
-                      <span>Mapped to: {goal.name}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {unmappedAttributes.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">Unmapped Attributes</h4>
-          <div className="space-y-2">
-            {unmappedAttributes.map((attribute) => (
-              <div
-                key={attribute.id}
-                className="rounded-md border border-gray-200 p-3"
-              >
-                <p className="text-sm">{attribute.text}</p>
-                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                  <span>
-                    {attribute.sentiment.charAt(0).toUpperCase() + attribute.sentiment.slice(1)}
-                  </span>
-                  <span>•</span>
-                  <span>{attribute.significance} Significance</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {attributes.length === 0 && (
-        <p className="text-center text-sm text-gray-500">No attributes added yet</p>
-      )}
     </div>
   );
 }; 

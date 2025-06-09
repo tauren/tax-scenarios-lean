@@ -18,6 +18,18 @@ describe('QualitativeAttributeCard', () => {
     return undefined;
   };
 
+  const mockGoalAlignments = [
+    {
+      goalId: 'goal-1',
+      goalName: 'Financial Independence',
+      alignmentScore: 50,
+      isAligned: true,
+      contributingAttributes: [
+        { attributeId: 'attr-1', contribution: 0.5 }
+      ]
+    }
+  ];
+
   const defaultProps = {
     attribute: mockAttribute,
     onEdit: vi.fn(),
@@ -27,13 +39,14 @@ describe('QualitativeAttributeCard', () => {
     onUpdateSignificance: vi.fn(),
     onMapToGoal: vi.fn(),
     getGoalNameById: mockGetGoalNameById,
+    goalAlignments: mockGoalAlignments,
     disabled: false
   };
 
   it('displays the goal name when attribute is mapped to a goal', () => {
     render(<QualitativeAttributeCard {...defaultProps} />);
-    
-    expect(screen.getByText('Goal: Financial Independence')).toBeInTheDocument();
+    const goalFlag = screen.getByTestId('goal-flag');
+    expect(goalFlag).toHaveTextContent('Goal: Financial Independence');
   });
 
   it('displays fallback text when goal is not found', () => {
@@ -42,12 +55,23 @@ describe('QualitativeAttributeCard', () => {
       attribute: {
         ...mockAttribute,
         mappedGoalId: 'unknown-goal-id'
-      }
+      },
+      goalAlignments: [
+        {
+          goalId: 'unknown-goal-id',
+          goalName: 'Unknown Goal',
+          alignmentScore: 0,
+          isAligned: false,
+          contributingAttributes: [
+            { attributeId: 'attr-1', contribution: 0 }
+          ]
+        }
+      ]
     };
 
     render(<QualitativeAttributeCard {...propsWithUnknownGoal} />);
-    
-    expect(screen.getByText('Mapped to Goal')).toBeInTheDocument();
+    const goalFlag = screen.getByTestId('goal-flag');
+    expect(goalFlag).toHaveTextContent('Mapped to Goal');
   });
 
   it('displays red alert message when attribute is not mapped to any goal', () => {
@@ -56,16 +80,17 @@ describe('QualitativeAttributeCard', () => {
       attribute: {
         ...mockAttribute,
         mappedGoalId: undefined
-      }
+      },
+      goalAlignments: []
     };
 
     render(<QualitativeAttributeCard {...propsWithoutMapping} />);
-    
-    expect(screen.getByText('No goal mapped')).toBeInTheDocument();
-    expect(screen.getByText('No goal mapped')).toHaveClass('text-destructive');
+    const goalFlag = screen.getByTestId('goal-flag');
+    expect(goalFlag).toHaveTextContent('Map a goal now');
+    expect(goalFlag).toHaveClass('bg-red-700');
   });
 
-  it('calls onMapToGoal when clicking on goal badge', () => {
+  it('calls onMapToGoal when clicking on goal flag', () => {
     const mockOnMapToGoal = vi.fn();
     const propsWithMockMapToGoal = {
       ...defaultProps,
@@ -73,14 +98,12 @@ describe('QualitativeAttributeCard', () => {
     };
 
     render(<QualitativeAttributeCard {...propsWithMockMapToGoal} />);
-    
-    const goalBadge = screen.getByText('Goal: Financial Independence');
-    fireEvent.click(goalBadge);
-    
+    const goalFlag = screen.getByTestId('goal-flag');
+    fireEvent.click(goalFlag);
     expect(mockOnMapToGoal).toHaveBeenCalledWith(mockAttribute);
   });
 
-  it('calls onMapToGoal when clicking on "No goal mapped" badge', () => {
+  it('calls onMapToGoal when clicking on unmapped goal flag', () => {
     const mockOnMapToGoal = vi.fn();
     const unmappedAttribute = {
       ...mockAttribute,
@@ -89,14 +112,13 @@ describe('QualitativeAttributeCard', () => {
     const propsWithoutMapping = {
       ...defaultProps,
       attribute: unmappedAttribute,
-      onMapToGoal: mockOnMapToGoal
+      onMapToGoal: mockOnMapToGoal,
+      goalAlignments: []
     };
 
     render(<QualitativeAttributeCard {...propsWithoutMapping} />);
-    
-    const noGoalBadge = screen.getByText('No goal mapped');
-    fireEvent.click(noGoalBadge);
-    
+    const goalFlag = screen.getByTestId('goal-flag');
+    fireEvent.click(goalFlag);
     expect(mockOnMapToGoal).toHaveBeenCalledWith(unmappedAttribute);
   });
 }); 

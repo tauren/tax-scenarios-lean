@@ -8,6 +8,9 @@ import type { ScenarioQualitativeAttribute } from '@/types';
 import type { WeightOption } from './WeightSelector';
 import { QualitativeFitScoreDisplay } from './QualitativeFitScoreDisplay';
 import type { QualitativeGoalAlignment } from '@/types/qualitative';
+import { getScoreColor, getBadgeStyle } from '@/utils/scoreColors';
+import { Flag } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
@@ -196,13 +199,7 @@ export function QualitativeAttributesContainer({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Qualitative Attributes</h2>
-        <Button onClick={() => handleOpenDialog()} disabled={disabled}>
-          Add Attribute
-        </Button>
-      </div>
-
+      {/* 1. Qualitative Fit Score Row */}
       <QualitativeFitScoreDisplay
         attributes={attributes}
         goals={userQualitativeGoals}
@@ -210,22 +207,62 @@ export function QualitativeAttributesContainer({
         goalAlignments={goalAlignments}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {attributes.map((attribute) => (
-          <QualitativeAttributeCard
-            key={attribute.id}
-            attribute={attribute}
-            onEdit={handleOpenDialog}
-            onDelete={handleDeleteAttribute}
-            onUpdateName={handleUpdateName}
-            onUpdateSentiment={handleUpdateSentiment}
-            onUpdateSignificance={handleUpdateSignificance}
-            onMapToGoal={handleMapToGoal}
-            getGoalNameById={getGoalNameById}
-            disabled={disabled}
-          />
-        ))}
+      {/* 2. Qualitative Attributes Row */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Qualitative Attributes</h2>
+        <Button onClick={() => handleOpenDialog()} disabled={disabled}>
+          Add Attribute
+        </Button>
       </div>
+
+      {/* 3. Attribute Cards Grouped by Mapping */}
+      {/* Unmapped Attributes Section */}
+      {attributes.filter(attr => !attr.mappedGoalId).length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold mt-4 mb-2">Unmapped Attributes</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+            {attributes.filter(attr => !attr.mappedGoalId).map((attribute) => (
+              <QualitativeAttributeCard
+                key={attribute.id}
+                attribute={attribute}
+                onEdit={handleOpenDialog}
+                onDelete={handleDeleteAttribute}
+                onUpdateName={handleUpdateName}
+                onUpdateSentiment={handleUpdateSentiment}
+                onUpdateSignificance={handleUpdateSignificance}
+                onMapToGoal={handleMapToGoal}
+                getGoalNameById={getGoalNameById}
+                goalAlignments={goalAlignments}
+                disabled={disabled}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Mapped Attributes Section */}
+      {attributes.filter(attr => attr.mappedGoalId).length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold mt-6 mb-2">Mapped Attributes</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+            {attributes.filter(attr => attr.mappedGoalId).map((attribute) => (
+              <QualitativeAttributeCard
+                key={attribute.id}
+                attribute={attribute}
+                onEdit={handleOpenDialog}
+                onDelete={handleDeleteAttribute}
+                onUpdateName={handleUpdateName}
+                onUpdateSentiment={handleUpdateSentiment}
+                onUpdateSignificance={handleUpdateSignificance}
+                onMapToGoal={handleMapToGoal}
+                getGoalNameById={getGoalNameById}
+                goalAlignments={goalAlignments}
+                disabled={disabled}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Attribute Dialog */}
       <QualitativeAttributeDialog
@@ -243,7 +280,7 @@ export function QualitativeAttributesContainer({
           onClose={() => setIsMappingDialogOpen(false)}
           attribute={mappingAttribute}
           goals={userQualitativeGoals}
-          onMap={(attributeId, goalId) => handleSaveMapping(goalId)}
+          onMap={(_, goalId) => handleSaveMapping(goalId)}
           initialGoalId={mappingAttribute.mappedGoalId}
         />
       )}

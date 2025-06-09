@@ -1,16 +1,13 @@
-import { Pencil, Trash2, MapPin } from 'lucide-react';
+import { Pencil, Trash2, ArrowRight } from 'lucide-react';
 import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
-import { Textarea } from '@/components/ui/textarea';
 import { SentimentSelector, type SentimentOption } from './SentimentSelector';
 import { WeightSelector, type WeightOption } from './WeightSelector';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { useState } from 'react';
 import React from 'react';
+import { getScoreColor, getBadgeStyle } from '@/utils/scoreColors';
+import type { QualitativeGoalAlignment } from '@/types/qualitative';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface QualitativeAttributeCardProps {
   attribute: ScenarioQualitativeAttribute;
@@ -21,6 +18,7 @@ interface QualitativeAttributeCardProps {
   onUpdateSignificance: (attributeId: string, significance: WeightOption) => void;
   onMapToGoal: (attribute: ScenarioQualitativeAttribute) => void;
   getGoalNameById: (goalId: string) => string | undefined;
+  goalAlignments: QualitativeGoalAlignment[];
   disabled?: boolean;
 }
 
@@ -33,10 +31,11 @@ export function QualitativeAttributeCard({
   onUpdateSignificance,
   onMapToGoal,
   getGoalNameById,
+  goalAlignments,
   disabled = false,
 }: QualitativeAttributeCardProps) {
   const [editValue, setEditValue] = useState(attribute.text);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   React.useEffect(() => {
     setEditValue(attribute.text);
@@ -50,146 +49,154 @@ export function QualitativeAttributeCard({
     setEditValue(trimmed);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditValue(e.target.value);
   };
 
-  const handleInputBlur = () => {
-    commitEdit();
-  };
-
-  const handlePopoverOpenChange = (open: boolean) => {
-    if (!open) {
-      commitEdit();
+  // Compute contribution, color, badge
+  let contribution: number | undefined = undefined;
+  let contributionColor: string | undefined = undefined;
+  let contributionBadge: { label: string; className: string } | undefined = undefined;
+  if (attribute.mappedGoalId) {
+    const alignment = goalAlignments.find(a => a.goalId === attribute.mappedGoalId);
+    const contrib = alignment?.contributingAttributes.find(ca => ca.attributeId === attribute.id);
+    if (contrib) {
+      contribution = contrib.contribution * 100;
+      contributionColor = getScoreColor(contribution);
+      contributionBadge = getBadgeStyle(contribution);
     }
-    setPopoverOpen(open);
-  };
+  }
 
   return (
-    <div className="border rounded-lg p-4 flex flex-col h-full">
-      {/* First row: title + buttons, fixed min height for alignment */}
-      <div className="flex items-start justify-between gap-4 min-h-[2.5rem]">
-        <div className="cursor-pointer group/name flex-1 min-w-0">
-          <Popover open={popoverOpen} onOpenChange={handlePopoverOpenChange}>
-            <PopoverTrigger asChild>
-              <span>
-                <h3 className="font-semibold break-words">
-                  {attribute.text}
-                  <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover/name:opacity-100 transition-opacity inline-block align-text-bottom ml-1 whitespace-nowrap" />
-                </h3>
+    <div className="flex flex-col">
+      {/* Main card with border, all corners rounded */}
+      <div className="border border-gray-300 rounded-lg p-4 flex flex-col">
+        {/* First row: title + buttons, fixed min height for alignment */}
+        <div className="flex items-start justify-between gap-4 min-h-[3.5rem]">
+          <div
+            className={`flex items-center justify-between w-full rounded px-3 py-1 cursor-pointer transition-colors duration-150 group/title ${
+              isEditing
+                ? 'border border-gray-300 bg-gray-100'
+                : 'border border-transparent bg-transparent hover:border-gray-300 hover:bg-gray-100 focus:border-gray-300 focus:bg-gray-100'
+            }`}
+            style={{ minHeight: '3.5rem' }}
+            tabIndex={0}
+            onClick={() => !isEditing && setIsEditing(true)}
+          >
+            {isEditing ? (
+              <input
+                type="text"
+                className="font-semibold break-words overflow-hidden text-ellipsis line-clamp-2 mb-0.5 w-full bg-transparent border-none outline-none"
+                value={editValue}
+                autoFocus
+                onChange={handleInputChange}
+                onBlur={() => {
+                  commitEdit();
+                  setIsEditing(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    commitEdit();
+                    setIsEditing(false);
+                  }
+                }}
+                maxLength={100}
+              />
+            ) : (
+              <span className="font-semibold break-words overflow-hidden text-ellipsis line-clamp-2 mb-0.5">
+                {attribute.text}
               </span>
-            </PopoverTrigger>
-            <PopoverContent className="w-[500px]" align="start">
-              <div className="space-y-4">
-                <h4 className="font-medium">Edit Attribute Name</h4>
-                <Textarea
-                  value={editValue}
-                  onChange={handleInputChange}
-                  onBlur={handleInputBlur}
-                  className="w-full min-h-[100px] resize-none"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === 'Tab') {
-                      e.preventDefault();
-                      commitEdit();
-                      setPopoverOpen(false);
-                    }
-                  }}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
+            )}
+            <Pencil className={`h-4 w-4 text-muted-foreground ml-2 transition-opacity ${isEditing ? 'opacity-100' : 'opacity-0 group-hover/title:opacity-100 group-focus/title:opacity-100'}`} />
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onEdit(attribute)}
+              disabled={disabled}
+              title="Edit attribute"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={() => onDelete(attribute.id)}
+              disabled={disabled}
+              title="Delete attribute"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onEdit(attribute)}
-            disabled={disabled}
-            title="Edit attribute"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
-            onClick={() => onDelete(attribute.id)}
-            disabled={disabled}
-            title="Delete attribute"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+
+        {/* Selectors */}
+        <div className="mt-2">
+          <div className="mb-2">
+            <SentimentSelector
+              value={attribute.sentiment}
+              onChange={(sentiment) => onUpdateSentiment(attribute.id, sentiment)}
+              className="mt-0"
+            />
+          </div>
+          <div className="mb-2">
+            <WeightSelector
+              value={attribute.significance}
+              onChange={(significance) => onUpdateSignificance(attribute.id, significance)}
+              className="mt-0"
+            />
+          </div>
         </div>
       </div>
-
-      {/* Flexible spacer for equal height cards */}
-      <div className="flex-1 flex flex-col justify-center" />
-
-      {/* Last row: selectors and goal, fixed min height for alignment */}
-      <div className="mt-2">
-        <div className="mb-2">
-          <SentimentSelector
-            value={attribute.sentiment}
-            onChange={(sentiment) => onUpdateSentiment(attribute.id, sentiment)}
-            className="mt-0"
-          />
-        </div>
-        <div className="mb-2">
-          <WeightSelector
-            value={attribute.significance}
-            onChange={(significance) => onUpdateSignificance(attribute.id, significance)}
-            className="mt-0"
-          />
-        </div>
-        {/* Goal mapping row, always aligned at the bottom with consistent height */}
-        <div className="mt-2 min-h-[3.5rem] flex items-end">
-          {attribute.mappedGoalId ? (
-            <>
-              <span 
-                className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-md cursor-pointer hover:bg-muted/70 transition-colors"
-                onClick={() => onMapToGoal(attribute)}
-                title="Click to change goal mapping"
-              >
-                {(() => {
-                  const goalName = getGoalNameById(attribute.mappedGoalId);
-                  return goalName ? `Goal: ${goalName}` : 'Mapped to Goal';
-                })()}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 ml-2"
-                onClick={() => onMapToGoal(attribute)}
-                disabled={disabled}
-                title="Change goal mapping"
-              >
-                <MapPin className="h-3 w-3" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <span 
-                className="text-sm text-destructive bg-destructive/10 px-2 py-1 rounded-md border border-destructive/20 cursor-pointer hover:bg-destructive/20 transition-colors"
-                onClick={() => onMapToGoal(attribute)}
-                title="Click to map to a goal"
-              >
-                No goal mapped
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 ml-2"
-                onClick={() => onMapToGoal(attribute)}
-                disabled={disabled}
-                title="Map to a goal"
-              >
-                <MapPin className="h-3 w-3" />
-              </Button>
-            </>
-          )}
-        </div>
+      {/* Flag area: sibling, no border, only bottom radius, visually attached to card, indented to match card padding */}
+      <div
+        className={`relative -mt-px mx-4 rounded-b-lg px-3 py-2 cursor-pointer flex flex-col items-start transition-colors
+          ${attribute.mappedGoalId && contributionBadge
+            ? contributionBadge.className.replace('text-', 'bg-').replace('bg-red-800', 'bg-red-100').replace('bg-green-800', 'bg-green-100').replace('bg-amber-800', 'bg-amber-100') + ' hover:bg-opacity-90'
+            : 'bg-red-700 text-red-100 font-semibold'}
+        `}
+        onClick={() => onMapToGoal(attribute)}
+        data-testid="goal-flag"
+        style={{ minHeight: '2.5rem', maxWidth: '100%' }}
+        tabIndex={0}
+      >
+        {attribute.mappedGoalId ? (
+          <>
+            <span className="block w-full break-words whitespace-normal font-medium">
+              {(() => {
+                const goalName = getGoalNameById(attribute.mappedGoalId);
+                return goalName ? `Goal: ${goalName}` : 'Mapped to Goal';
+              })()}
+            </span>
+            <div className="flex flex-row items-center gap-2 mt-1 w-full">
+              {typeof contribution === 'number' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={`font-semibold ${contributionColor ?? ''} cursor-help`}>{contribution > 0 ? '+' : ''}{Math.round(contribution)}%</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      This attribute contributed {contribution > 0 ? '+' : ''}{Math.round(contribution)}% to the alignment score for this goal.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {/* Spacer to push badge right */}
+              <span className="flex-1" />
+              {contributionBadge && (
+                <span className={`absolute right-3 bottom-2 rounded-full py-0.5 px-2 text-xs font-medium border border-white/30 bg-white/20`}>{contributionBadge.label}</span>
+              )}
+            </div>
+          </>
+        ) : (
+          <span className="block w-full break-words font-semibold relative">
+            Map a goal now
+            <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 dark:text-white/80 opacity-80" />
+          </span>
+        )}
       </div>
     </div>
   );
