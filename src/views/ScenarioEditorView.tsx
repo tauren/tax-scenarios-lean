@@ -217,8 +217,92 @@ export function ScenarioEditorView() {
     return validationRule.validate(value);
   };
 
+  const handleFieldChange = (field: ValidationField, value: any) => {
+    // Always update the form value to allow free editing
+    const updatedScenario = { ...scenario };
+    switch (field) {
+      case 'name':
+        updatedScenario.name = value;
+        break;
+      case 'country':
+        updatedScenario.location = { ...updatedScenario.location, country: value };
+        break;
+      case 'projectionPeriod':
+        updatedScenario.projectionPeriod = value;
+        break;
+      case 'residencyStartDate':
+        updatedScenario.residencyStartDate = value;
+        break;
+      case 'shortTermRate':
+        updatedScenario.tax = { 
+          capitalGains: { 
+            shortTermRate: value === '' ? undefined : Number(value),
+            longTermRate: updatedScenario.tax?.capitalGains?.longTermRate
+          },
+          incomeRate: updatedScenario.tax?.incomeRate
+        };
+        break;
+      case 'longTermRate':
+        updatedScenario.tax = { 
+          capitalGains: { 
+            shortTermRate: updatedScenario.tax?.capitalGains?.shortTermRate,
+            longTermRate: value === '' ? undefined : Number(value)
+          },
+          incomeRate: updatedScenario.tax?.incomeRate
+        };
+        break;
+      case 'incomeRate':
+        updatedScenario.tax = { 
+          capitalGains: { 
+            shortTermRate: updatedScenario.tax?.capitalGains?.shortTermRate,
+            longTermRate: updatedScenario.tax?.capitalGains?.longTermRate
+          },
+          incomeRate: value === '' ? undefined : Number(value)
+        };
+        break;
+    }
+    setScenario(updatedScenario);
+  };
+
   const handleFieldBlur = (field: ValidationField, value: any) => {
-    validateField(field, value);
+    const error = validateField(field, value);
+    setErrors(prev => ({ ...prev, [field]: error }));
+    
+    // For required fields, only update store if the new value is valid and not empty
+    const requiredFields = ['name', 'country', 'projectionPeriod', 'residencyStartDate'] as const;
+    const isRequiredField = requiredFields.includes(field as typeof requiredFields[number]);
+    
+    if (id && id !== 'new') {
+      if (!isRequiredField || (value !== undefined && value !== '' && value !== null)) {
+        // For non-required fields or valid required fields, update the store
+        const scenarioToUpdate = convertFormScenarioToScenario(scenario);
+        updateScenario(id, scenarioToUpdate);
+      } else {
+        // For invalid required fields, revert to the last valid value from the store
+        const currentScenario = scenarios.find(s => s.id === id);
+        if (currentScenario) {
+          const revertedScenario = { ...scenario };
+          switch (field) {
+            case 'name':
+              revertedScenario.name = currentScenario.name;
+              break;
+            case 'country':
+              revertedScenario.location = { 
+                ...revertedScenario.location, 
+                country: currentScenario.location.country 
+              };
+              break;
+            case 'projectionPeriod':
+              revertedScenario.projectionPeriod = currentScenario.projectionPeriod;
+              break;
+            case 'residencyStartDate':
+              revertedScenario.residencyStartDate = currentScenario.residencyStartDate;
+              break;
+          }
+          setScenario(revertedScenario);
+        }
+      }
+    }
   };
 
   const validateForm = (): boolean => {
@@ -242,19 +326,6 @@ export function ScenarioEditorView() {
   useEffect(() => {
     validateForm();
   }, [scenario]);
-
-  const handleSave = () => {
-    if (!validateForm()) return;
-
-    const scenarioToSave = convertFormScenarioToScenario(scenario);
-
-    if (id && id !== 'new') {
-      updateScenario(id, scenarioToSave);
-    } else {
-      addScenario(scenarioToSave);
-    }
-    navigate('/scenarios');
-  };
 
   const handleIncomeSourceSave = (incomeSource: IncomeSource) => {
     // Check if this is an existing item in our list
@@ -468,19 +539,12 @@ export function ScenarioEditorView() {
             {isCreating ? 'Configure your new scenario details and settings' : 'Configure your scenario details and settings'}
           </p>
         </div>
-        <div className="flex gap-4">
-          <Button variant="outline" onClick={() => navigate('/scenarios')}>
-            Cancel
-          </Button>
-          {!isCreating && (
-            <Button variant="secondary" onClick={() => navigate(`/scenarios/${id}/view`)}>
-              View Scenario
-            </Button>
-          )}
-          <Button onClick={handleSave} disabled={hasErrors}>
-            {isCreating ? 'Create Scenario' : 'Save Changes'}
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate('/scenarios')}
+        >
+          Back to Scenarios
+        </Button>
       </div>
 
       <Tabs defaultValue="basic" className="space-y-6">
@@ -502,13 +566,10 @@ export function ScenarioEditorView() {
                 error={errors.name}
               >
                 <Input
-                  id="name"
-                  name="name"
                   value={scenario.name}
-                  onChange={(e) => setScenario({ ...scenario, name: e.target.value })}
-                  onBlur={() => handleFieldBlur('name', scenario.name)}
+                  onChange={(e) => handleFieldChange('name', e.target.value)}
+                  onBlur={(e) => handleFieldBlur('name', e.target.value)}
                   placeholder="Enter scenario name"
-                  className={errors.name ? 'border-destructive' : ''}
                 />
               </FormField>
 
@@ -519,20 +580,10 @@ export function ScenarioEditorView() {
                   error={errors.country}
                 >
                   <Input
-                    id="country"
-                    name="country"
-                    value={scenario.location?.country}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      location: {
-                        country: e.target.value,
-                        state: scenario.location?.state,
-                        city: scenario.location?.city
-                      }
-                    })}
-                    onBlur={() => handleFieldBlur('country', scenario.location?.country)}
+                    value={scenario.location?.country || ''}
+                    onChange={(e) => handleFieldChange('country', e.target.value)}
+                    onBlur={(e) => handleFieldBlur('country', e.target.value)}
                     placeholder="Enter country"
-                    className={errors.country ? 'border-destructive' : ''}
                   />
                 </FormField>
 
@@ -541,17 +592,19 @@ export function ScenarioEditorView() {
                   label="State/Province"
                 >
                   <Input
-                    id="state"
-                    name="state"
-                    value={scenario.location?.state}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      location: {
-                        country: scenario.location?.country || '',
-                        state: e.target.value,
-                        city: scenario.location?.city
+                    value={scenario.location?.state || ''}
+                    onChange={(e) => handleFieldChange('state', e.target.value)}
+                    onBlur={(e) => {
+                      const updatedScenario = { ...scenario };
+                      updatedScenario.location = {
+                        ...updatedScenario.location,
+                        state: e.target.value
+                      };
+                      setScenario(updatedScenario);
+                      if (id && id !== 'new') {
+                        updateScenario(id, convertFormScenarioToScenario(updatedScenario));
                       }
-                    })}
+                    }}
                     placeholder="Enter state/province (optional)"
                   />
                 </FormField>
@@ -561,17 +614,19 @@ export function ScenarioEditorView() {
                   label="City"
                 >
                   <Input
-                    id="city"
-                    name="city"
-                    value={scenario.location?.city}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      location: {
-                        country: scenario.location?.country || '',
-                        state: scenario.location?.state,
+                    value={scenario.location?.city || ''}
+                    onChange={(e) => handleFieldChange('city', e.target.value)}
+                    onBlur={(e) => {
+                      const updatedScenario = { ...scenario };
+                      updatedScenario.location = {
+                        ...updatedScenario.location,
                         city: e.target.value
+                      };
+                      setScenario(updatedScenario);
+                      if (id && id !== 'new') {
+                        updateScenario(id, convertFormScenarioToScenario(updatedScenario));
                       }
-                    })}
+                    }}
                     placeholder="Enter city (optional)"
                   />
                 </FormField>
@@ -584,17 +639,11 @@ export function ScenarioEditorView() {
                   error={errors.projectionPeriod}
                 >
                   <Input
-                    id="projectionPeriod"
-                    name="projectionPeriod"
                     type="number"
-                    min="1"
-                    value={scenario.projectionPeriod ?? ''}
-                    onChange={(e) => setScenario({
-                      ...scenario,
-                      projectionPeriod: e.target.value === '' ? undefined : Number(e.target.value)
-                    })}
-                    onBlur={() => handleFieldBlur('projectionPeriod', scenario.projectionPeriod)}
-                    className={errors.projectionPeriod ? 'border-destructive' : ''}
+                    value={scenario.projectionPeriod || ''}
+                    onChange={(e) => handleFieldChange('projectionPeriod', parseInt(e.target.value))}
+                    onBlur={(e) => handleFieldBlur('projectionPeriod', parseInt(e.target.value))}
+                    placeholder="Enter projection period"
                   />
                 </FormField>
 
@@ -604,20 +653,10 @@ export function ScenarioEditorView() {
                   error={errors.residencyStartDate}
                 >
                   <Input
-                    id="residencyStartDate"
-                    name="residencyStartDate"
                     type="date"
-                    value={dateService.formatForInput(scenario.residencyStartDate)}
-                    onChange={e => {
-                      try {
-                        const date = dateService.fromString(e.target.value);
-                        setScenario({ ...scenario, residencyStartDate: date });
-                      } catch (error) {
-                        console.error('Invalid date:', error);
-                      }
-                    }}
-                    onBlur={() => handleFieldBlur('residencyStartDate', scenario.residencyStartDate)}
-                    className={errors.residencyStartDate ? 'border-destructive' : ''}
+                    value={scenario.residencyStartDate ? new Date(scenario.residencyStartDate).toISOString().split('T')[0] : ''}
+                    onChange={(e) => handleFieldChange('residencyStartDate', new Date(e.target.value))}
+                    onBlur={(e) => handleFieldBlur('residencyStartDate', new Date(e.target.value))}
                   />
                 </FormField>
               </div>
@@ -632,25 +671,11 @@ export function ScenarioEditorView() {
                 error={errors.shortTermRate}
               >
                 <Input
-                  id="shortTermRate"
-                  name="shortTermRate"
                   type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={scenario.tax?.capitalGains?.shortTermRate ?? ''}
-                  onChange={(e) => setScenario({
-                    ...scenario,
-                    tax: {
-                      ...scenario.tax,
-                      capitalGains: {
-                        shortTermRate: e.target.value === '' ? undefined : Number(e.target.value),
-                        longTermRate: scenario.tax?.capitalGains?.longTermRate
-                      }
-                    }
-                  })}
-                  onBlur={() => handleFieldBlur('shortTermRate', scenario.tax?.capitalGains?.shortTermRate)}
-                  className={errors.shortTermRate ? 'border-destructive' : ''}
+                  value={scenario.tax?.capitalGains?.shortTermRate || ''}
+                  onChange={(e) => handleFieldChange('shortTermRate', parseFloat(e.target.value))}
+                  onBlur={(e) => handleFieldBlur('shortTermRate', parseFloat(e.target.value))}
+                  placeholder="Enter short-term rate"
                 />
               </FormField>
 
@@ -660,25 +685,11 @@ export function ScenarioEditorView() {
                 error={errors.longTermRate}
               >
                 <Input
-                  id="longTermRate"
-                  name="longTermRate"
                   type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={scenario.tax?.capitalGains?.longTermRate ?? ''}
-                  onChange={(e) => setScenario({
-                    ...scenario,
-                    tax: {
-                      ...scenario.tax,
-                      capitalGains: {
-                        shortTermRate: scenario.tax?.capitalGains?.shortTermRate,
-                        longTermRate: e.target.value === '' ? undefined : Number(e.target.value)
-                      }
-                    }
-                  })}
-                  onBlur={() => handleFieldBlur('longTermRate', scenario.tax?.capitalGains?.longTermRate)}
-                  className={errors.longTermRate ? 'border-destructive' : ''}
+                  value={scenario.tax?.capitalGains?.longTermRate || ''}
+                  onChange={(e) => handleFieldChange('longTermRate', parseFloat(e.target.value))}
+                  onBlur={(e) => handleFieldBlur('longTermRate', parseFloat(e.target.value))}
+                  placeholder="Enter long-term rate"
                 />
               </FormField>
 
@@ -688,22 +699,11 @@ export function ScenarioEditorView() {
                 error={errors.incomeRate}
               >
                 <Input
-                  id="incomeRate"
-                  name="incomeRate"
                   type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={scenario.tax?.incomeRate ?? ''}
-                  onChange={(e) => setScenario({
-                    ...scenario,
-                    tax: {
-                      ...scenario.tax,
-                      incomeRate: e.target.value === '' ? undefined : Number(e.target.value)
-                    }
-                  })}
-                  onBlur={() => handleFieldBlur('incomeRate', scenario.tax?.incomeRate)}
-                  className={errors.incomeRate ? 'border-destructive' : ''}
+                  value={scenario.tax?.incomeRate || ''}
+                  onChange={(e) => handleFieldChange('incomeRate', parseFloat(e.target.value))}
+                  onBlur={(e) => handleFieldBlur('incomeRate', parseFloat(e.target.value))}
+                  placeholder="Enter income tax rate"
                 />
               </FormField>
             </div>
