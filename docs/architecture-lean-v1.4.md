@@ -347,7 +347,6 @@ To ensure type safety and consistency, the application will adhere to the follow
 
 ### Runtime (In-Memory) State for Active Session:
 * `activeUserAppState: UserAppState`
-* `isDirty: boolean`
 
 *[The high-level logic for Initial Load, Scenario Creation, Auto-Save, Plan Management, and Sharing remains as described in v1.3, operating on the principle of a single active plan.]*
 

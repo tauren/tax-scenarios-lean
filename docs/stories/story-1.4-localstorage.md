@@ -52,7 +52,6 @@
         - Call `localStorageService.loadActivePlanFromStorage()`.
         - If a valid `UserAppState` is returned (not `null`):
             - Initialize or update the Zustand store with this loaded state.
-            - Set any relevant flags (e.g., an `isDirty` flag, if used, to `false` initially after a successful load).
         - If `null` is returned by `loadActivePlanFromStorage()`:
             - Initialize the Zustand store with a default new/empty `UserAppState` (e.g., `activePlanInternalName: "Untitled Plan"`, empty arrays for `initialAssets`, `scenarios`, `userQualitativeGoals`).
             - If the reason for `null` was a detected corruption (as opposed to simply no data found), consider dispatching an action to `uiSlice.ts` for a toast notification like "Could not load previous session data as it appears corrupted. Starting a fresh session."

@@ -10,8 +10,7 @@ export interface UserAppState {
 }
 
 export interface UserAppStateSlice extends UserAppState {
-  isDirty: boolean;
-  setDirty: (isDirty: boolean) => void;
+  // Actions
   setActivePlanInternalName: (name: string) => void;
   addAsset: (asset: Asset) => void;
   updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => void;
@@ -20,14 +19,14 @@ export interface UserAppStateSlice extends UserAppState {
   updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => void;
   deleteScenario: (scenarioId: string) => void;
   setScenarioAsPrimary: (scenarioId: string) => void;
-  setAppState: (newState: UserAppState) => void;
-  clearStoredState: () => void;
-  setSelectedScenarioIds: (ids: string[]) => void;
   addQualitativeGoal: (goal: UserQualitativeGoal) => void;
   updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => void;
   deleteQualitativeGoal: (goalId: string) => void;
   updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => void;
   deleteScenarioAttribute: (scenarioId: string, attributeId: string) => void;
+  clearStoredState: () => void;
+  setAppState: (newState: UserAppState) => void;
+  setSelectedScenarioIds: (ids: string[]) => void;
 }
 
 /**

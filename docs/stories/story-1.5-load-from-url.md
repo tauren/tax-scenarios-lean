@@ -20,8 +20,8 @@
     1.  On initial application load, the app checks for a specific URL query parameter (e.g., `planData`) containing the plan data string.
     2.  If the `planData` parameter is present, the system attempts to URL-decode its value, then decompress it using LZ-String, and finally deserialize the resulting JSON string into a `UserAppState` object (which includes `activePlanInternalName`).
     3.  If the URL data is successfully parsed into a valid `UserAppState` object:
-        a.  The application checks if the current in-memory `ActivePlan` (which might have been loaded from `localStorage` or is a new/empty session) contains "significant user-entered data" (e.g., a runtime `isDirty` flag is true, or it's not the default empty "Untitled Plan" state). If so, the user is prompted with a clear UI message (e.g., in a modal): "You have unsaved changes in your current plan. Loading data from this link will discard your current work. Do you want to proceed? [Load from Link & Discard] [Cancel]".
-        b.  If the user chooses to "Load from Link & Discard" (or if no prompt was needed because the current plan was empty/default/not dirty), the `UserAppState` data parsed from the URL becomes the new Active Plan in the Zustand store.
+        a.  The application checks if the current in-memory `ActivePlan` (which might have been loaded from `localStorage` or is a new/empty session) contains "significant user-entered data" (e.g., it's not the default empty "Untitled Plan" state). If so, the user is prompted with a clear UI message (e.g., in a modal): "You have unsaved changes in your current plan. Loading data from this link will discard your current work. Do you want to proceed? [Load from Link & Discard] [Cancel]".
+        b.  If the user chooses to "Load from Link & Discard" (or if no prompt was needed because the current plan was empty/default), the `UserAppState` data parsed from the URL becomes the new Active Plan in the Zustand store.
         c.  The `activePlanInternalName` from the loaded data is used. If not present in the loaded data, a default name like "Loaded Plan" is assigned. This newly loaded state is then subject to auto-save to `localStorage` as per Story 1.4's logic.
     4.  If the URL data is invalid at any stage (URL decoding, decompression, JSON parsing, or if the deserialized object doesn't structurally match `UserAppState`): The system logs an error to the console, displays a user-friendly error message (e.g., "Could not load plan from URL: The link appears to be invalid or corrupted."), and then proceeds to load any existing plan from `localStorage` or initializes a fresh "Untitled Plan" (as per Story 1.4 logic).
     5.  A successful load of plan data from the URL correctly updates the UI to reflect the content of this newly loaded Active Plan.
@@ -33,7 +33,7 @@
 
 **Visual & Layout Reference (Conceptual Mockup)**
 
-**Important Visual Reference:** This story involves a UI prompt (e.g., an alert dialog for confirming overwrite when loading a plan from a URL with existing dirty data - AC A3a). While there isn't a dedicated v0 mockup for this specific prompt, its styling should be consistent with the overall application theme and utilize standard modal/dialog components (e.g., ShadCN UI `AlertDialog`). Visual cues for general modal/dialog styling can be taken from `../../v0-mockups/components/main-application-layout.tsx` if it defines or implies such styles, or from default ShadCN UI component styling.
+**Important Visual Reference:** This story involves a UI prompt (e.g., an alert dialog for confirming overwrite when loading a plan from a URL with existing data - AC A3a). While there isn't a dedicated v0 mockup for this specific prompt, its styling should be consistent with the overall application theme and utilize standard modal/dialog components (e.g., ShadCN UI `AlertDialog`). Visual cues for general modal/dialog styling can be taken from `../../v0-mockups/components/main-application-layout.tsx` if it defines or implies such styles, or from default ShadCN UI component styling.
 
 **Mockup File:** N/A (Refer to general modal/dialog styling principles from the project's UI library and `main-application-layout.tsx` context if applicable).
 
@@ -49,10 +49,9 @@
 - [x] **Task 2: Implement URL Parsing Logic on App Load (AC: A1, A2, A4)**
     - [x] In app startup sequence (e.g., `App.tsx` or initialization hook): Check `window.location.search` for `planData`. If found, parse using `planSharingService.parseShareableString()`. Store result temporarily.
 - [x] **Task 3: Implement "Dirty Check" and Overwrite Prompt Logic (AC: A3a)**
-    - [x] Introduce/use an `isDirty` flag in the Zustand store (set to `true` on state modifications, `false` after explicit load/new).
-    - [x] If URL parsing (Task 2) yields valid `UserAppState` AND current session state `isDirty` (or not default empty): Trigger UI confirmation prompt (e.g., ShadCN `AlertDialog` via `uiSlice`) as per AC A3a, styled consistently.
+    - [x] Check if current session has significant data (not default empty state): Trigger UI confirmation prompt (e.g., ShadCN `AlertDialog` via `uiSlice`) as per AC A3a, styled consistently.
 - [x] **Task 4: Update Zustand Store with Loaded URL Data (AC: A3b, A3c, A5)**
-    - [x] If user confirms "Load from Link & Discard" (or no prompt needed): Use Zustand store action (e.g., `setActivePlanFromLoadedData(loadedState: UserAppState)`) to update `UserAppState`, set `isDirty` to `false`, handle `activePlanInternalName`. Trigger auto-save (Story 1.4).
+    - [x] If user confirms "Load from Link & Discard" (or no prompt needed): Use Zustand store action (e.g., `setActivePlanFromLoadedData(loadedState: UserAppState)`) to update `UserAppState`, handle `activePlanInternalName`. Trigger auto-save (Story 1.4).
     - [x] Ensure UI re-renders to reflect new plan data.
 - [x] **Task 5: Fallback Loading and Error Reporting for URL Load (AC: A4)**
     - [x] If URL parsing fails or user cancels overwrite: Proceed with normal load (Story 1.4: `localStorage` or fresh plan).
@@ -69,7 +68,6 @@
 **Dev Technical Guidance**
 -   **URL Parsing:** Use `URLSearchParams(window.location.search).get('planData')`.
 -   **LZ-String:** Use `LZString.compressToEncodedURIComponent()` and `LZString.decompressFromEncodedURIComponent()` for URL safety. Refer to `lzString.ts` location in `front-end-architecture-v0.3.md`.
--   **`isDirty` Flag:** Manage this flag carefully in the Zustand store. It's key for the overwrite prompt logic.
 -   **Zustand Store Actions:** The `setActivePlanFromLoadedData` action should fully replace the relevant state and trigger `localStorage` persistence.
 -   **UI for Prompt (AC A3a):** Use ShadCN `AlertDialog`. Manage its state (visibility, callbacks) via `uiSlice.ts` (as described in `front-end-architecture-v0.3.md`). Style should be consistent with the application's theme (possibly guided by `main-application-layout.tsx` for general modal appearances).
 -   **Error Handling:** Robust `try-catch` in service functions. User-facing errors for failed URL loads should be clear.

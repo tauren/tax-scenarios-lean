@@ -23,7 +23,7 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
 2.  The list includes at least one (>=1) example plan, each presented with a descriptive title/name (e.g., "Example: CGT in Portugal," "Sample: Low Tax Jurisdiction Plan") clearly indicating its focus on CGT planning for the MVP.
 3.  Each example scenario in the list is presented as a clickable element (e.g., a link, button, or card).
 4.  The clickable elements are associated with pre-generated shareable URL strings. These URL strings represent complete `UserAppState` objects containing one or more scenarios, possibly from the CGT-focused `templateScenarios` defined in `AppConfig` (Story 1.0).
-5.  Clicking an example plan link/button triggers the application's URL loading mechanism (as implemented in Story 1.5). This includes prompting the user to discard current work if the active session is "dirty" or has significant data, before loading the example plan data.
+5.  Clicking an example plan link/button triggers the application's URL loading mechanism (as implemented in Story 1.5). This includes prompting the user to discard current work if the active session has significant data, before loading the example plan data.
 6.  The list of example plans (their display names and corresponding shareable URL strings) is sourced from static data within `AppConfig` or which comes from `AppConfig.examplePlans`.
 7.  The UI displaying the example plan links is responsive and user-friendly.
 
@@ -52,7 +52,7 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
     - [x] When a user clicks an example plan card/button in `GetStartedView.tsx`:
         - Retrieve the associated `planDataParam` string for that example.
         - Trigger the application's URL loading mechanism. The preferred method is to construct the application's root URL with `?planData=[planDataParam]` and navigate to it (e.g., using `router.push('/?planData=' + planDataParam)` if using `react-router-dom` and the app is set up to parse this on any route, or `window.location.href = '/?planData=' + planDataParam` if a full reload is acceptable for simplicity).
-        - This will invoke the URL loading logic from Story 1.5, including any "dirty check" prompts.
+        - This will invoke the URL loading logic from Story 1.5, including any overwrite prompts.
 - [x] **Task 4: Conditional Rendering of `GetStartedView` (AC: 1)**
     - [x] In `App.tsx` or the main router configuration:
         - Check if an `activePlan` exists in the Zustand store after initial load attempts (from `localStorage` or URL, as per Stories 1.4 & 1.5).
@@ -61,7 +61,7 @@ Okay, here is the draft for Story 1.6, which will reference your `get-started-vi
 - [x] **Task 5: Testing Example Scenario Loading (AC: 2, 4, 5)**
     - [x] Verify `GetStartedView.tsx` displays example plans correctly, matching the `get-started-view.tsx` mockup's layout.
     - [x] Test clicking each example link:
-        - Confirm the overwrite prompt (from Story 1.5) appears if a "dirty" plan exists in `localStorage`.
+        - Confirm the overwrite prompt (from Story 1.5) appears if significant plan data exists in `localStorage`.
         - Confirm the example plan data loads correctly into `UserAppState` and the UI (even if rudimentary UI for plan details at this stage) reflects the loaded example's name.
 
 **Dev Technical Guidance**
