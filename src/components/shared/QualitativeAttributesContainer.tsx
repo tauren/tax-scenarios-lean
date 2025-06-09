@@ -7,6 +7,7 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import type { ScenarioQualitativeAttribute } from '@/types';
 import type { WeightOption } from './WeightSelector';
 import { QualitativeFitScoreDisplay } from './QualitativeFitScoreDisplay';
+import type { QualitativeGoalAlignment } from '@/types/qualitative';
 
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
@@ -61,6 +62,53 @@ export function QualitativeAttributesContainer({
   };
 
   const fitScore = calculateFitScore();
+
+  // Calculate goal alignments
+  const calculateGoalAlignments = (): QualitativeGoalAlignment[] => {
+    const alignments = userQualitativeGoals.map(goal => {
+      const goalAttributes = attributes.filter(attr => attr.mappedGoalId === goal.id);
+      if (!goalAttributes.length) return null;
+
+      let totalScore = 0;
+      let totalWeight = 0;
+      const contributingAttributes = goalAttributes.map(attr => {
+        const sentimentScore = attr.sentiment === 'Positive' ? 1 :
+          attr.sentiment === 'Negative' ? -1 : 0;
+
+        const significanceScore = attr.significance === 'Critical' ? 1 :
+          attr.significance === 'High' ? 0.75 :
+          attr.significance === 'Medium' ? 0.5 : 0.25;
+
+        const goalWeight = goal.weight === 'Critical' ? 1 :
+          goal.weight === 'High' ? 0.75 :
+          goal.weight === 'Medium' ? 0.5 : 0.25;
+
+        const attributeScore = sentimentScore * significanceScore * goalWeight;
+        totalScore += attributeScore;
+        totalWeight += goalWeight;
+
+        return {
+          attributeId: attr.id,
+          contribution: attributeScore / (totalWeight || 1)
+        };
+      });
+
+      const rawScore = totalWeight > 0 ? totalScore / totalWeight : 0;
+      const alignmentScore = ((rawScore + 1) / 2) * 100;
+
+      return {
+        goalId: goal.id,
+        goalName: goal.name,
+        alignmentScore,
+        isAligned: alignmentScore >= 60,
+        contributingAttributes
+      };
+    }).filter((alignment): alignment is QualitativeGoalAlignment => alignment !== null);
+
+    return alignments;
+  };
+
+  const goalAlignments = calculateGoalAlignments();
 
   const handleOpenDialog = (attribute?: ScenarioQualitativeAttribute) => {
     setEditingAttribute(attribute || null);
@@ -159,6 +207,7 @@ export function QualitativeAttributesContainer({
         attributes={attributes}
         goals={userQualitativeGoals}
         score={fitScore}
+        goalAlignments={goalAlignments}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

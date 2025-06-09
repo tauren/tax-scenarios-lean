@@ -9,6 +9,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useState } from 'react';
+import React from 'react';
 
 interface QualitativeAttributeCardProps {
   attribute: ScenarioQualitativeAttribute;
@@ -33,12 +35,42 @@ export function QualitativeAttributeCard({
   getGoalNameById,
   disabled = false,
 }: QualitativeAttributeCardProps) {
+  const [editValue, setEditValue] = useState(attribute.text);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  React.useEffect(() => {
+    setEditValue(attribute.text);
+  }, [attribute.text]);
+
+  const commitEdit = () => {
+    const trimmed = editValue.trim();
+    if (trimmed !== attribute.text) {
+      onUpdateName(attribute.id, trimmed);
+    }
+    setEditValue(trimmed);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditValue(e.target.value);
+  };
+
+  const handleInputBlur = () => {
+    commitEdit();
+  };
+
+  const handlePopoverOpenChange = (open: boolean) => {
+    if (!open) {
+      commitEdit();
+    }
+    setPopoverOpen(open);
+  };
+
   return (
     <div className="border rounded-lg p-4 flex flex-col h-full">
-      {/* Name + pencil + actions at the top */}
-      <div className="flex items-start justify-between gap-4">
+      {/* First row: title + buttons, fixed min height for alignment */}
+      <div className="flex items-start justify-between gap-4 min-h-[2.5rem]">
         <div className="cursor-pointer group/name flex-1 min-w-0">
-          <Popover>
+          <Popover open={popoverOpen} onOpenChange={handlePopoverOpenChange}>
             <PopoverTrigger asChild>
               <span>
                 <h3 className="font-semibold break-words">
@@ -51,17 +83,16 @@ export function QualitativeAttributeCard({
               <div className="space-y-4">
                 <h4 className="font-medium">Edit Attribute Name</h4>
                 <Textarea
-                  value={attribute.text}
-                  onChange={(e) => onUpdateName(attribute.id, e.target.value)}
+                  value={editValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
                   className="w-full min-h-[100px] resize-none"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === 'Tab') {
                       e.preventDefault();
-                      const popoverTrigger = document.querySelector('[data-state="open"]');
-                      if (popoverTrigger) {
-                        (popoverTrigger as HTMLElement).click();
-                      }
+                      commitEdit();
+                      setPopoverOpen(false);
                     }
                   }}
                 />
@@ -93,12 +124,12 @@ export function QualitativeAttributeCard({
         </div>
       </div>
 
-      {/* Flexible spacer */}
-      <div className="flex-1" />
+      {/* Flexible spacer for equal height cards */}
+      <div className="flex-1 flex flex-col justify-center" />
 
-      {/* Bottom group: sentiment + significance selectors */}
-      <div>
-        <div className="mb-2 mt-2">
+      {/* Last row: selectors and goal, fixed min height for alignment */}
+      <div className="mt-2">
+        <div className="mb-2">
           <SentimentSelector
             value={attribute.sentiment}
             onChange={(sentiment) => onUpdateSentiment(attribute.id, sentiment)}
@@ -112,50 +143,53 @@ export function QualitativeAttributeCard({
             className="mt-0"
           />
         </div>
-        {attribute.mappedGoalId ? (
-          <div className="mt-2 flex items-center justify-between">
-            <span 
-              className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-md cursor-pointer hover:bg-muted/70 transition-colors"
-              onClick={() => onMapToGoal(attribute)}
-              title="Click to change goal mapping"
-            >
-              {(() => {
-                const goalName = getGoalNameById(attribute.mappedGoalId);
-                return goalName ? `Goal: ${goalName}` : 'Mapped to Goal';
-              })()}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => onMapToGoal(attribute)}
-              disabled={disabled}
-              title="Change goal mapping"
-            >
-              <MapPin className="h-3 w-3" />
-            </Button>
-          </div>
-        ) : (
-          <div className="mt-2 flex items-center justify-between">
-            <span 
-              className="text-sm text-destructive bg-destructive/10 px-2 py-1 rounded-md border border-destructive/20 cursor-pointer hover:bg-destructive/20 transition-colors"
-              onClick={() => onMapToGoal(attribute)}
-              title="Click to map to a goal"
-            >
-              No goal mapped
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => onMapToGoal(attribute)}
-              disabled={disabled}
-              title="Map to a goal"
-            >
-              <MapPin className="h-3 w-3" />
-            </Button>
-          </div>
-        )}
+        {/* Goal mapping row, always aligned at the bottom with consistent height */}
+        <div className="mt-2 min-h-[3.5rem] flex items-end">
+          {attribute.mappedGoalId ? (
+            <>
+              <span 
+                className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-md cursor-pointer hover:bg-muted/70 transition-colors"
+                onClick={() => onMapToGoal(attribute)}
+                title="Click to change goal mapping"
+              >
+                {(() => {
+                  const goalName = getGoalNameById(attribute.mappedGoalId);
+                  return goalName ? `Goal: ${goalName}` : 'Mapped to Goal';
+                })()}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-2"
+                onClick={() => onMapToGoal(attribute)}
+                disabled={disabled}
+                title="Change goal mapping"
+              >
+                <MapPin className="h-3 w-3" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <span 
+                className="text-sm text-destructive bg-destructive/10 px-2 py-1 rounded-md border border-destructive/20 cursor-pointer hover:bg-destructive/20 transition-colors"
+                onClick={() => onMapToGoal(attribute)}
+                title="Click to map to a goal"
+              >
+                No goal mapped
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-2"
+                onClick={() => onMapToGoal(attribute)}
+                disabled={disabled}
+                title="Map to a goal"
+              >
+                <MapPin className="h-3 w-3" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

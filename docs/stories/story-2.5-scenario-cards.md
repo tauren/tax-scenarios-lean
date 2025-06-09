@@ -14,7 +14,7 @@
     c.  Key aggregated financial outcomes from its `ScenarioResults` over the entire projection period: Total Net Financial Outcome and Total Estimated Capital Gains Tax. (The PRD also mentions Gross Income and Expenses in the Overview Table, these could be optional on the card for brevity if needed).
     d. Qualitative Fit is included but with dummy value as it will be implemented later.
 4.  The information on the card is presented in a clear, scannable, and visually distinct format.
-5.  The card is interactive: Clicking it (or a dedicated "View Details" button on it) will eventually navigate to the "Detailed Scenario View" (this navigation is fully implemented in Story 4.5). For this story, the click action can be a placeholder or log to console.
+5.  The card is interactive: Clicking it (or a dedicated "View Details" button on it) will eventually navigate to the "Detailed Scenario View" (this navigation is fully implemented in Story 4.9). For this story, the click action can be a placeholder or log to console.
 6.  Each card includes a selection control (e.g., ShadCN `Checkbox` or `Switch`) allowing the user to include/exclude this scenario from the "Overview Comparison Table" (Story 2.6). The state of this selection is managed.
 7.  The layout of cards (e.g., in a grid or flex wrap) is responsive.
 8.  The data displayed on the cards (financial outcomes) updates dynamically if the underlying `ScenarioResults` in `AppCalculatedState` change.
@@ -36,7 +36,7 @@
     - [x] Implement a callback prop on `ScenarioSummaryCard` (e.g., `onToggleSelection(scenarioId: string, isSelected: boolean)`) to communicate selection changes to the parent.
 - [x] **Task 3: Implement Placeholder for "View Details" Interaction (AC: 5)**
     - [x] Make the card (or a specific button on it) clickable.
-    - [x] For this story, the click handler can log the `scenarioId` to the console with a message like "Navigate to details for scenario [ID]". Full navigation is Story 4.5.
+    - [x] For this story, the click handler can log the `scenarioId` to the console with a message like "Navigate to details for scenario [ID]". Full navigation is Story 4.9.
 - [x] **Task 4: Implement `ScenarioHubView.tsx` to Display Cards (AC: 2, 7, 8)**
     - [x] Create/update `ScenarioHubView.tsx` in `src/views/`.
     - [x] This view should:

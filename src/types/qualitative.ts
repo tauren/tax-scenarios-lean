@@ -1,7 +1,9 @@
 export interface QualitativeConcept {
   id: string;
-  name: string;
-  description: string;
+  text: string;
+  sentiment: "Positive" | "Neutral" | "Negative";
+  significance: "Low" | "Medium" | "High" | "Critical";
+  mappedGoalId?: string;
 }
 
 export interface QualitativeStatement {
@@ -25,4 +27,15 @@ export interface ScenarioQualitativeAttribute {
   sentiment: "Positive" | "Negative" | "Neutral";
   significance: "Low" | "Medium" | "High" | "Critical";
   mappedGoalId?: string;
+}
+
+export interface QualitativeGoalAlignment {
+  goalId: string;
+  goalName: string;
+  alignmentScore: number;
+  isAligned: boolean;
+  contributingAttributes: Array<{
+    attributeId: string;
+    contribution: number;
+  }>;
 } 

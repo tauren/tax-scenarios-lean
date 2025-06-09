@@ -1,26 +1,24 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
-import type { ScenarioQualitativeAttribute, UserQualitativeGoal } from '@/types/qualitative';
+import { ScoreBreakdownDialog } from './ScoreBreakdownDialog';
+import type { ScenarioQualitativeAttribute, UserQualitativeGoal, QualitativeGoalAlignment } from '@/types/qualitative';
+import { getScoreColor } from '@/utils/scoreColors';
 
 interface QualitativeFitScoreDisplayProps {
   attributes: ScenarioQualitativeAttribute[];
   goals: UserQualitativeGoal[];
   score: number;
+  goalAlignments: QualitativeGoalAlignment[];
 }
 
 export const QualitativeFitScoreDisplay: React.FC<QualitativeFitScoreDisplayProps> = ({
   attributes,
   goals,
   score,
+  goalAlignments,
 }) => {
   const getMappedGoal = (attribute: ScenarioQualitativeAttribute) => {
     return goals.find((goal) => goal.id === attribute.mappedGoalId);
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
   };
 
   const mappedAttributes = attributes.filter((attr) => attr.mappedGoalId);
@@ -30,9 +28,17 @@ export const QualitativeFitScoreDisplay: React.FC<QualitativeFitScoreDisplayProp
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Qualitative Fit Score</h3>
-        <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
-          {score}%
-        </span>
+        <div className="flex items-center gap-4">
+          <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
+            {score}%
+          </span>
+          <ScoreBreakdownDialog
+            score={score}
+            attributes={attributes}
+            goals={goals}
+            goalAlignments={goalAlignments}
+          />
+        </div>
       </div>
 
       {mappedAttributes.length > 0 && (
