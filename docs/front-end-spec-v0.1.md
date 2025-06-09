@@ -291,40 +291,57 @@ This section details the key user tasks and interaction sequences within the Tax
     graph TD
         A[Active Plan Ready] --> B["User Edits/Confirms Active Plan Name (on Dashboard)"];
         B --> C["User Clicks 'Share Plan' Button (in Main Header)"];
-        C --> D["System Generates Compressed, URL-Encoded String of Active Plan"];
-        D --> E["Display Shareable URL to User (for copying)"];
-        E --> F[User Copies URL];
+        C --> D["System Generates Dual URLs: Overview Link + Deep Link"];
+        D --> E["SharePlanDialog: Display Context-Aware Link Options"];
+        E --> F{Current Page Type?};
+        F -- "Overview-Type (/,/overview)" --> G["Show Single 'Share Plan' Option"];
+        F -- "Feature Page" --> H["Show Dual Options: Overview (Default) + Deep Link"];
+        G --> I["User Copies Overview Link"];
+        H --> J["User Chooses and Copies Preferred Link Type"];
+        I --> K[User Shares URL];
+        J --> K;
 
         subgraph Loading a Shared Plan
-            G[User Opens App with Shared URL in Address Bar] --> H["System Detects Plan Data in URL"];
-            H --> I{URL Data Valid?};
-            I -- No --> J["Error Message; Load Local Plan or Show 'Get Started' Screen"];
-            I -- Yes --> K["Parse URL Data into Plan Object"];
-            K --> L{Current Active Plan has Significant Data?};
-            L -- Yes --> M["Prompt: 'Load New Plan & Discard Current Work?' or 'Cancel'"];
-            M -- "Load New" --> N["Replace Current Active Plan with URL Plan Data"];
-            M -- "Cancel" --> O["Keep Current Active Plan; URL Plan Not Loaded"];
-            L -- No --> N;
-            N --> P["UI Updates with Loaded Plan"];
+            L[User Opens App with Shared URL in Address Bar] --> M["System Detects Plan Data in URL"];
+            M --> N{URL Data Valid?};
+            N -- No --> O["Error Message; Load Local Plan or Show 'Get Started' Screen"];
+            N -- Yes --> P["Parse URL Data into Plan Object"];
+            P --> Q{Current Active Plan has Significant Data?};
+            Q -- Yes --> R["Prompt: 'Load New Plan & Discard Current Work?' or 'Cancel'"];
+            R -- "Load New" --> S["Replace Current Active Plan with URL Plan Data"];
+            R -- "Cancel" --> T["Keep Current Active Plan; URL Plan Not Loaded"];
+            Q -- No --> S;
+            S --> U["UI Updates with Loaded Plan"];
+            U --> V{Loaded from Deep Link?};
+            V -- Yes --> W["Show Contextual Toast with Navigation Help"];
+            V -- No --> X["Standard Load Complete"];
         end
     ```
 
     **Summary of Steps:**
 
-    **Part 1: Generating a Shareable URL**
+    **Part 1: Generating a Shareable URL (Enhanced with Dual Links)**
     1.  The user ensures their "Active Plan" is named as desired (editable on the "Active Plan Dashboard").
     2.  The user clicks the "Share Plan" button located in the main application header.
-    3.  The system takes the current Active Plan data (including its name and all contents), serializes it, compresses it, and URL-encodes the resulting string.
-    4.  The generated shareable URL is presented to the user, typically in a way that's easy to copy (e.g., a text field with a "Copy to Clipboard" button), along with feedback of successful generation.
+    3.  The system generates two URL types:
+        - **Overview Link**: Always directs to `/overview?planData=[encodedString]` (recommended for general sharing)
+        - **Deep Link**: Preserves current path (e.g., `/scenarios/1/edit?planData=[encodedString]`) for focused discussions
+    4.  The SharePlanDialog displays context-aware options:
+        - **On overview-type pages** (/ or /overview): Shows single "Share Plan" option (overview link)
+        - **On feature pages**: Shows dual options with clear descriptions and visual hierarchy
+    5.  The overview link is automatically copied to clipboard by default, with manual copy options available for both link types.
+    6.  Clear feedback is provided for successful copy actions with context-appropriate messages.
 
-    **Part 2: Loading a Plan from a Shared URL**
-    5.  The user (or another person) opens the application by navigating to a URL that includes the shared plan data string (this also applies when clicking an "Example Scenario" link from the "Get Started" screen, as those are also shared URLs).
+    **Part 2: Loading a Plan from a Shared URL (Enhanced with Deep Linking)**
+    5.  The user (or another person) opens the application by navigating to a URL that includes the shared plan data string. The URL preserves the original path for natural deep linking.
     6.  The system detects and attempts to parse, decompress, and deserialize the plan data from the URL.
         * If the URL data is invalid or cannot be parsed, an error is indicated, and the application falls back to loading any plan from `localStorage` or showing the "Get Started" screen.
     7.  If the URL data is valid:
         * The system checks if the *current* Active Plan (already in memory from `localStorage` or a new empty session) contains "significant user-entered data".
         * If significant data exists, the user is prompted to either "[Load New Plan from Link & Discard Current Work]" or "[Cancel]".
-        * If the user chooses to load (or if no significant data was present in the current plan, or if they confirm the overwrite), the data from the URL becomes the new Active Plan. The UI updates to reflect this newly loaded plan.
+        * If the user chooses to load (or if no significant data was present in the current plan, or if they confirm the overwrite), the data from the URL becomes the new Active Plan.
+        * **Deep Link Enhancement**: If the user arrives on a non-overview page via shared link, a contextual toast appears providing guidance and a quick navigation option to the overview.
+        * The UI updates to reflect this newly loaded plan while preserving the intended destination path.
         * If the user chooses to cancel, the current Active Plan remains unchanged.
 
 ## Wireframes & Mockups

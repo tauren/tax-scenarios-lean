@@ -375,13 +375,20 @@ This section details the Epics and their constituent User Stories for the Lean M
             5. (Note: Locking functionality and management of multiple named saved plan slots are deferred to post-MVP).
 
     * **Story 5.2: Implement User-Facing "Generate Shareable URL" Feature for Active Plan**
-        * **User Story:** "As a user, I want a clear "Share Plan" button or option in the UI that, when clicked, generates a compressed, URL-encoded string representing my current "Active Plan," which I can then copy to my clipboard to share with others."
+        * **User Story:** "As a user, I want a clear "Share Plan" button or option in the UI that, when clicked, generates shareable URLs for my current "Active Plan," giving me the choice between a general overview link (recommended for newcomers) or a deep link to my current page (useful for focused discussions), which I can then copy to my clipboard to share with others."
         * **Acceptance Criteria (ACs):**
-            1. A "Share Plan" UI action is available.
-            2. When triggered, the system uses logic from Story 1.5B (takes current Active Plan data including its `activePlanInternalName` and `UserAppState`, serializes, compresses, URL-encodes).
-            3. Resulting shareable URL string presented for easy copying.
-            4. User receives feedback on successful generation/copy.
-            5. UI is responsive.
+            1. A "Share Plan" UI action is available in the application header.
+            2. When triggered, the system generates two types of shareable URLs:
+                - **Overview Link**: Always directs to `/overview?planData=[encodedString]` (recommended for general sharing)
+                - **Deep Link**: Preserves current path for focused discussions on specific sections
+            3. The SharePlanDialog displays context-aware options:
+                - **On overview-type pages** (/ or /overview): Shows single "Share Plan" option to avoid confusion
+                - **On feature pages**: Shows dual options with clear visual hierarchy and descriptions
+            4. The overview link is automatically copied to clipboard by default (maintaining backward compatibility).
+            5. Manual copy buttons available for both link types with context-appropriate feedback messages.
+            6. UI is responsive and follows established design patterns.
+            7. **Enhanced Deep Linking**: Shared URLs preserve exact paths, enabling natural deep linking to specific sections.
+            8. **User Guidance**: When users arrive via shared link on non-overview pages, contextual toast provides guidance with navigation option to overview.
 
 ## Post-MVP Backlog / Future Enhancements
 

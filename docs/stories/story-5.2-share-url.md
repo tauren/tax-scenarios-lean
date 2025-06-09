@@ -14,6 +14,11 @@
 4.  The user receives clear feedback that the shareable link has been generated and/or copied successfully (e.g., a toast notification or a message within the share modal).
 5.  The UI for initiating sharing and displaying the shareable link is responsive and user-friendly.
 
+**Enhanced Implementation Notes:**
+- **Dual Link Options:** The SharePlanDialog now provides two sharing options: Overview Link (recommended/default) and Deep Link to current page
+- **Context-Aware Behavior:** When on overview-type pages (/ or /overview), only one link option is shown to avoid confusion
+- **Automatic Deep Linking:** Shared URLs preserve the exact path, enabling natural deep linking to specific sections
+
 **Visual & Layout Reference (Conceptual Mockup)**
 
 **Important Visual Reference:** The `main-application-layout.tsx` mockup should guide the placement and styling of the "Share Plan" button/icon within the application header. The modal/dialog used to display the generated URL and "Copy" button should adhere to the general modal styling of the application (e.g., using ShadCN UI `Dialog` and `Input`/`Button`).
@@ -48,22 +53,36 @@
     - [x] Test the "Copy to Clipboard" functionality.
     - [x] Paste the copied URL into a new browser tab/incognito window and verify the plan loads correctly (leveraging Story 1.5 load logic).
     - [x] Test responsiveness of the share modal.
+- [x] **Task 6: Enhanced Dual-Link Implementation**
+    - [x] Implement dual link options: Overview link (always goes to /overview) and Deep link (preserves current path)
+    - [x] Add context-aware behavior to show single option when on overview-type pages
+    - [x] Implement automatic page name detection for deep links
+    - [x] Add clear visual hierarchy with recommended/default indicators
 
 **Dev Technical Guidance**
 -   **Visual Reference:** `main-application-layout.tsx` for the "Share Plan" button in the header. Standard ShadCN UI `Dialog`, `Input`, and `Button` components for the modal, styled consistently with the application theme.
 -   **Service Usage:** This story directly uses `planSharingService.generateShareableString()` implemented in Story 1.5.
 -   **Clipboard API:** Use `navigator.clipboard.writeText()` for the "Copy to Clipboard" feature. Ensure to handle potential errors or browser compatibility if targeting older browsers (though MVP targets modern ones).
--   **URL Construction:** The shareable URL should be the application's base URL (e.g., `window.location.origin`) followed by the query parameter (e.g., `/?planData=[encodedString]`).
+-   **URL Construction:** 
+    - Overview URL: Always `window.location.origin + '/overview?planData=' + encodedString`
+    - Deep Link URL: `window.location.origin + window.location.pathname + '?planData=' + encodedString`
 -   **Modal State:** The visibility of the share modal can be managed using local component state within `Header.tsx` or via the `uiSlice.ts` if a more global modal management system is preferred.
+-   **Context Detection:** Use `window.location.pathname` to determine if current page is overview-type (/ or /overview) for context-aware behavior.
 
 **Story Progress Notes**
 * **Agent Model Used:** Claude 3.7 Sonnet
 * **Completion Notes List:**
-    * Implemented SharePlanDialog component with auto-copy on open
-    * Added Sonner toast notifications for copy success/failure
-    * Manual copy button available as backup
+    * Implemented SharePlanDialog component with enhanced dual-link functionality
+    * Added context-aware behavior for overview-type pages (/ and /overview)
+    * Implemented automatic page name detection for deep links
+    * Added visual hierarchy with recommended/default indicators
+    * Overview link automatically copied by default with clear user guidance
+    * Added Sonner toast notifications for copy success/failure with context-appropriate messages
+    * Manual copy buttons available for both link types
     * Follows existing UI patterns and component structure
-    * Tested and verified all functionality including URL generation and loading
+    * Tested and verified all functionality including dual URL generation, deep linking, and context detection
+    * Enhanced user experience with clear descriptions and visual cues
 * **Change Log:**
     * Initial Draft - May 31, 2025 - Sarah (PO)
-    * Completed - March 19, 2024 - Claude (Dev Agent)
+    * Completed Basic Implementation - March 19, 2024 - Claude (Dev Agent)
+    * Enhanced with Dual-Link Functionality - [Current Date] - Claude (Dev Agent)
