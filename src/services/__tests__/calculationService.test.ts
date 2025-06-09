@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   calculateScenarioResults,
   calculateCapitalGainsForYear,
@@ -111,6 +111,11 @@ const mockGoals: UserQualitativeGoal[] = [
 ];
 
 describe('calculationService', () => {
+  beforeEach(() => {
+    // Set system time to 2024-01-01 for consistent year calculations
+    vi.setSystemTime(new Date('2024-01-01'));
+  });
+
   describe('calculateCapitalGainsForYear', () => {
     it('should calculate gains as long-term', () => {
       const scenario = createTestScenario({
@@ -279,6 +284,94 @@ describe('calculationService', () => {
   });
 
   describe('calculateScenarioResults', () => {
+    it('should calculate comprehensive financial scenario with income, expenses, and asset sales', () => {
+      // Create comprehensive scenario using the exact data from the hand-written test
+      const comprehensiveAssets: Asset[] = [
+        {
+          id: 'comprehensive-asset-1',
+          name: 'Test Asset',
+          costBasisPerUnit: 1000,
+          quantity: 5,
+          acquisitionDate: new Date('2020-01-01'),
+        },
+      ];
+
+      const scenario = new ScenarioBuilder()
+        .withProjectionPeriod(10)
+        .withTaxRates(0, 10, 20) // shortTerm: 0%, longTerm: 10%, income: 20%
+        .withPlannedSales([
+          {
+            id: 'sale-1',
+            assetId: 'comprehensive-asset-1',
+            year: 2024,
+            quantity: 3,
+            salePricePerUnit: 150000,
+          },
+        ])
+        .build();
+
+      // Override with complex income and expense data that ScenarioBuilder doesn't support
+      const complexScenario = {
+        ...scenario,
+        incomeSources: [
+          {
+            id: 'income-1',
+            name: 'Salary',
+            type: 'EMPLOYMENT' as const,
+            annualAmount: 100000,
+            startYear: 2024,
+          },
+        ],
+        annualExpenses: [
+          {
+            id: 'expense-1',
+            name: 'Rent',
+            amount: 10000,
+            startYear: 2024,
+          },
+        ],
+        oneTimeExpenses: [
+          {
+            id: 'expense-2',
+            name: 'Moving Costs',
+            amount: 20000,
+            year: 2024,
+          },
+        ],
+      };
+
+      const results = calculateScenarioResults(complexScenario, comprehensiveAssets, mockGoals);
+
+      // Verify yearly projections
+      expect(results.yearlyProjections).toHaveLength(10);
+
+      // Check first year (2024) calculations - hand-verified numbers
+      const firstYear = results.yearlyProjections[0];
+      expect(firstYear.year).toBe(2024);
+      expect(firstYear.income).toBe(100000);
+      expect(firstYear.expenses).toBe(30000); // 10,000 rent + 20,000 moving costs
+      expect(firstYear.capitalGainsData.totalGains).toBe(447000); // (150,000 - 1,000) * 3
+      expect(firstYear.taxBreakdown.incomeTax).toBe(20000); // 20% of 100,000
+      expect(firstYear.taxBreakdown.capitalGainsTax).toBe(44700); // 10% of 447,000
+      expect(firstYear.taxBreakdown.totalTax).toBe(64700); // 20,000 + 44,700
+      expect(firstYear.netFinancialOutcome).toBe(452300); // 100,000 + 447,000 - 64,700 - 30,000
+
+      // Check subsequent years (2025-2033) - no asset sales, no one-time expenses
+      for (let i = 1; i < 10; i++) {
+        const year = results.yearlyProjections[i];
+        expect(year.income).toBe(100000);
+        expect(year.expenses).toBe(10000); // Only rent, no moving costs
+        expect(year.capitalGainsData.totalGains).toBe(0);
+        expect(year.taxBreakdown.incomeTax).toBe(20000); // 20% of 100,000
+        expect(year.taxBreakdown.capitalGainsTax).toBe(0);
+        expect(year.taxBreakdown.totalTax).toBe(20000);
+        expect(year.netFinancialOutcome).toBe(70000); // 100,000 - 20,000 - 10,000
+      }
+
+      // Check total net outcome over 10 years - hand-verified calculation
+      expect(results.totalNetFinancialOutcomeOverPeriod).toBe(1082300); // 452,300 + (70,000 * 9)
+    });
+
     it('should calculate results for a multi-year scenario', () => {
       const scenario = new ScenarioBuilder()
         .withProjectionPeriod(5)
@@ -348,16 +441,18 @@ describe('calculationService', () => {
         .withQualitativeAttributes([
           {
             id: 'attr-1',
-            conceptId: 'concept-1',
-            userSentiment: 'Positive' as const,
-            significanceToUser: 'High' as const,
+            scenarioId: 'test-scenario',
+            text: 'Positive scenario attribute text',
+            sentiment: 'Positive' as const,
+            significance: 'High' as const,
             mappedGoalId: 'goal-1'
           },
           {
             id: 'attr-2',
-            conceptId: 'concept-2',
-            userSentiment: 'Negative' as const,
-            significanceToUser: 'Medium' as const,
+            scenarioId: 'test-scenario',
+            text: 'Negative scenario attribute text',
+            sentiment: 'Negative' as const,
+            significance: 'Medium' as const,
             mappedGoalId: 'goal-2'
           }
         ])
@@ -379,16 +474,18 @@ describe('calculationService', () => {
         .withQualitativeAttributes([
           {
             id: 'attr-1',
-            conceptId: 'concept-1',
-            userSentiment: 'Positive' as const,
-            significanceToUser: 'High' as const,
+            scenarioId: 'test-scenario',
+            text: 'Positive attribute for goal 1',
+            sentiment: 'Positive' as const,
+            significance: 'High' as const,
             mappedGoalId: 'goal-1'
           },
           {
             id: 'attr-2',
-            conceptId: 'concept-2',
-            userSentiment: 'Negative' as const,
-            significanceToUser: 'Medium' as const,
+            scenarioId: 'test-scenario',
+            text: 'Negative attribute for goal 2',
+            sentiment: 'Negative' as const,
+            significance: 'Medium' as const,
             mappedGoalId: 'goal-2'
           }
         ])
@@ -416,9 +513,10 @@ describe('calculationService', () => {
         .withQualitativeAttributes([
           {
             id: 'attr-3',
-            conceptId: 'concept-3',
-            userSentiment: 'Positive' as const,
-            significanceToUser: 'High' as const
+            scenarioId: 'test-scenario',
+            text: 'Unmapped positive attribute',
+            sentiment: 'Positive' as const,
+            significance: 'High' as const
           }
         ])
         .build();
@@ -435,16 +533,18 @@ describe('calculationService', () => {
         .withQualitativeAttributes([
           {
             id: 'attr-1',
-            conceptId: 'concept-1',
-            userSentiment: 'Positive' as const,
-            significanceToUser: 'High' as const,
+            scenarioId: 'test-scenario',
+            text: 'Positive attribute aligned with high priority goal',
+            sentiment: 'Positive' as const,
+            significance: 'High' as const,
             mappedGoalId: 'goal-1'
           },
           {
             id: 'attr-2',
-            conceptId: 'concept-2',
-            userSentiment: 'Negative' as const,
-            significanceToUser: 'Medium' as const,
+            scenarioId: 'test-scenario',
+            text: 'Negative attribute for medium priority goal',
+            sentiment: 'Negative' as const,
+            significance: 'Medium' as const,
             mappedGoalId: 'goal-2'
           }
         ])

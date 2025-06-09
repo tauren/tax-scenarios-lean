@@ -7,7 +7,6 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import type { ScenarioQualitativeAttribute } from '@/types';
 import type { WeightOption } from './WeightSelector';
 import { QualitativeFitScoreDisplay } from './QualitativeFitScoreDisplay';
-import { QualitativeAttributeInput } from './QualitativeAttributeInput';
 
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
@@ -151,15 +150,6 @@ export function QualitativeAttributesContainer({
     });
   };
 
-  const handleAddAttribute = (attribute: Omit<ScenarioQualitativeAttribute, 'id' | 'scenarioId'>) => {
-    if (!scenario) return;
-    updateScenarioAttribute(scenarioId, {
-      ...attribute,
-      id: crypto.randomUUID(),
-      scenarioId
-    });
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -173,11 +163,6 @@ export function QualitativeAttributesContainer({
         attributes={attributes}
         goals={userQualitativeGoals}
         score={fitScore}
-      />
-
-      <QualitativeAttributeInput
-        onAdd={handleAddAttribute}
-        disabled={disabled}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -201,11 +186,12 @@ export function QualitativeAttributesContainer({
       <QualitativeAttributeDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        attribute={editingAttribute || undefined}
         onSave={handleSaveAttribute}
+        attribute={editingAttribute || undefined}
+        mode={editingAttribute ? 'edit' : 'add'}
       />
 
-      {/* Goal Mapping Dialog */}
+      {/* Mapping Dialog */}
       {mappingAttribute && (
         <AttributeMappingDialog
           open={isMappingDialogOpen}

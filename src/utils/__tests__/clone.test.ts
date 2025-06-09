@@ -1,6 +1,6 @@
 import { deepClone } from '../clone';
 
-describe.skip('deepClone', () => {
+describe('deepClone', () => {
   it('should handle primitive values', () => {
     expect(deepClone(null)).toBe(null);
     expect(deepClone(undefined)).toBe(undefined);
