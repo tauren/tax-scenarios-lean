@@ -179,12 +179,15 @@ export function QualitativeAttributeCard({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className={`font-semibold ${contributionColor ?? ''} cursor-help`}>
-                        {contribution > 0 ? '+' : ''}{Math.round(contribution)}% 
-                        <span className="text-xs text-muted-foreground ml-1">(of total)</span>
+                        <div className="text-sm text-muted-foreground">
+                          {contribution > 0 ? '+' : ''}{contribution}%
+                        </div>
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      This attribute contributed {contribution > 0 ? '+' : ''}{Math.round(contribution)}% of the total contribution for this goal.
+                      <div className="text-sm text-muted-foreground">
+                        This attribute contributed {contribution > 0 ? '+' : ''}{contribution}% of the total contribution for this goal.
+                      </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -194,12 +197,15 @@ export function QualitativeAttributeCard({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className={`font-semibold text-blue-700 cursor-help ml-3`}>
-                        {maxPossiblePercent > 0 ? '+' : ''}{Math.round(maxPossiblePercent)}% 
-                        <span className="text-xs text-muted-foreground ml-1">(of max)</span>
+                        <div className="text-sm text-muted-foreground">
+                          {maxPossiblePercent > 0 ? '+' : ''}{maxPossiblePercent}%
+                        </div>
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      This attribute contributed {maxPossiblePercent > 0 ? '+' : ''}{Math.round(maxPossiblePercent)}% of the maximum possible alignment for this goal.
+                      <div className="text-sm text-muted-foreground">
+                        This attribute contributed {maxPossiblePercent > 0 ? '+' : ''}{maxPossiblePercent}% of the maximum possible alignment for this goal.
+                      </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

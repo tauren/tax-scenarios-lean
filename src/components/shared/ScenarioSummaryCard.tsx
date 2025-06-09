@@ -2,14 +2,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Eye, Pencil, Copy, Trash2, MoreVertical, Target, CheckCircle2, XCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, Pencil, Copy, Trash2, MoreVertical, Target } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Scenario, QualitativeGoalAlignment } from '@/types';
+import type { Scenario } from '@/types';
+import type { QualitativeGoalAlignment } from '@/types/qualitative';
 
 interface ScenarioSummaryCardProps {
   scenario: Scenario;
@@ -29,20 +30,20 @@ interface ScenarioSummaryCardProps {
   isBaseline?: boolean;
 }
 
-const formatCurrency = (amount: number) => {
+function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
-};
+  }).format(value);
+}
 
-const getScoreBadgeVariant = (score: number) => {
-  if (score >= 80) return 'default';
-  if (score >= 60) return 'secondary';
-  return 'destructive';
-};
+function getScoreBadgeVariant(score: number): "default" | "secondary" | "destructive" | "outline" {
+  if (score >= 80) return "default";
+  if (score >= 60) return "secondary";
+  return "destructive";
+}
 
 export function ScenarioSummaryCard({
   scenario,
@@ -57,28 +58,73 @@ export function ScenarioSummaryCard({
   isBaseline = false,
 }: ScenarioSummaryCardProps) {
   return (
-    <Card className="relative hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-lg leading-tight">{scenario.name}</CardTitle>
-              {isBaseline && (
-                <Badge variant="outline" className="flex items-center gap-1 text-xs">
-                  <Target className="h-3 w-3 mr-1 text-primary" />
-                  Baseline
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
+    <Card
+      className={`relative overflow-hidden ${isBaseline ? 'border-primary' : ''} ${isBaseline ? 'pb-0' : ''}`}
+      onClick={() => onViewDetails(scenario.id)}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${scenario.name}`}
+      style={{ cursor: 'pointer' }}
+    >
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <div className="flex items-center gap-2 relative">
+          <div
+            onClick={e => e.stopPropagation()}
+            className="relative w-8 h-8 flex items-center justify-center"
+          >
             <Checkbox
               checked={isSelectedForCompare}
-              onCheckedChange={(checked) => onToggleSelection(scenario.id, !!checked)}
-              className="data-[state=checked]:bg-primary"
+              onCheckedChange={(checked) => onToggleSelection(scenario.id, checked as boolean)}
+              className="z-10"
+            />
+            <span
+              className="absolute inset-0 z-0"
+              tabIndex={-1}
+              aria-hidden="true"
             />
           </div>
+          <CardTitle className="text-lg font-semibold">{scenario.name}</CardTitle>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-8 h-8 flex items-center justify-center"
+            >
+              <Button variant="ghost" size="icon" className="h-8 w-8 z-10">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+              <span
+                className="absolute inset-0 z-0"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(scenario.id)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDuplicate(scenario)}>
+              <Copy className="h-4 w-4 mr-2" />
+              Duplicate
+            </DropdownMenuItem>
+            {!isBaseline && (
+              <DropdownMenuItem onClick={() => onSetAsBaseline(scenario)}>
+                <Target className="h-4 w-4 mr-2" />
+                Set as Baseline
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem 
+              onClick={() => onDelete(scenario)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -87,24 +133,6 @@ export function ScenarioSummaryCard({
           <Badge variant={getScoreBadgeVariant(results.qualitativeFitScore)}>
             {results.qualitativeFitScore}/100
           </Badge>
-        </div>
-
-        <div className="space-y-2">
-          {results.goalAlignments.map((alignment) => (
-            <div key={alignment.goalId} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{alignment.goalName}:</span>
-              <div className="flex items-center gap-1">
-                {alignment.isAligned ? (
-                  <CheckCircle2 className="h-3 w-3 text-green-600" />
-                ) : (
-                  <XCircle className="h-3 w-3 text-red-600" />
-                )}
-                <span className="font-medium">
-                  {alignment.isAligned ? 'Aligned' : 'Not Aligned'}
-                </span>
-              </div>
-            </div>
-          ))}
         </div>
 
         <div className="flex items-center justify-between">
@@ -129,52 +157,12 @@ export function ScenarioSummaryCard({
         </div>
       </CardContent>
 
-      <CardFooter className="pt-3 gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(scenario.id)}
-          className="flex-1 text-xs"
-        >
-          <Pencil className="h-3 w-3 mr-1" />
-          Edit
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onViewDetails(scenario.id)}
-          className="flex-1 text-xs"
-        >
-          <Eye className="h-3 w-3 mr-1" />
-          Details
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {!isBaseline && (
-              <DropdownMenuItem onClick={() => onSetAsBaseline(scenario)}>
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Set as Baseline
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={() => onDuplicate(scenario)}>
-              <Copy className="h-4 w-4 mr-2" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => onDelete(scenario)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardFooter>
+      {isBaseline && (
+        <div className="bg-muted border-t border-border py-1.5 px-3 flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground rounded-b-lg">
+          <Target className="h-3 w-3" />
+          Baseline
+        </div>
+      )}
     </Card>
   );
 } 

@@ -1,28 +1,36 @@
 import React from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
+import { ScoreBreakdownDialog } from '../shared/ScoreBreakdownDialog';
+import type { UserQualitativeGoal, QualitativeGoalAlignment } from '@/types/qualitative';
+import type { Scenario } from '@/types';
 
 interface QualitativeAssessmentPanelProps {
-  results: any;
-  goals: any[];
+  results: {
+    qualitativeFitScore: number;
+    goalAlignments: QualitativeGoalAlignment[];
+    scenario?: Scenario;
+  };
+  goals: UserQualitativeGoal[];
 }
 
 const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({ results, goals }) => {
   const alignments = results.goalAlignments || [];
+  const attributes = results.scenario?.scenarioSpecificAttributes || [];
   
   // Only include goals with mapped attributes in aligned/not aligned
-  const mappedAlignments = alignments.filter((a: any) => {
+  const mappedAlignments = alignments.filter((a: QualitativeGoalAlignment) => {
     const hasContributing = a.contributingAttributes && a.contributingAttributes.length > 0;
     return hasContributing;
   });
-  const alignedGoals = mappedAlignments.filter((a: any) => a.isAligned);
-  const notAlignedGoals = mappedAlignments.filter((a: any) => !a.isAligned);
+  const alignedGoals = mappedAlignments.filter((a) => a.isAligned);
+  const notAlignedGoals = mappedAlignments.filter((a) => !a.isAligned);
   // Unmapped goals: user goals not present in mappedAlignments
   const unmappedGoals = goals.filter(goal =>
-    !mappedAlignments.some((a: any) => a.goalId === goal.id)
+    !mappedAlignments.some((a) => a.goalId === goal.id)
   );
 
-  const renderGoalCard = (alignment: any) => {
-    const goal = goals.find((g: any) => g.id === alignment.goalId);
+  const renderGoalCard = (alignment: QualitativeGoalAlignment) => {
+    const goal = goals.find((g) => g.id === alignment.goalId);
     return (
       <div 
         key={alignment.goalId} 
@@ -42,24 +50,24 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
             <div className="font-semibold text-sm mb-1">
               {goal ? goal.name : alignment.goalName}
             </div>
-            <div className="text-xs text-muted-foreground mb-2">
-              Score: {Math.round(alignment.alignmentScore)} / 100
+            <div className="text-sm text-muted-foreground">
+              Score: {alignment.alignmentScore} / 100
             </div>
             {alignment.contributingAttributes && alignment.contributingAttributes.length > 0 && (
               <div className="text-xs text-muted-foreground">
                 <div className="font-medium mb-1">Contributing Attributes:</div>
                 <ul className="list-disc ml-4 space-y-0.5">
-                  {alignment.contributingAttributes.map((attr: any) => {
-                    // Prefer conceptName from calculation results, then scenario attribute text, then ID
+                  {alignment.contributingAttributes.map((attr) => {
+                    // Prefer scenario attribute text, then ID
                     const scenarioAttribute = results.scenario?.scenarioSpecificAttributes?.find(
-                      (a: any) => a.id === attr.attributeId
+                      (a) => a.id === attr.attributeId
                     );
-                    const name = attr.conceptName || scenarioAttribute?.text || attr.attributeId;
+                    const name = scenarioAttribute?.text || attr.attributeId;
                     return (
                       <li key={attr.attributeId} className="flex items-center gap-1">
                         <span>{name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({Math.round(attr.contribution)}%)
+                        <span className="text-sm text-muted-foreground">
+                          ({attr.contribution}% of {attr.maxPossiblePercent}%)
                         </span>
                       </li>
                     );
@@ -75,7 +83,15 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
 
   return (
     <div className="border rounded-lg p-4 mb-2">
-      <h2 className="text-lg font-semibold mb-4">Qualitative Assessment</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Qualitative Assessment</h2>
+        <ScoreBreakdownDialog
+          score={results.qualitativeFitScore}
+          attributes={attributes}
+          goals={goals}
+          goalAlignments={alignments}
+        />
+      </div>
       
       {alignments.length === 0 ? (
         <div className="text-muted-foreground">No qualitative goals or alignments.</div>

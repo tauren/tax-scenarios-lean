@@ -145,7 +145,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                           </div>
                           <div className="flex items-center gap-2">
                             <span className={`text-lg font-medium ${getScoreColor(alignment.alignmentScore)}`}>
-                              {Math.round(alignment.alignmentScore)}%
+                              {alignment.alignmentScore}%
                             </span>
                             <span className={`rounded-full py-1 text-xs font-medium ${badge.className}`}>
                               {badge.label}
@@ -158,7 +158,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                           <div className="mt-4 space-y-2">
                             <h5 className="text-sm font-medium text-gray-700">Contributing Attributes</h5>
                             <div className="space-y-2">
-                              {alignment.contributingAttributes.map((attr: { attributeId: string; contribution: number }) => {
+                              {alignment.contributingAttributes.map((attr) => {
                                 const attribute = attributes.find(a => a.id === attr.attributeId);
                                 if (!attribute) return null;
 
@@ -176,12 +176,11 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                                         </div>
                                       </div>
                                       <div className="text-right">
-                                        <div className="text-sm font-medium">
-                                          Contribution: {Math.round(attr.contribution)}%
+                                        <div className="text-sm text-muted-foreground">
+                                          Contribution: {attr.contribution}%
                                         </div>
-                                        <div className="text-xs text-gray-500">
-                                          Base: {Math.round(getSentimentValue(attribute.sentiment) * 100)}%
-                                          × Weight: {getSignificanceValue(attribute.significance)}
+                                        <div className="text-sm text-muted-foreground">
+                                          Max Possible: {attr.maxPossiblePercent}%
                                         </div>
                                       </div>
                                     </div>

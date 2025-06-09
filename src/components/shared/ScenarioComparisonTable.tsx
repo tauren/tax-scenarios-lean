@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ArrowUpDown, ArrowUp, ArrowDown, Target, CheckCircle2, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import type { QualitativeGoalAlignment } from '@/types';
+import type { QualitativeGoalAlignment } from '@/types/qualitative';
 
 interface ScenarioComparisonTableProps {
   selectedScenarioIds: Set<string>;
@@ -240,11 +240,11 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
         <Table style={{ tableLayout: 'fixed', width: '100%' }}>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[150px] max-w-[150px] break-words">Goal</TableHead>
+              <TableHead className="w-[200px] max-w-[200px] truncate">Goal</TableHead>
               {selectedScenariosData.map((scenario) => (
-                <TableHead key={scenario.id} className="w-auto">
-                  <div className="flex items-center gap-2">
-                    <span className="line-clamp-2 break-words">{scenario.name}</span>
+                <TableHead key={scenario.id} className="w-[160px] max-w-[160px] text-center truncate">
+                  <div className="flex items-center justify-center gap-2 w-full truncate">
+                    <span className="truncate max-w-[110px]">{scenario.name}</span>
                     {scenario.id === scenarios[0]?.id && (
                       <TooltipProvider>
                         <Tooltip>
@@ -270,7 +270,7 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
 
               return (
                 <TableRow key={goalId}>
-                  <TableCell className="font-medium w-[150px] max-w-[150px] break-words">
+                  <TableCell className="font-medium w-[200px] max-w-[200px] truncate overflow-hidden text-ellipsis align-middle">
                     {firstAlignment.goalName}
                   </TableCell>
                   {selectedScenariosData.map((scenario) => {
@@ -278,8 +278,8 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
                     if (!alignment) return <TableCell key={scenario.id} />;
 
                     return (
-                      <TableCell key={scenario.id} className="text-center">
-                        <div className="flex items-center justify-center gap-2">
+                      <TableCell key={scenario.id} className="text-center w-[160px] max-w-[160px] align-middle">
+                        <div className="flex items-center justify-center gap-2 w-full">
                           {alignment.isAligned ? (
                             <CheckCircle2 className="h-4 w-4 text-green-600" />
                           ) : (

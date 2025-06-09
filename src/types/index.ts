@@ -1,3 +1,5 @@
+import type { QualitativeGoalAlignment } from '@/types/qualitative';
+
 /**
  * Core application state representing the active plan.
  */
@@ -256,17 +258,4 @@ export interface ScenarioQualitativeAttribute {
   sentiment: "Positive" | "Negative" | "Neutral";
   significance: "Low" | "Medium" | "High" | "Critical";
   mappedGoalId?: string;
-}
-
-export interface QualitativeGoalAlignment {
-  goalId: string;
-  goalName: string;
-  isAligned: boolean;
-  alignmentScore: number;
-  contributingAttributes: {
-    attributeId: string;
-    conceptName: string;
-    statementText?: string;
-    contribution: number;
-  }[];
 }
