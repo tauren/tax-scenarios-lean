@@ -6,6 +6,7 @@ import { ScenarioEditorView } from "@/views/ScenarioEditorView";
 import { ScenarioHubView } from "@/views/ScenarioHubView";
 import { PlanOverview } from "@/views/PlanOverview";
 import PersonalGoalsManagementView from "@/views/PersonalGoalsManagementView";
+import ScenarioDetailView from '../views/ScenarioDetailView';
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
       {
         path: 'scenarios/:id/edit',
         element: <ScenarioEditorView />,
+      },
+      {
+        path: 'scenarios/:id/view',
+        element: <ScenarioDetailView />,
       },
       {
         path: 'personal-goals',

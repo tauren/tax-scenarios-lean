@@ -177,7 +177,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                                       </div>
                                       <div className="text-right">
                                         <div className="text-sm font-medium">
-                                          Contribution: {Math.round(attr.contribution * 100)}%
+                                          Contribution: {Math.round(attr.contribution)}%
                                         </div>
                                         <div className="text-xs text-gray-500">
                                           Base: {Math.round(getSentimentValue(attribute.sentiment) * 100)}%

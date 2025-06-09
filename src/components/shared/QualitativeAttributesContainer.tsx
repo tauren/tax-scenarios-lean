@@ -8,13 +8,38 @@ import type { ScenarioQualitativeAttribute } from '@/types';
 import type { WeightOption } from './WeightSelector';
 import { QualitativeFitScoreDisplay } from './QualitativeFitScoreDisplay';
 import type { QualitativeGoalAlignment } from '@/types/qualitative';
-import { getScoreColor, getBadgeStyle } from '@/utils/scoreColors';
-import { Flag } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
   disabled?: boolean;
+}
+
+// Utility functions for normalization
+function getSentimentValue(sentiment: string): number {
+  switch (sentiment) {
+    case 'Positive': return 1;
+    case 'Negative': return -1;
+    case 'Neutral':
+    default: return 0;
+  }
+}
+function getSignificanceValue(significance: string): number {
+  switch (significance) {
+    case 'Critical': return 1;
+    case 'High': return 0.75;
+    case 'Medium': return 0.5;
+    case 'Low':
+    default: return 0.25;
+  }
+}
+function getWeightValue(weight: string): number {
+  switch (weight) {
+    case 'Critical': return 1;
+    case 'High': return 0.75;
+    case 'Medium': return 0.5;
+    case 'Low':
+    default: return 0.25;
+  }
 }
 
 export function QualitativeAttributesContainer({
@@ -25,6 +50,7 @@ export function QualitativeAttributesContainer({
   const scenario = scenarios.find(s => s.id === scenarioId);
   const attributes = scenario?.scenarioSpecificAttributes || [];
 
+  // console.log(JSON.stringify(attributes, null, 2));
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMappingDialogOpen, setIsMappingDialogOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<ScenarioQualitativeAttribute | null>(null);
@@ -90,9 +116,22 @@ export function QualitativeAttributesContainer({
         totalScore += attributeScore;
         totalWeight += goalWeight;
 
+        // Calculate totalRaw for normalization (sum of absolute values)
+        const totalRaw = goalAttributes.reduce((sum, attr) => {
+          const sentimentValue = getSentimentValue(attr.sentiment);
+          const significanceValue = getSignificanceValue(attr.significance);
+          const goalWeight = getWeightValue(goal.weight);
+          const attributeScore = sentimentValue * significanceValue * goalWeight;
+          return sum + Math.abs(attributeScore);
+        }, 0);
+
+        // Calculate maxPossiblePercent for this attribute (signed)
+        const maxPossiblePercent = goalWeight > 0 ? (attributeScore / (goalWeight * 1 * 1)) * 100 : 0;
+
         return {
           attributeId: attr.id,
-          contribution: attributeScore / (totalWeight || 1)
+          contribution: totalRaw > 0 ? (attributeScore / totalRaw) * 100 : 0,
+          maxPossiblePercent
         };
       });
 

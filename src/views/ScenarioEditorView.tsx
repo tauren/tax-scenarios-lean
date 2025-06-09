@@ -472,6 +472,11 @@ export function ScenarioEditorView() {
           <Button variant="outline" onClick={() => navigate('/scenarios')}>
             Cancel
           </Button>
+          {!isCreating && (
+            <Button variant="secondary" onClick={() => navigate(`/scenarios/${id}/view`)}>
+              View Scenario
+            </Button>
+          )}
           <Button onClick={handleSave} disabled={hasErrors}>
             {isCreating ? 'Create Scenario' : 'Save Changes'}
           </Button>

@@ -2,10 +2,12 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import { useCalculationState } from '@/store/calculationStateSlice';
 import { Layers, BadgeCheck, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
+import { useNavigate } from 'react-router-dom';
 
 export function ScenarioSummaryDashboard() {
   const { scenarios } = useUserAppState();
   const { resultsByScenario } = useCalculationState();
+  const navigate = useNavigate();
 
   // Find scenario with best qualitative fit
   const bestQualitativeFitScenario = scenarios.reduce((best, s) => {
@@ -40,7 +42,10 @@ export function ScenarioSummaryDashboard() {
         <span className="text-3xl font-bold text-primary">{scenarios.length}</span>
       </div>
       {/* Best Qualitative Fit */}
-      <div className="flex-1 bg-white rounded-lg shadow p-4 flex flex-col items-center min-w-[180px]">
+      <div 
+        className="flex-1 bg-white rounded-lg shadow p-4 flex flex-col items-center min-w-[180px] cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={() => bestQualitativeFitScenario && navigate(`/scenarios/${bestQualitativeFitScenario.id}/view`)}
+      >
         <BadgeCheck className="h-6 w-6 text-muted-foreground mb-2" />
         <span className="text-sm text-muted-foreground">Best Qualitative Fit</span>
         <span className="text-lg font-bold">{bestQualitativeFitScenario?.name || '—'}</span>
@@ -53,7 +58,10 @@ export function ScenarioSummaryDashboard() {
         </div>
       </div>
       {/* Best Net Outcome */}
-      <div className="flex-1 bg-white rounded-lg shadow p-4 flex flex-col items-center min-w-[180px]">
+      <div 
+        className="flex-1 bg-white rounded-lg shadow p-4 flex flex-col items-center min-w-[180px] cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={() => bestNetOutcomeScenario && navigate(`/scenarios/${bestNetOutcomeScenario.id}/view`)}
+      >
         <TrendingUp className="h-6 w-6 text-muted-foreground mb-2" />
         <span className="text-sm text-muted-foreground">Best Net Outcome</span>
         <span className="text-lg font-bold">{bestNetOutcomeScenario?.name || '—'}</span>

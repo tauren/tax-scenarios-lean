@@ -133,7 +133,7 @@ export function ScenarioHubView() {
                 }}
                 isSelectedForCompare={selectedScenarioIds.includes(scenario.id)}
                 onToggleSelection={handleScenarioSelection}
-                onViewDetails={(id) => navigate(`/scenarios/${id}`)}
+                onViewDetails={(id) => navigate(`/scenarios/${id}/view`)}
                 onEdit={(id) => navigate(`/scenarios/${id}/edit`)}
                 onDuplicate={handleDuplicateScenario}
                 onDelete={handleDeleteClick}

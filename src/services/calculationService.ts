@@ -75,7 +75,7 @@ export const calculateScenarioResults = (
   return {
     yearlyProjections,
     totalNetFinancialOutcomeOverPeriod,
-    qualitativeFitScore: score,
+    qualitativeFitScore: Math.round(score),
     qualitativeScoreDetails: details,
     goalAlignments
   };
@@ -249,25 +249,34 @@ export const calculateQualitativeFitScore = (
 
     // Calculate contribution for this goal
     let goalContribution = 0;
+    const rawContributions = [];
     const contributingAttributes = [];
 
     for (const attr of mappedAttributes) {
-      // Skip neutral or insignificant attributes
-      if (attr.sentiment === "Neutral" || attr.significance === "Low") continue;
-
       // Convert sentiment and significance to numeric values
       const sentimentValue = getSentimentValue(attr.sentiment);
       const significanceValue = getSignificanceValue(attr.significance);
-
-      // Calculate attribute's contribution
+      // Calculate attribute's contribution (always include, even if zero)
       const attributeContribution = sentimentValue * significanceValue * goalWeight;
       goalContribution += attributeContribution;
-
-      // Track contributing attributes
-      contributingAttributes.push({
+      // Track raw contributions for normalization (always include)
+      rawContributions.push({
         attributeId: attr.id,
-        conceptName: attr.text, // Use the attribute text as the concept name
-        contribution: attributeContribution
+        conceptName: attr.text,
+        raw: Math.abs(attributeContribution),
+        signed: attributeContribution,
+        maxPossiblePercent: goalWeight > 0 ? (attributeContribution / (goalWeight * 1 * 1)) * 100 : 0
+      });
+    }
+
+    // Normalize contributions to percentages (signed)
+    const totalRaw = rawContributions.reduce((sum, c) => sum + Math.abs(c.signed), 0);
+    for (const c of rawContributions) {
+      contributingAttributes.push({
+        attributeId: c.attributeId,
+        conceptName: c.conceptName,
+        contribution: totalRaw > 0 ? (c.signed / totalRaw) * 100 : 0,
+        maxPossiblePercent: c.maxPossiblePercent
       });
     }
 

@@ -37,5 +37,6 @@ export interface QualitativeGoalAlignment {
   contributingAttributes: Array<{
     attributeId: string;
     contribution: number;
+    maxPossiblePercent: number;
   }>;
 } 

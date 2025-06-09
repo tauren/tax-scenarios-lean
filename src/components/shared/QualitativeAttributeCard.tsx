@@ -57,13 +57,15 @@ export function QualitativeAttributeCard({
   let contribution: number | undefined = undefined;
   let contributionColor: string | undefined = undefined;
   let contributionBadge: { label: string; className: string } | undefined = undefined;
+  let maxPossiblePercent: number | undefined = undefined;
   if (attribute.mappedGoalId) {
     const alignment = goalAlignments.find(a => a.goalId === attribute.mappedGoalId);
     const contrib = alignment?.contributingAttributes.find(ca => ca.attributeId === attribute.id);
     if (contrib) {
-      contribution = contrib.contribution * 100;
+      contribution = contrib.contribution;
       contributionColor = getScoreColor(contribution);
       contributionBadge = getBadgeStyle(contribution);
+      maxPossiblePercent = contrib.maxPossiblePercent;
     }
   }
 
@@ -176,10 +178,28 @@ export function QualitativeAttributeCard({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`font-semibold ${contributionColor ?? ''} cursor-help`}>{contribution > 0 ? '+' : ''}{Math.round(contribution)}%</span>
+                      <span className={`font-semibold ${contributionColor ?? ''} cursor-help`}>
+                        {contribution > 0 ? '+' : ''}{Math.round(contribution)}% 
+                        <span className="text-xs text-muted-foreground ml-1">(of total)</span>
+                      </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      This attribute contributed {contribution > 0 ? '+' : ''}{Math.round(contribution)}% to the alignment score for this goal.
+                      This attribute contributed {contribution > 0 ? '+' : ''}{Math.round(contribution)}% of the total contribution for this goal.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {typeof maxPossiblePercent === 'number' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={`font-semibold text-blue-700 cursor-help ml-3`}>
+                        {maxPossiblePercent > 0 ? '+' : ''}{Math.round(maxPossiblePercent)}% 
+                        <span className="text-xs text-muted-foreground ml-1">(of max)</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      This attribute contributed {maxPossiblePercent > 0 ? '+' : ''}{Math.round(maxPossiblePercent)}% of the maximum possible alignment for this goal.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
