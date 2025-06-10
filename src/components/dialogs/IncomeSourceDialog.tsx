@@ -14,7 +14,6 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
-import { v4 as uuidv4 } from 'uuid';
 import { dateService } from '@/services/dateService';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
@@ -22,9 +21,9 @@ type DialogMode = 'add' | 'edit' | 'duplicate';
 interface IncomeSourceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  incomeSource?: IncomeSource;
+  incomeSource?: IncomeSource | Omit<IncomeSource, 'id'>;
   mode?: DialogMode;
-  onSave: (incomeSource: IncomeSource) => void;
+  onSave: (incomeSource: Omit<IncomeSource, 'id'>) => void;
 }
 
 export function IncomeSourceDialog({ 
@@ -34,7 +33,7 @@ export function IncomeSourceDialog({
   mode = 'add',
   onSave 
 }: IncomeSourceDialogProps) {
-  const [formData, setFormData] = useState<Partial<IncomeSource>>({
+  const [formData, setFormData] = useState<Omit<IncomeSource, 'id'>>({
     name: '',
     type: 'EMPLOYMENT',
     annualAmount: 0,
@@ -47,10 +46,11 @@ export function IncomeSourceDialog({
   useEffect(() => {
     if (open) {
       if (incomeSource) {
+        const sourceData = 'id' in incomeSource ? { ...incomeSource, id: undefined } : incomeSource;
         setFormData({
-          ...incomeSource,
-          startYear: incomeSource.startYear || dateService.getCurrentYear(),
-          endYear: incomeSource.endYear || undefined,
+          ...sourceData,
+          startYear: sourceData.startYear || dateService.getCurrentYear(),
+          endYear: sourceData.endYear || undefined,
         });
       } else {
         setFormData({
@@ -131,8 +131,7 @@ export function IncomeSourceDialog({
   const handleSave = () => {
     if (!validateForm()) return;
 
-    const incomeSourceToSave: IncomeSource = {
-      id: incomeSource?.id || uuidv4(),
+    const incomeSourceToSave: Omit<IncomeSource, 'id'> = {
       name: formData.name || '',
       type: formData.type || 'EMPLOYMENT',
       annualAmount: formData.annualAmount || 0,

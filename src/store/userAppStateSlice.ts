@@ -199,19 +199,23 @@ export const useUserAppState = create<UserAppStateSlice>()(
       setSelectedScenarioIds: (ids: string[]) => set({ selectedScenarioIds: ids }),
 
       // Income Source Actions
-      addIncomeSource: (scenarioId: string, incomeSource: IncomeSource) => set((state) => {
-        const scenario = findAndValidateScenario(state, scenarioId);
-        if (!scenario) return state;
+      addIncomeSource: (scenarioId: string, incomeSource: Omit<IncomeSource, 'id'>): IncomeSource => {
+        const newIncomeSource = { ...incomeSource, id: uuid() };
+        set((state) => {
+          const scenario = findAndValidateScenario(state, scenarioId);
+          if (!scenario) return state;
 
-        const updatedScenario = {
-          ...scenario,
-          incomeSources: [...scenario.incomeSources, { ...incomeSource, id: uuid() }]
-        };
+          const updatedScenario = {
+            ...scenario,
+            incomeSources: [...scenario.incomeSources, newIncomeSource]
+          };
 
-        return {
-          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
-        };
-      }),
+          return {
+            scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+          };
+        });
+        return newIncomeSource;
+      },
 
       updateIncomeSource: (scenarioId: string, incomeSourceId: string, updatedIncomeSource: Partial<IncomeSource>) => set((state) => {
         const scenario = findAndValidateScenario(state, scenarioId);
@@ -220,7 +224,9 @@ export const useUserAppState = create<UserAppStateSlice>()(
         const updatedScenario = {
           ...scenario,
           incomeSources: scenario.incomeSources.map(source =>
-            source.id === incomeSourceId ? { ...source, ...updatedIncomeSource } : source
+            source.id === incomeSourceId
+              ? { ...source, ...updatedIncomeSource }
+              : source
           )
         };
 
@@ -244,34 +250,38 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       // Expense Actions
-      addExpense: (scenarioId: string, expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
-        if (!scenario) return state;
+      addExpense: (scenarioId: string, expense: Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'>, type: 'annual' | 'oneTime'): AnnualExpense | OneTimeExpense => {
+        const newExpense = { ...expense, id: uuid() };
+        set((state) => {
+          const scenario = findAndValidateScenario(state, scenarioId);
+          if (!scenario) return state;
 
-        const updatedScenario = { ...scenario };
-        if (type === 'annual') {
-          updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), { ...expense as AnnualExpense, id: uuid() }];
-        } else {
-          updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), { ...expense as OneTimeExpense, id: uuid() }];
-        }
+          const updatedScenario = { ...scenario };
+          if (type === 'annual') {
+            updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), newExpense as AnnualExpense];
+          } else {
+            updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), newExpense as OneTimeExpense];
+          }
 
-        return {
-          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
-        };
-      }),
+          return {
+            scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+          };
+        });
+        return newExpense;
+      },
 
       updateExpense: (scenarioId: string, expenseId: string, updatedExpense: Partial<AnnualExpense | OneTimeExpense>, type: 'annual' | 'oneTime') => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = { ...scenario };
         if (type === 'annual') {
-          updatedScenario.annualExpenses = scenario.annualExpenses.map(expense =>
-            expense.id === expenseId ? { ...expense, ...updatedExpense } : expense
+          updatedScenario.annualExpenses = (scenario.annualExpenses || []).map(e => 
+            e.id === expenseId ? { ...e, ...updatedExpense } : e
           );
         } else {
-          updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses.map(expense =>
-            expense.id === expenseId ? { ...expense, ...updatedExpense } : expense
+          updatedScenario.oneTimeExpenses = (scenario.oneTimeExpenses || []).map(e => 
+            e.id === expenseId ? { ...e, ...updatedExpense } : e
           );
         }
 
@@ -297,28 +307,32 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       // Asset Sale Actions
-      addPlannedAssetSale: (scenarioId: string, sale: PlannedAssetSale) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
-        if (!scenario) return state;
+      addPlannedAssetSale: (scenarioId: string, sale: Omit<PlannedAssetSale, 'id'>): PlannedAssetSale => {
+        const newSale = { ...sale, id: uuid() };
+        set((state) => {
+          const scenario = findAndValidateScenario(state, scenarioId);
+          if (!scenario) return state;
 
-        const updatedScenario = {
-          ...scenario,
-          plannedAssetSales: [...(scenario.plannedAssetSales || []), { ...sale, id: uuid() }]
-        };
+          const updatedScenario = {
+            ...scenario,
+            plannedAssetSales: [...(scenario.plannedAssetSales || []), newSale]
+          };
 
-        return {
-          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
-        };
-      }),
+          return {
+            scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+          };
+        });
+        return newSale;
+      },
 
       updatePlannedAssetSale: (scenarioId: string, saleId: string, updatedSale: Partial<PlannedAssetSale>) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = {
           ...scenario,
-          plannedAssetSales: scenario.plannedAssetSales.map(sale =>
-            sale.id === saleId ? { ...sale, ...updatedSale } : sale
+          plannedAssetSales: (scenario.plannedAssetSales || []).map(s => 
+            s.id === saleId ? { ...s, ...updatedSale } : s
           )
         };
 

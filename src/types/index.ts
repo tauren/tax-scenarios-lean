@@ -39,17 +39,17 @@ export interface UserAppStateSlice extends UserAppState {
   deleteScenarioAttribute: (scenarioId: string, attributeId: string) => void;
 
   // Scenario Income Source Actions
-  addIncomeSource: (scenarioId: string, incomeSource: IncomeSource) => void;
+  addIncomeSource: (scenarioId: string, incomeSource: Omit<IncomeSource, 'id'>) => IncomeSource;
   updateIncomeSource: (scenarioId: string, incomeSourceId: string, updatedIncomeSource: Partial<IncomeSource>) => void;
   removeIncomeSource: (scenarioId: string, incomeSourceId: string) => void;
 
   // Scenario Expense Actions
-  addExpense: (scenarioId: string, expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => void;
+  addExpense: (scenarioId: string, expense: Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'>, type: 'annual' | 'oneTime') => AnnualExpense | OneTimeExpense;
   updateExpense: (scenarioId: string, expenseId: string, updatedExpense: Partial<AnnualExpense | OneTimeExpense>, type: 'annual' | 'oneTime') => void;
   removeExpense: (scenarioId: string, expenseId: string, type: 'annual' | 'oneTime') => void;
 
   // Scenario Asset Sale Actions
-  addPlannedAssetSale: (scenarioId: string, sale: PlannedAssetSale) => void;
+  addPlannedAssetSale: (scenarioId: string, sale: Omit<PlannedAssetSale, 'id'>) => PlannedAssetSale;
   updatePlannedAssetSale: (scenarioId: string, saleId: string, updatedSale: Partial<PlannedAssetSale>) => void;
   removePlannedAssetSale: (scenarioId: string, saleId: string) => void;
 

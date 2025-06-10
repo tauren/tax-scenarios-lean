@@ -8,48 +8,56 @@ import QualitativeAssessmentPanel from '../components/scenario-detail/Qualitativ
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { useCalculationState } from '@/store/calculationStateSlice';
 import { calculateScenarioResults } from '@/services/calculationService';
-import type { Scenario, ScenarioResults } from '@/types';
+import type { ScenarioResults } from '@/types';
 
 const ScenarioDetailView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { scenarios, userQualitativeGoals, initialAssets } = useUserAppState();
-  const { resultsByScenario, setScenarioResults } = useCalculationState();
-
+  const { setScenarioResults } = useCalculationState();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [scenario, setScenario] = useState<Scenario | null>(null);
-  const [results, setResults] = useState<ScenarioResults | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get scenario directly from store
+  const scenario = scenarios.find(s => s.id === id) || null;
+  
+  // Get or calculate results
+  const [results, setLocalResults] = useState<ScenarioResults | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(false);
-    const foundScenario = scenarios.find(s => s.id === id) || null;
-    let foundResults = resultsByScenario[id] || null;
-    // If results are missing but scenario exists, recalculate and set
-    if (foundScenario && !foundResults) {
-      try {
-        foundResults = calculateScenarioResults(foundScenario, initialAssets, userQualitativeGoals);
-        setScenarioResults(id, foundResults);
-      } catch (e) {
-        setError(true);
-        setLoading(false);
-        return;
-      }
-    }
-    if (!foundScenario || !foundResults) {
-      setError(true);
+    if (!id) {
+      setError('Invalid scenario ID');
       setLoading(false);
       return;
     }
-    setScenario(foundScenario);
-    setResults(foundResults);
-    setLoading(false);
-  }, [id, scenarios, resultsByScenario, userQualitativeGoals, initialAssets, setScenarioResults]);
 
-  if (loading) return <div className="p-8 text-center">Loading scenario...</div>;
-  if (error || !scenario || !results) return <div className="p-8 text-center text-destructive">Scenario not found or failed to load.</div>;
+    if (!scenario) {
+      setError('Scenario not found');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Always recalculate results when scenario changes
+      const calculatedResults = calculateScenarioResults(scenario, initialAssets, userQualitativeGoals);
+      setScenarioResults(id, calculatedResults);
+      setLocalResults(calculatedResults);
+      setError(null);
+    } catch (e) {
+      setError('Failed to calculate scenario results');
+      console.error('Error calculating scenario results:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, scenario, initialAssets, userQualitativeGoals, setScenarioResults]);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading scenario...</div>;
+  }
+
+  if (error || !scenario || !results) {
+    return <div className="p-8 text-center text-destructive">{error || 'Scenario not found or failed to load.'}</div>;
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">

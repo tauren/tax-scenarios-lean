@@ -5,14 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormField } from '@/components/shared/FormField';
 import type { PlannedAssetSale, Asset } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
 import { dateService } from '@/services/dateService';
 
 interface PlannedAssetSaleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (sale: PlannedAssetSale) => void;
-  sale?: PlannedAssetSale;
+  onSave: (sale: Omit<PlannedAssetSale, 'id'>) => void;
+  sale?: PlannedAssetSale | Omit<PlannedAssetSale, 'id'>;
   mode: 'add' | 'edit' | 'duplicate';
   assets: Asset[];
   projectionPeriod: number;
@@ -128,8 +127,7 @@ export function PlannedAssetSaleDialog({
       return;
     }
 
-    const saleToSave: PlannedAssetSale = {
-      id: sale?.id || uuidv4(),
+    const saleToSave: Omit<PlannedAssetSale, 'id'> = {
       assetId: formData.assetId,
       quantity: Number(formData.quantity),
       year: Number(formData.year),

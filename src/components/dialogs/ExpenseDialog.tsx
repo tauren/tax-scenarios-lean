@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from "@/lib/utils"
-import { v4 as uuidv4 } from 'uuid';
 import { dateService } from '@/services/dateService';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
@@ -37,10 +36,10 @@ type DialogMode = 'add' | 'edit' | 'duplicate';
 interface ExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  expense?: AnnualExpense | OneTimeExpense;
+  expense?: AnnualExpense | OneTimeExpense | Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'>;
   type: 'annual' | 'oneTime';
   mode?: DialogMode;
-  onSave: (expense: AnnualExpense | OneTimeExpense) => void;
+  onSave: (expense: Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'>) => void;
 }
 
 interface FormData {
@@ -143,16 +142,14 @@ export function ExpenseDialog({
 
     const expenseToSave = type === 'annual' 
       ? {
-          id: expense?.id || uuidv4(),
           name: formData.name || '',
           amount: Number(formData.amount) || 0,
-        } as AnnualExpense
+        } as Omit<AnnualExpense, 'id'>
       : {
-          id: expense?.id || uuidv4(),
           name: formData.name || '',
           amount: Number(formData.amount) || 0,
           year: formData.year || dateService.getCurrentYear(),
-        } as OneTimeExpense;
+        } as Omit<OneTimeExpense, 'id'>;
 
     onSave(expenseToSave);
     onOpenChange(false);

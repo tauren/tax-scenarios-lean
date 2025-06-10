@@ -148,9 +148,9 @@ export function ScenarioEditorView() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isPlannedAssetSaleDialogOpen, setIsPlannedAssetSaleDialogOpen] = useState(false);
   const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
-  const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | undefined>();
-  const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | undefined>();
-  const [editingPlannedAssetSale, setEditingPlannedAssetSale] = useState<PlannedAssetSale | undefined>();
+  const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSource | Omit<IncomeSource, 'id'> | undefined>();
+  const [editingExpense, setEditingExpense] = useState<AnnualExpense | OneTimeExpense | Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'> | undefined>();
+  const [editingPlannedAssetSale, setEditingPlannedAssetSale] = useState<PlannedAssetSale | Omit<PlannedAssetSale, 'id'> | undefined>();
   const [expenseType, setExpenseType] = useState<'annual' | 'oneTime'>('annual');
   const [incomeSourceView, setIncomeSourceView] = useState<'card' | 'table'>('card');
   const [annualExpenseView, setAnnualExpenseView] = useState<'card' | 'table'>('card');
@@ -196,11 +196,11 @@ export function ScenarioEditorView() {
     updateScenario(id, updatedScenario);
   };
 
-  const handleIncomeSourceSave = (incomeSource: IncomeSource) => {
+  const handleIncomeSourceSave = (incomeSource: Omit<IncomeSource, 'id'>) => {
     if (!id) return;
     
-    if (incomeSource.id) {
-      updateIncomeSource(id, incomeSource.id, incomeSource);
+    if (editingIncomeSource && 'id' in editingIncomeSource) {
+      updateIncomeSource(id, editingIncomeSource.id, incomeSource);
     } else {
       addIncomeSource(id, incomeSource);
     }
@@ -212,14 +212,16 @@ export function ScenarioEditorView() {
     removeIncomeSource(id, incomeSourceId);
   };
 
-  const handleExpenseSave = (expense: AnnualExpense | OneTimeExpense) => {
+  const handleExpenseSave = (expense: Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'>, type: 'annual' | 'oneTime') => {
     if (!id) return;
     
-    if (expense.id) {
-      updateExpense(id, expense.id, expense, expenseType);
+    if (editingExpense && 'id' in editingExpense) {
+      const updatedExpense = { ...expense, id: editingExpense.id };
+      updateExpense(id, editingExpense.id, updatedExpense, type);
     } else {
-      addExpense(id, expense, expenseType);
+      addExpense(id, expense, type);
     }
+    setEditingExpense(undefined);
     setIsExpenseDialogOpen(false);
   };
 
@@ -246,14 +248,14 @@ export function ScenarioEditorView() {
   };
 
   const duplicateIncomeSource = (incomeSource: IncomeSource) => {
-    const duplicatedSource = { ...incomeSource, id: uuidv4() };
-    setEditingIncomeSource(duplicatedSource);
+    const { id, ...incomeSourceWithoutId } = incomeSource;
+    setEditingIncomeSource(incomeSourceWithoutId);
     setIsIncomeSourceDialogOpen(true);
   };
 
   const duplicateExpense = (expense: AnnualExpense | OneTimeExpense) => {
-    const duplicatedExpense = { ...expense, id: uuidv4() };
-    setEditingExpense(duplicatedExpense);
+    const { id, ...expenseWithoutId } = expense;
+    setEditingExpense(expenseWithoutId);
     setIsExpenseDialogOpen(true);
   };
 
@@ -304,14 +306,17 @@ export function ScenarioEditorView() {
     setIsCopyDialogOpen(false);
   };
 
-  const handlePlannedAssetSaleSave = (sale: PlannedAssetSale) => {
+  const handlePlannedAssetSaleSave = (sale: Omit<PlannedAssetSale, 'id'>) => {
     if (!id) return;
     
-    if (sale.id) {
-      updatePlannedAssetSale(id, sale.id, sale);
+    if (editingPlannedAssetSale && 'id' in editingPlannedAssetSale) {
+      // For updates, we need to preserve the existing ID
+      const updatedSale = { ...sale, id: editingPlannedAssetSale.id };
+      updatePlannedAssetSale(id, editingPlannedAssetSale.id, updatedSale);
     } else {
       addPlannedAssetSale(id, sale);
     }
+    setEditingPlannedAssetSale(undefined);
     setIsPlannedAssetSaleDialogOpen(false);
   };
 
@@ -331,8 +336,8 @@ export function ScenarioEditorView() {
   };
 
   const duplicatePlannedAssetSale = (sale: PlannedAssetSale) => {
-    const duplicatedSale = { ...sale, id: uuidv4() };
-    setEditingPlannedAssetSale(duplicatedSale);
+    const { id, ...saleWithoutId } = sale;
+    setEditingPlannedAssetSale(saleWithoutId);
     setIsPlannedAssetSaleDialogOpen(true);
   };
 
@@ -359,6 +364,11 @@ export function ScenarioEditorView() {
     // Recalculate and update scenario results
     const results = calculateScenarioResults(updatedScenario, initialAssets, userQualitativeGoals);
     setScenarioResults(id, results);
+  };
+
+  const handlePlannedAssetSaleDialogClose = () => {
+    setIsPlannedAssetSaleDialogOpen(false);
+    setEditingPlannedAssetSale(undefined);
   };
 
   return (
@@ -811,25 +821,25 @@ export function ScenarioEditorView() {
         open={isIncomeSourceDialogOpen}
         onOpenChange={handleIncomeSourceDialogClose}
         incomeSource={editingIncomeSource}
-        mode={!editingIncomeSource ? 'add' : scenario?.incomeSources?.some(s => s.id === editingIncomeSource.id) ? 'edit' : 'duplicate'}
+        mode={!editingIncomeSource ? 'add' : ('id' in editingIncomeSource && scenario?.incomeSources?.some(s => s.id === editingIncomeSource.id)) ? 'edit' : 'duplicate'}
         onSave={handleIncomeSourceSave}
       />
 
       <ExpenseDialog
         open={isExpenseDialogOpen}
         onOpenChange={handleExpenseDialogClose}
+        onSave={(expense) => handleExpenseSave(expense, expenseType)}
         expense={editingExpense}
+        mode={!editingExpense ? 'add' : ('id' in editingExpense && (scenario?.annualExpenses?.some(e => e.id === editingExpense.id) || scenario?.oneTimeExpenses?.some(e => e.id === editingExpense.id))) ? 'edit' : 'duplicate'}
         type={expenseType}
-        mode={!editingExpense ? 'add' : (scenario?.annualExpenses?.some(e => e.id === editingExpense.id) || scenario?.oneTimeExpenses?.some(e => e.id === editingExpense.id)) ? 'edit' : 'duplicate'}
-        onSave={handleExpenseSave}
       />
 
       <PlannedAssetSaleDialog
         open={isPlannedAssetSaleDialogOpen}
-        onOpenChange={setIsPlannedAssetSaleDialogOpen}
+        onOpenChange={handlePlannedAssetSaleDialogClose}
         onSave={handlePlannedAssetSaleSave}
         sale={editingPlannedAssetSale}
-        mode={!editingPlannedAssetSale ? 'add' : scenario?.plannedAssetSales?.some(s => s.id === editingPlannedAssetSale.id) ? 'edit' : 'duplicate'}
+        mode={!editingPlannedAssetSale ? 'add' : ('id' in editingPlannedAssetSale && scenario?.plannedAssetSales?.some(s => s.id === editingPlannedAssetSale.id)) ? 'edit' : 'duplicate'}
         assets={initialAssets}
         projectionPeriod={scenario?.projectionPeriod ?? 0}
       />
