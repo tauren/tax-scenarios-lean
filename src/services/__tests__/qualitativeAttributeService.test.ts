@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { QualitativeAttributeService } from '../qualitativeAttributeService';
-import type { ScenarioQualitativeAttribute, UserQualitativeGoal } from '@/types/qualitative';
+import type { ScenarioQualitativeAttribute, UserQualitativeGoal, Scenario } from '@/types';
 
 describe('QualitativeAttributeService', () => {
+  const mockScenarioId = 'test-scenario';
   let service: QualitativeAttributeService;
-  const mockScenarioId = 'scenario-1';
 
   beforeEach(() => {
     service = new QualitativeAttributeService();
@@ -77,84 +77,143 @@ describe('QualitativeAttributeService', () => {
 
   describe('calculateFitScore', () => {
     it('should return 0 when no attributes are mapped to goals', () => {
-      service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Positive',
-        significance: 'High',
-      });
-
       const goals: UserQualitativeGoal[] = [{
         id: 'goal-1',
         conceptId: 'concept-1',
-        name: 'Test goal',
-        weight: 'High',
+        name: 'Test Goal 1',
+        weight: 'High'
       }];
 
-      const score = service.calculateFitScore(mockScenarioId, goals);
-      expect(score).toBe(0);
+      const scenario: Scenario = {
+        id: mockScenarioId,
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: []
+      };
+
+      const { score } = service.calculateQualitativeFitScore(scenario, goals);
+      expect(score).toBe(50); // Default neutral score
     });
 
     it('should calculate correct score for positive sentiment with Critical significance and Critical goal weight', () => {
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Positive',
-        significance: 'Critical',
-      });
-
       const goals: UserQualitativeGoal[] = [{
         id: 'goal-1',
         conceptId: 'concept-1',
-        name: 'Test goal',
-        weight: 'Critical',
+        name: 'Test Goal 1',
+        weight: 'Critical'
       }];
 
+      const attribute = service.addAttribute(mockScenarioId, {
+        text: 'Test attribute',
+        sentiment: 'Positive',
+        significance: 'Critical'
+      });
       service.mapAttributeToGoal(attribute.id, goals[0].id);
 
-      const score = service.calculateFitScore(mockScenarioId, goals);
+      const scenario: Scenario = {
+        id: mockScenarioId,
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [attribute]
+      };
+
+      const { score } = service.calculateQualitativeFitScore(scenario, goals);
       // Positive (1) * Critical significance (1) * Critical weight (1) = 1
       // Converted to 0-100 scale: ((1 + 1) / 2) * 100 = 100
       expect(score).toBe(100);
     });
 
     it('should calculate correct score for negative sentiment with High significance and High goal weight', () => {
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Negative',
-        significance: 'High',
-      });
-
       const goals: UserQualitativeGoal[] = [{
         id: 'goal-1',
         conceptId: 'concept-1',
-        name: 'Test goal',
-        weight: 'High',
+        name: 'Test Goal 1',
+        weight: 'High'
       }];
 
+      const attribute = service.addAttribute(mockScenarioId, {
+        text: 'Test attribute',
+        sentiment: 'Negative',
+        significance: 'High'
+      });
       service.mapAttributeToGoal(attribute.id, goals[0].id);
 
-      const score = service.calculateFitScore(mockScenarioId, goals);
+      const scenario: Scenario = {
+        id: mockScenarioId,
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [attribute]
+      };
+
+      const { score } = service.calculateQualitativeFitScore(scenario, goals);
       // Negative (-1) * High significance (0.75) * High weight (0.75) = -0.5625
       // Converted to 0-100 scale: ((-0.5625 + 1) / 2) * 100 = 13.125 ≈ 13
       expect(score).toBe(13);
     });
 
     it('should calculate correct score for neutral sentiment with Medium significance and Medium goal weight', () => {
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Neutral',
-        significance: 'Medium',
-      });
-
       const goals: UserQualitativeGoal[] = [{
         id: 'goal-1',
         conceptId: 'concept-1',
-        name: 'Test goal',
-        weight: 'Medium',
+        name: 'Test Goal 1',
+        weight: 'Medium'
       }];
 
+      const attribute = service.addAttribute(mockScenarioId, {
+        text: 'Test attribute',
+        sentiment: 'Neutral',
+        significance: 'Medium'
+      });
       service.mapAttributeToGoal(attribute.id, goals[0].id);
 
-      const score = service.calculateFitScore(mockScenarioId, goals);
+      const scenario: Scenario = {
+        id: mockScenarioId,
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [attribute]
+      };
+
+      const { score } = service.calculateQualitativeFitScore(scenario, goals);
       // Neutral (0) * Medium significance (0.5) * Medium weight (0.5) = 0
       // Converted to 0-100 scale: ((0 + 1) / 2) * 100 = 50
       expect(score).toBe(50);

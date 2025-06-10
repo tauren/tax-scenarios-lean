@@ -65,8 +65,8 @@ describe('QualitativeAttributesContainer', () => {
 
     expect(screen.getByText('Qualitative Attributes')).toBeInTheDocument();
     expect(screen.getByText('Add Attribute')).toBeInTheDocument();
-    expect(screen.getAllByText('Test attribute 1')).toHaveLength(2);
-    expect(screen.getAllByText('Test attribute 2')).toHaveLength(2);
+    expect(screen.getByText('Test attribute 1')).toBeInTheDocument();
+    expect(screen.getByText('Test attribute 2')).toBeInTheDocument();
     expect(screen.getByText('Qualitative Fit Score')).toBeInTheDocument();
   });
 
@@ -103,9 +103,9 @@ describe('QualitativeAttributesContainer', () => {
       />
     );
 
-    // Both attributes should be rendered (they appear in multiple places)
-    expect(screen.getAllByText('Test attribute 1')).toHaveLength(2);
-    expect(screen.getAllByText('Test attribute 2')).toHaveLength(2);
+    // Both attributes should be rendered once
+    expect(screen.getByText('Test attribute 1')).toBeInTheDocument();
+    expect(screen.getByText('Test attribute 2')).toBeInTheDocument();
   });
 
   it('handles empty scenarios gracefully', () => {
