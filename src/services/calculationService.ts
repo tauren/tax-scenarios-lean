@@ -1,7 +1,7 @@
 import type { Scenario, Asset, ScenarioResults, CalculationError, CapitalGainsData, TaxBreakdown } from '@/types';
-import type { UserQualitativeGoal, QualitativeGoalAlignment, ScenarioQualitativeAttribute } from '@/types/qualitative';
+import type { UserQualitativeGoal } from '@/types/qualitative';
 import { dateService } from './dateService';
-import { QualitativeAttributeService } from './qualitativeAttributeService';
+import { QualitativeScoringService } from './qualitativeScoringService';
 
 /**
  * Calculates the results for a given scenario
@@ -60,9 +60,9 @@ export const calculateScenarioResults = (
     totalNetFinancialOutcomeOverPeriod += yearlyProjection.netFinancialOutcome;
   }
 
-  // Calculate qualitative fit score using the service
-  const attributeService = new QualitativeAttributeService(scenario.scenarioSpecificAttributes || []);
-  const { score: qualitativeFitScore, details, goalAlignments } = attributeService.calculateQualitativeFitScore(scenario, userGoals);
+  // Calculate qualitative fit score using the new service
+  const scoringService = new QualitativeScoringService();
+  const { score: qualitativeFitScore, details, goalAlignments } = scoringService.calculateScore(scenario, userGoals);
 
   return {
     yearlyProjections,

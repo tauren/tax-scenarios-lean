@@ -36,7 +36,16 @@ export interface QualitativeGoalAlignment {
   isAligned: boolean;
   contributingAttributes: Array<{
     attributeId: string;
+    conceptName: string;
     contribution: number;
     maxPossiblePercent: number;
   }>;
+}
+
+export interface ScoreComponent {
+  attributeId: string;
+  goalId: string;
+  baseScore: number;
+  weight: number;
+  finalContribution: number;
 } 

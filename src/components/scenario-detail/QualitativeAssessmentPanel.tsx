@@ -58,14 +58,9 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
                 <div className="font-medium mb-1">Contributing Attributes:</div>
                 <ul className="list-disc ml-4 space-y-0.5">
                   {alignment.contributingAttributes.map((attr) => {
-                    // Prefer scenario attribute text, then ID
-                    const scenarioAttribute = results.scenario?.scenarioSpecificAttributes?.find(
-                      (a) => a.id === attr.attributeId
-                    );
-                    const name = scenarioAttribute?.text || attr.attributeId;
                     return (
                       <li key={attr.attributeId} className="flex items-center gap-1">
-                        <span>{name}</span>
+                        <span>{attr.conceptName}</span>
                         <span className="text-sm text-muted-foreground">
                           ({attr.contribution}% of {attr.maxPossiblePercent}%)
                         </span>
