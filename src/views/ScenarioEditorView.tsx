@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useUserAppState } from '@/store/userAppStateSlice';
-import type { Scenario, FormScenario, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale, Asset } from '@/types';
+import type { FormScenario, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale, Asset } from '@/types';
 import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,6 @@ import { CopyItemsDialog } from '@/components/dialogs/CopyItemsDialog';
 import { Section } from '@/components/shared/Section';
 import { FormField } from '@/components/shared/FormField';
 import { ListItemCard } from '@/components/shared/ListItemCard';
-import { deepClone } from '@/utils/clone';
 import { dateService } from '@/services/dateService';
 import { TableList } from '@/components/shared/TableList';
 import { TableListItem } from '@/components/shared/TableListItem';
@@ -99,16 +98,21 @@ const validationRules: ValidationRule[] = [
 ];
 
 export function ScenarioEditorView() {
-  const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addScenario, updateScenario, scenarios, initialAssets, userQualitativeGoals, addIncomeSource, updateIncomeSource, removeIncomeSource, addExpense, updateExpense, removeExpense, addPlannedAssetSale, updatePlannedAssetSale, removePlannedAssetSale } = useUserAppState();
+  const { updateScenario, scenarios, initialAssets, userQualitativeGoals, addIncomeSource, updateIncomeSource, removeIncomeSource, addExpense, updateExpense, removeExpense, addPlannedAssetSale, updatePlannedAssetSale, removePlannedAssetSale } = useUserAppState();
   const { setScenarioResults } = useCalculationState();
   
   // Get the current scenario from the store
   const scenario = scenarios.find(s => s.id === id);
-  const isCreating = id === 'new';
   
+  // If scenario not found, redirect to scenarios list
+  useEffect(() => {
+    if (!scenario) {
+      navigate('/scenarios');
+    }
+  }, [scenario, navigate]);
+
   // Form state for basic fields
   const [formData, setFormData] = useState({
     name: scenario?.name || '',
@@ -155,78 +159,6 @@ export function ScenarioEditorView() {
   const [copyDialogType, setCopyDialogType] = useState<'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale'>('incomeSource');
   const [isQuickAddDialogOpen, setIsQuickAddDialogOpen] = useState(false);
   
-  useEffect(() => {
-    // Check if we're creating a new scenario by checking the pathname
-    const isNewScenario = location.pathname === '/scenarios/new';
-
-    // If we have an ID in the URL, find the scenario
-    if (id && !isNewScenario) {
-      const existingScenario = scenarios.find(s => s.id === id);
-      if (existingScenario) {
-        setFormData({
-          name: existingScenario.name,
-          country: existingScenario.location?.country || '',
-          state: existingScenario.location?.state || '',
-          city: existingScenario.location?.city || '',
-          projectionPeriod: existingScenario.projectionPeriod,
-          residencyStartDate: new Date(existingScenario.residencyStartDate),
-          shortTermRate: existingScenario.tax?.capitalGains?.shortTermRate || 0,
-          longTermRate: existingScenario.tax?.capitalGains?.longTermRate || 0,
-          incomeRate: existingScenario.tax?.incomeRate || 0,
-        });
-      } else {
-        // If scenario not found, redirect to scenarios list
-        navigate('/scenarios');
-      }
-    } else if (isNewScenario) {
-      // If we have a template from the previous view, use it
-      const state = location.state as { template?: Scenario };
-      if (state?.template) {
-        // Deep copy the template scenario
-        const templateCopy = deepClone(state.template);
-        
-        // Create a new scenario from the template
-        const newScenario: FormScenario = {
-          ...templateCopy,
-          id: uuidv4(), // Ensure new ID for new scenario
-          name: templateCopy.name || templateCopy.location.country,
-          projectionPeriod: templateCopy.projectionPeriod,
-          residencyStartDate: dateService.isValidDate(templateCopy.residencyStartDate) 
-            ? templateCopy.residencyStartDate 
-            : new Date(),
-          location: {
-            country: templateCopy.location?.country || '',
-            state: templateCopy.location?.state || '',
-            city: templateCopy.location?.city || '',
-          },
-          tax: {
-            capitalGains: {
-              shortTermRate: templateCopy.tax?.capitalGains?.shortTermRate,
-              longTermRate: templateCopy.tax?.capitalGains?.longTermRate,
-            },
-            incomeRate: templateCopy.tax?.incomeRate
-          },
-          incomeSources: templateCopy.incomeSources ?? [],
-          annualExpenses: templateCopy.annualExpenses ?? [],
-          oneTimeExpenses: templateCopy.oneTimeExpenses ?? [],
-          plannedAssetSales: templateCopy.plannedAssetSales ?? [],
-          scenarioSpecificAttributes: templateCopy.scenarioSpecificAttributes || []
-        };
-        setFormData({
-          name: newScenario.name,
-          country: newScenario.location?.country || '',
-          state: newScenario.location?.state || '',
-          city: newScenario.location?.city || '',
-          projectionPeriod: newScenario.projectionPeriod || 10,
-          residencyStartDate: new Date(newScenario.residencyStartDate),
-          shortTermRate: newScenario.tax?.capitalGains?.shortTermRate || 0,
-          longTermRate: newScenario.tax?.capitalGains?.longTermRate || 0,
-          incomeRate: newScenario.tax?.incomeRate || 0,
-        });
-      }
-    }
-  }, [id, location.state, location.pathname, scenarios, navigate]);
-
   const validateField = (field: ValidationField, value: any): string | undefined => {
     const validationRule = validationRules.find(r => r.field === field);
     if (!validationRule) return undefined;
@@ -241,159 +173,59 @@ export function ScenarioEditorView() {
     const error = validateField(field, value);
     setErrors(prev => ({ ...prev, [field]: error }));
     
-    if (id && id !== 'new' && scenario) {
-      const updatedScenario = {
-        ...scenario,
-        name: formData.name,
-        location: {
-          country: formData.country,
-          state: formData.state,
-          city: formData.city,
-        },
-        projectionPeriod: formData.projectionPeriod,
-        residencyStartDate: formData.residencyStartDate,
-        tax: {
-          capitalGains: {
-            shortTermRate: formData.shortTermRate,
-            longTermRate: formData.longTermRate,
-          },
-          incomeRate: formData.incomeRate,
-        },
-      };
-      updateScenario(id, updatedScenario);
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: ScenarioValidationErrors = {};
+    if (!id) return;
     
-    // Validate each field using the validation rules
-    validationRules.forEach(validationRule => {
-      const value = validationRule.getValue(scenario || {
-        id: '',
-        name: '',
-        projectionPeriod: 1,
-        residencyStartDate: new Date(),
-        location: {
-          country: '',
-          state: '',
-          city: '',
+    const updatedScenario = {
+      ...scenario!,
+      name: formData.name,
+      location: {
+        country: formData.country,
+        state: formData.state,
+        city: formData.city,
+      },
+      projectionPeriod: formData.projectionPeriod,
+      residencyStartDate: formData.residencyStartDate,
+      tax: {
+        capitalGains: {
+          shortTermRate: formData.shortTermRate,
+          longTermRate: formData.longTermRate,
         },
-        tax: {
-          capitalGains: {
-            shortTermRate: 0,
-            longTermRate: 0,
-          },
-          incomeRate: 0,
-        },
-        incomeSources: [],
-        annualExpenses: [],
-        oneTimeExpenses: [],
-        plannedAssetSales: [],
-        scenarioSpecificAttributes: [],
-      });
-      const error = validationRule.validate(value);
-      if (error) {
-        newErrors[validationRule.field] = error;
-      }
-    });
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+        incomeRate: formData.incomeRate,
+      },
+    };
+    updateScenario(id, updatedScenario);
   };
-
-  const hasErrors = Object.keys(errors).length > 0;
-
-  useEffect(() => {
-    validateForm();
-  }, [formData]);
 
   const handleIncomeSourceSave = (incomeSource: IncomeSource) => {
     if (!id) return;
     
-    if (id === 'new') {
-      // Create new scenario first
-      const newScenario = {
-        id: uuidv4(),
-        name: formData.name,
-        location: {
-          country: formData.country,
-          state: formData.state,
-          city: formData.city,
-        },
-        projectionPeriod: formData.projectionPeriod,
-        residencyStartDate: formData.residencyStartDate,
-        tax: {
-          capitalGains: {
-            shortTermRate: formData.shortTermRate,
-            longTermRate: formData.longTermRate,
-          },
-          incomeRate: formData.incomeRate,
-        },
-        incomeSources: [incomeSource],
-        annualExpenses: [],
-        oneTimeExpenses: [],
-        plannedAssetSales: [],
-        scenarioSpecificAttributes: [],
-      };
-      addScenario(newScenario);
-      navigate(`/scenarios/${newScenario.id}/edit`);
-    } else if (scenario) {
-      if (incomeSource.id) {
-        updateIncomeSource(id, incomeSource.id, incomeSource);
-      } else {
-        addIncomeSource(id, incomeSource);
-      }
+    if (incomeSource.id) {
+      updateIncomeSource(id, incomeSource.id, incomeSource);
+    } else {
+      addIncomeSource(id, incomeSource);
     }
     setIsIncomeSourceDialogOpen(false);
   };
 
-  const handleIncomeSourceDelete = (id: string) => {
-    removeIncomeSource(id, id);
+  const handleIncomeSourceDelete = (incomeSourceId: string) => {
+    if (!id) return;
+    removeIncomeSource(id, incomeSourceId);
   };
 
   const handleExpenseSave = (expense: AnnualExpense | OneTimeExpense) => {
     if (!id) return;
     
-    if (id === 'new') {
-      // Create new scenario first
-      const newScenario = {
-        id: uuidv4(),
-        name: formData.name,
-        location: {
-          country: formData.country,
-          state: formData.state,
-          city: formData.city,
-        },
-        projectionPeriod: formData.projectionPeriod,
-        residencyStartDate: formData.residencyStartDate,
-        tax: {
-          capitalGains: {
-            shortTermRate: formData.shortTermRate,
-            longTermRate: formData.longTermRate,
-          },
-          incomeRate: formData.incomeRate,
-        },
-        incomeSources: [],
-        annualExpenses: expenseType === 'annual' ? [expense as AnnualExpense] : [],
-        oneTimeExpenses: expenseType === 'oneTime' ? [expense as OneTimeExpense] : [],
-        plannedAssetSales: [],
-        scenarioSpecificAttributes: [],
-      };
-      addScenario(newScenario);
-      navigate(`/scenarios/${newScenario.id}/edit`);
-    } else if (scenario) {
-      if (expense.id) {
-        updateExpense(id, expense.id, expense, expenseType);
-      } else {
-        addExpense(id, expense, expenseType);
-      }
+    if (expense.id) {
+      updateExpense(id, expense.id, expense, expenseType);
+    } else {
+      addExpense(id, expense, expenseType);
     }
     setIsExpenseDialogOpen(false);
   };
 
-  const handleExpenseDelete = (id: string, type: 'annual' | 'oneTime') => {
-    removeExpense(id, id, type);
+  const handleExpenseDelete = (expenseId: string, type: 'annual' | 'oneTime') => {
+    if (!id) return;
+    removeExpense(id, expenseId, type);
   };
 
   const handleEditIncomeSource = (incomeSource: IncomeSource) => {
@@ -445,9 +277,9 @@ export function ScenarioEditorView() {
   };
 
   const handleCopyItemsSave = (items: any[]) => {
-    if (!id || !scenario) return;
+    if (!id) return;
     
-    const updatedScenario = { ...scenario };
+    const updatedScenario = { ...scenario! };
     
     switch (copyDialogType) {
       case 'incomeSource':
@@ -475,45 +307,17 @@ export function ScenarioEditorView() {
   const handlePlannedAssetSaleSave = (sale: PlannedAssetSale) => {
     if (!id) return;
     
-    if (id === 'new') {
-      // Create new scenario first
-      const newScenario = {
-        id: uuidv4(),
-        name: formData.name,
-        location: {
-          country: formData.country,
-          state: formData.state,
-          city: formData.city,
-        },
-        projectionPeriod: formData.projectionPeriod,
-        residencyStartDate: formData.residencyStartDate,
-        tax: {
-          capitalGains: {
-            shortTermRate: formData.shortTermRate,
-            longTermRate: formData.longTermRate,
-          },
-          incomeRate: formData.incomeRate,
-        },
-        incomeSources: [],
-        annualExpenses: [],
-        oneTimeExpenses: [],
-        plannedAssetSales: [sale],
-        scenarioSpecificAttributes: [],
-      };
-      addScenario(newScenario);
-      navigate(`/scenarios/${newScenario.id}/edit`);
-    } else if (scenario) {
-      if (sale.id) {
-        updatePlannedAssetSale(id, sale.id, sale);
-      } else {
-        addPlannedAssetSale(id, sale);
-      }
+    if (sale.id) {
+      updatePlannedAssetSale(id, sale.id, sale);
+    } else {
+      addPlannedAssetSale(id, sale);
     }
     setIsPlannedAssetSaleDialogOpen(false);
   };
 
-  const handlePlannedAssetSaleDelete = (id: string) => {
-    removePlannedAssetSale(id, id);
+  const handlePlannedAssetSaleDelete = (saleId: string) => {
+    if (!id) return;
+    removePlannedAssetSale(id, saleId);
   };
 
   const handleEditPlannedAssetSale = (sale: PlannedAssetSale) => {
@@ -533,11 +337,11 @@ export function ScenarioEditorView() {
   };
 
   const handleQuickAddAttributes = (attributes: { goalId: string; description: string }[]) => {
-    if (!id || !scenario) return;
+    if (!id) return;
 
     const newAttributes = attributes.map(attr => ({
       id: uuidv4(),
-      scenarioId: scenario.id,
+      scenarioId: id,
       text: attr.description,
       goalId: attr.goalId,
       significance: "Low" as const,
@@ -546,8 +350,8 @@ export function ScenarioEditorView() {
     }));
 
     const updatedScenario = {
-      ...scenario,
-      scenarioSpecificAttributes: [...(scenario.scenarioSpecificAttributes || []), ...newAttributes]
+      ...scenario!,
+      scenarioSpecificAttributes: [...(scenario!.scenarioSpecificAttributes || []), ...newAttributes]
     };
 
     updateScenario(id, updatedScenario);
@@ -561,16 +365,16 @@ export function ScenarioEditorView() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">{isCreating ? 'Create Scenario' : 'Edit Scenario'}</h1>
+          <h1 className="text-3xl font-bold">Edit Scenario</h1>
           <p className="text-muted-foreground mt-2">
-            {isCreating ? 'Configure your new scenario details and settings' : 'Configure your scenario details and settings'}
+            Configure your scenario details and settings
           </p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => navigate(`/scenarios/${id}/view`)}
-            disabled={isCreating}
+            disabled={!scenario}
           >
             View Scenario
           </Button>

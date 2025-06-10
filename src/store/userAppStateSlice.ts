@@ -29,6 +29,13 @@ function ensureValidScenario(scenario: Scenario): Scenario {
   };
 }
 
+// Helper function to find and validate scenario
+function findAndValidateScenario(state: UserAppState, scenarioId: string): Scenario | null {
+  const scenario = state.scenarios.find(s => s.id === scenarioId);
+  if (!scenario) return null;
+  return ensureValidScenario(scenario);
+}
+
 // Simple function to ensure asset data is valid
 function ensureValidAsset(asset: Asset): Asset {
   return {
@@ -80,7 +87,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       
       addScenario: (scenarioData: Omit<Scenario, 'id'>, options?: { isBaseline?: boolean }): Scenario => {
         const newId = uuid();
-        const newScenario = { ...scenarioData, id: newId };
+        const newScenario = ensureValidScenario({ ...scenarioData, id: newId });
         set((state) => {
           let selectedScenarioIds = state.selectedScenarioIds;
           if (!selectedScenarioIds || selectedScenarioIds.length === 0) {
@@ -94,11 +101,21 @@ export const useUserAppState = create<UserAppStateSlice>()(
         return newScenario;
       },
       
-      updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => set((state) => ({
-        scenarios: state.scenarios.map((scenario) =>
-          scenario.id === scenarioId ? { ...scenario, ...updatedScenario } : scenario
-        )
-      })),
+      updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => set((state) => {
+        const existingScenario = findAndValidateScenario(state, scenarioId);
+        if (!existingScenario) return state;
+
+        const mergedScenario = ensureValidScenario({
+          ...existingScenario,
+          ...updatedScenario
+        });
+
+        return {
+          scenarios: state.scenarios.map((scenario) =>
+            scenario.id === scenarioId ? mergedScenario : scenario
+          )
+        };
+      }),
       
       deleteScenario: (scenarioId: string) => set((state) => ({
         scenarios: state.scenarios.filter((scenario) => scenario.id !== scenarioId),
@@ -183,12 +200,12 @@ export const useUserAppState = create<UserAppStateSlice>()(
 
       // Income Source Actions
       addIncomeSource: (scenarioId: string, incomeSource: IncomeSource) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = {
           ...scenario,
-          incomeSources: [...(scenario.incomeSources || []), { ...incomeSource, id: uuid() }]
+          incomeSources: [...scenario.incomeSources, { ...incomeSource, id: uuid() }]
         };
 
         return {
@@ -197,7 +214,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       updateIncomeSource: (scenarioId: string, incomeSourceId: string, updatedIncomeSource: Partial<IncomeSource>) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = {
@@ -213,7 +230,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       removeIncomeSource: (scenarioId: string, incomeSourceId: string) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = {
