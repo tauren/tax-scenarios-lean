@@ -29,7 +29,8 @@ export function ScenarioHubView() {
     initialAssets, 
     selectedScenarioIds, 
     setSelectedScenarioIds,
-    userQualitativeGoals 
+    userQualitativeGoals,
+    addScenario
   } = useUserAppState();
   const { resultsByScenario, setScenarioResults } = useCalculationState();
   const navigate = useNavigate();
@@ -74,9 +75,9 @@ export function ScenarioHubView() {
   };
 
   const handleDuplicateScenario = (scenario: Scenario) => {
-    navigate('/scenarios/new', { 
-      state: { template: scenario }
-    });
+    const newScenarioData = { ...scenario, name: `${scenario.name} (Copy)` };
+    const createdScenario = addScenario(newScenarioData);
+    navigate(`/scenarios/${createdScenario.id}/edit`);
   };
 
   const handleSetAsBaseline = (scenario: Scenario) => {

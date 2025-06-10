@@ -186,20 +186,18 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
             {getSortedScenarios().map((scenario) => (
               <TableRow key={scenario.id}>
                 <TableCell className="font-medium w-[150px] max-w-[150px] break-words">
-                  <div className="flex items-center gap-2">
-                    <span className="line-clamp-2 break-words">{scenario.name}</span>
+                  <div className="flex items-center">
                     {scenario.id === scenarios[0]?.id && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Badge variant="outline" className="flex items-center gap-1 text-xs">
-                              <Target className="h-3 w-3 mr-1 text-primary" />
-                            </Badge>
+                            <Target className="h-3 w-3 mr-1 text-primary" />
                           </TooltipTrigger>
                           <TooltipContent>Baseline scenario</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
+                    <span className="line-clamp-2 break-words">{scenario.name}</span>
                   </div>
                 </TableCell>
                 {comparisonMetrics.map((metric) => {
@@ -243,20 +241,18 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
               <TableHead className="w-[200px] max-w-[200px] truncate">Goal</TableHead>
               {selectedScenariosData.map((scenario) => (
                 <TableHead key={scenario.id} className="w-[160px] max-w-[160px] text-center truncate">
-                  <div className="flex items-center justify-center gap-2 w-full truncate">
-                    <span className="truncate max-w-[110px]">{scenario.name}</span>
+                  <div className="flex items-center justify-center w-full truncate">
                     {scenario.id === scenarios[0]?.id && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Badge variant="outline" className="flex items-center gap-1 text-xs">
-                              <Target className="h-3 w-3 mr-1 text-primary" />
-                            </Badge>
+                            <Target className="h-3 w-3 mr-1 text-primary" />
                           </TooltipTrigger>
                           <TooltipContent>Baseline scenario</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
+                    <span className="truncate max-w-[110px]">{scenario.name}</span>
                   </div>
                 </TableHead>
               ))}

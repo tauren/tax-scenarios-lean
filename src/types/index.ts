@@ -12,23 +12,49 @@ export interface UserAppState {
 }
 
 export interface UserAppStateSlice extends UserAppState {
-  // Actions
+  // App State Actions
   setActivePlanInternalName: (name: string) => void;
-  addAsset: (asset: Asset) => void;
-  updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => void;
-  deleteAsset: (assetId: string) => void;
-  addScenario: (scenario: Scenario, options?: { isBaseline?: boolean }) => void;
-  updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => void;
-  deleteScenario: (scenarioId: string) => void;
-  setScenarioAsPrimary: (scenarioId: string) => void;
-  addQualitativeGoal: (goal: UserQualitativeGoal) => void;
-  updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => void;
-  deleteQualitativeGoal: (goalId: string) => void;
-  updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => void;
-  deleteScenarioAttribute: (scenarioId: string, attributeId: string) => void;
   clearStoredState: () => void;
   setAppState: (newState: UserAppState) => void;
   setSelectedScenarioIds: (ids: string[]) => void;
+
+  // Asset Actions
+  addAsset: (asset: Asset) => void;
+  updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => void;
+  deleteAsset: (assetId: string) => void;
+
+  // Qualitative Goal Actions
+  addQualitativeGoal: (goal: UserQualitativeGoal) => void;
+  updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => void;
+  deleteQualitativeGoal: (goalId: string) => void;
+
+  // Scenario Actions
+  addScenario: (scenarioData: Omit<Scenario, 'id'>, options?: { isBaseline?: boolean }) => Scenario;
+  updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => void;
+  deleteScenario: (scenarioId: string) => void;
+  setScenarioAsPrimary: (scenarioId: string) => void;
+
+  // Scenario Qualitative Attribute Actions
+  updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => void;
+  deleteScenarioAttribute: (scenarioId: string, attributeId: string) => void;
+
+  // Scenario Income Source Actions
+  addIncomeSource: (scenarioId: string, incomeSource: IncomeSource) => void;
+  updateIncomeSource: (scenarioId: string, incomeSourceId: string, updatedIncomeSource: Partial<IncomeSource>) => void;
+  removeIncomeSource: (scenarioId: string, incomeSourceId: string) => void;
+
+  // Scenario Expense Actions
+  addExpense: (scenarioId: string, expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => void;
+  updateExpense: (scenarioId: string, expenseId: string, updatedExpense: Partial<AnnualExpense | OneTimeExpense>, type: 'annual' | 'oneTime') => void;
+  removeExpense: (scenarioId: string, expenseId: string, type: 'annual' | 'oneTime') => void;
+
+  // Scenario Asset Sale Actions
+  addPlannedAssetSale: (scenarioId: string, sale: PlannedAssetSale) => void;
+  updatePlannedAssetSale: (scenarioId: string, saleId: string, updatedSale: Partial<PlannedAssetSale>) => void;
+  removePlannedAssetSale: (scenarioId: string, saleId: string) => void;
+
+  // Scenario Copy Items Action
+  copyItems: (scenarioId: string, items: any[], type: 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale') => void;
 }
 
 /**

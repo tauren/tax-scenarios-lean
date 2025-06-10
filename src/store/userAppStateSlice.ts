@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, ScenarioQualitativeAttribute } from '@/types';
+import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, ScenarioQualitativeAttribute, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
 import { v4 as uuid } from 'uuid';
 
 // Simple function to ensure scenario data is valid
@@ -78,17 +78,21 @@ export const useUserAppState = create<UserAppStateSlice>()(
         initialAssets: state.initialAssets.filter((asset) => asset.id !== assetId)
       })),
       
-      addScenario: (scenario: Scenario, options?: { isBaseline?: boolean }) => set((state) => {
-        const newScenario = { ...scenario, id: uuid() };
-        let selectedScenarioIds = state.selectedScenarioIds;
-        if (!selectedScenarioIds || selectedScenarioIds.length === 0) {
-          selectedScenarioIds = [newScenario.id];
-        }
-        return {
-          scenarios: [...state.scenarios, newScenario],
-          selectedScenarioIds
-        };
-      }),
+      addScenario: (scenarioData: Omit<Scenario, 'id'>, options?: { isBaseline?: boolean }): Scenario => {
+        const newId = uuid();
+        const newScenario = { ...scenarioData, id: newId };
+        set((state) => {
+          let selectedScenarioIds = state.selectedScenarioIds;
+          if (!selectedScenarioIds || selectedScenarioIds.length === 0) {
+            selectedScenarioIds = [newId];
+          }
+          return {
+            scenarios: [...state.scenarios, newScenario],
+            selectedScenarioIds
+          };
+        });
+        return newScenario;
+      },
       
       updateScenario: (scenarioId: string, updatedScenario: Partial<Scenario>) => set((state) => ({
         scenarios: state.scenarios.map((scenario) =>
@@ -176,6 +180,177 @@ export const useUserAppState = create<UserAppStateSlice>()(
       setAppState: (newState: UserAppState) => set(newState),
       
       setSelectedScenarioIds: (ids: string[]) => set({ selectedScenarioIds: ids }),
+
+      // Income Source Actions
+      addIncomeSource: (scenarioId: string, incomeSource: IncomeSource) => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = {
+          ...scenario,
+          incomeSources: [...(scenario.incomeSources || []), { ...incomeSource, id: uuid() }]
+        };
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      updateIncomeSource: (scenarioId: string, incomeSourceId: string, updatedIncomeSource: Partial<IncomeSource>) => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = {
+          ...scenario,
+          incomeSources: scenario.incomeSources.map(source =>
+            source.id === incomeSourceId ? { ...source, ...updatedIncomeSource } : source
+          )
+        };
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      removeIncomeSource: (scenarioId: string, incomeSourceId: string) => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = {
+          ...scenario,
+          incomeSources: scenario.incomeSources.filter(source => source.id !== incomeSourceId)
+        };
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      // Expense Actions
+      addExpense: (scenarioId: string, expense: AnnualExpense | OneTimeExpense, type: 'annual' | 'oneTime') => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = { ...scenario };
+        if (type === 'annual') {
+          updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), { ...expense as AnnualExpense, id: uuid() }];
+        } else {
+          updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), { ...expense as OneTimeExpense, id: uuid() }];
+        }
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      updateExpense: (scenarioId: string, expenseId: string, updatedExpense: Partial<AnnualExpense | OneTimeExpense>, type: 'annual' | 'oneTime') => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = { ...scenario };
+        if (type === 'annual') {
+          updatedScenario.annualExpenses = scenario.annualExpenses.map(expense =>
+            expense.id === expenseId ? { ...expense, ...updatedExpense } : expense
+          );
+        } else {
+          updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses.map(expense =>
+            expense.id === expenseId ? { ...expense, ...updatedExpense } : expense
+          );
+        }
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      removeExpense: (scenarioId: string, expenseId: string, type: 'annual' | 'oneTime') => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = { ...scenario };
+        if (type === 'annual') {
+          updatedScenario.annualExpenses = scenario.annualExpenses.filter(expense => expense.id !== expenseId);
+        } else {
+          updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses.filter(expense => expense.id !== expenseId);
+        }
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      // Asset Sale Actions
+      addPlannedAssetSale: (scenarioId: string, sale: PlannedAssetSale) => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = {
+          ...scenario,
+          plannedAssetSales: [...(scenario.plannedAssetSales || []), { ...sale, id: uuid() }]
+        };
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      updatePlannedAssetSale: (scenarioId: string, saleId: string, updatedSale: Partial<PlannedAssetSale>) => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = {
+          ...scenario,
+          plannedAssetSales: scenario.plannedAssetSales.map(sale =>
+            sale.id === saleId ? { ...sale, ...updatedSale } : sale
+          )
+        };
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      removePlannedAssetSale: (scenarioId: string, saleId: string) => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = {
+          ...scenario,
+          plannedAssetSales: scenario.plannedAssetSales.filter(sale => sale.id !== saleId)
+        };
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
+
+      // Copy Items Action
+      copyItems: (scenarioId: string, items: any[], type: 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale') => set((state) => {
+        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        if (!scenario) return state;
+
+        const updatedScenario = { ...scenario };
+        const itemsWithNewIds = items.map(item => ({ ...item, id: uuid() }));
+
+        switch (type) {
+          case 'incomeSource':
+            updatedScenario.incomeSources = [...(scenario.incomeSources || []), ...itemsWithNewIds];
+            break;
+          case 'annualExpense':
+            updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), ...itemsWithNewIds];
+            break;
+          case 'oneTimeExpense':
+            updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), ...itemsWithNewIds];
+            break;
+          case 'plannedAssetSale':
+            updatedScenario.plannedAssetSales = [...(scenario.plannedAssetSales || []), ...itemsWithNewIds];
+            break;
+        }
+
+        return {
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+        };
+      }),
     }),
     {
       name: 'tax-scenarios-app-state',

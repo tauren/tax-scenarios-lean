@@ -57,6 +57,12 @@ export function ScenarioSummaryCard({
   onSetAsBaseline,
   isBaseline = false,
 }: ScenarioSummaryCardProps) {
+  const handleDropdownAction = (e: React.MouseEvent, action: () => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    action();
+  };
+
   return (
     <Card
       className={`relative overflow-hidden ${isBaseline ? 'border-primary' : ''} ${isBaseline ? 'pb-0' : ''}`}
@@ -102,22 +108,28 @@ export function ScenarioSummaryCard({
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(scenario.id)}>
+            <DropdownMenuItem 
+              onClick={(e) => handleDropdownAction(e, () => onEdit(scenario.id))}
+            >
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDuplicate(scenario)}>
+            <DropdownMenuItem 
+              onClick={(e) => handleDropdownAction(e, () => onDuplicate(scenario))}
+            >
               <Copy className="h-4 w-4 mr-2" />
               Duplicate
             </DropdownMenuItem>
             {!isBaseline && (
-              <DropdownMenuItem onClick={() => onSetAsBaseline(scenario)}>
+              <DropdownMenuItem 
+                onClick={(e) => handleDropdownAction(e, () => onSetAsBaseline(scenario))}
+              >
                 <Target className="h-4 w-4 mr-2" />
                 Set as Baseline
               </DropdownMenuItem>
             )}
             <DropdownMenuItem 
-              onClick={() => onDelete(scenario)}
+              onClick={(e) => handleDropdownAction(e, () => onDelete(scenario))}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />

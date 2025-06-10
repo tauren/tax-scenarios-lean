@@ -20,7 +20,6 @@ import { TableListItem } from '@/components/shared/TableListItem';
 import { CardList } from '@/components/shared/CardList';
 import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
 import { PlannedAssetSaleDialog } from '@/components/dialogs/PlannedAssetSaleDialog';
-import { convertFormScenarioToScenario } from '@/types';
 import { QualitativeAttributesContainer } from '@/components/shared/QualitativeAttributesContainer';
 import { QuickAddAttributesDialog } from '@/components/dialogs/QuickAddAttributesDialog';
 import { useCalculationState } from '@/store/calculationStateSlice';
@@ -103,49 +102,43 @@ export function ScenarioEditorView() {
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addScenario, updateScenario, scenarios, initialAssets, userQualitativeGoals } = useUserAppState();
+  const { addScenario, updateScenario, scenarios, initialAssets, userQualitativeGoals, addIncomeSource, updateIncomeSource, removeIncomeSource, addExpense, updateExpense, removeExpense, addPlannedAssetSale, updatePlannedAssetSale, removePlannedAssetSale } = useUserAppState();
   const { setScenarioResults } = useCalculationState();
-  const [scenario, setScenario] = useState<FormScenario>(() => {
-    if (id && id !== 'new') {
-      const existingScenario = scenarios.find(s => s.id === id);
-      if (existingScenario) {
-        return {
-          ...existingScenario,
-          tax: {
-            capitalGains: {
-              shortTermRate: existingScenario.tax?.capitalGains?.shortTermRate,
-              longTermRate: existingScenario.tax?.capitalGains?.longTermRate
-            },
-            incomeRate: existingScenario.tax?.incomeRate
-          },
-          scenarioSpecificAttributes: existingScenario.scenarioSpecificAttributes || []
-        };
-      }
-    }
-    return {
-      id: '',
-      name: '',
-      projectionPeriod: undefined,
-      residencyStartDate: new Date(),
-      location: {
-        country: '',
-        state: '',
-        city: ''
-      },
-      tax: {
-        capitalGains: {
-          shortTermRate: undefined,
-          longTermRate: undefined
-        },
-        incomeRate: undefined
-      },
-      incomeSources: [],
-      annualExpenses: [],
-      oneTimeExpenses: [],
-      plannedAssetSales: [],
-      scenarioSpecificAttributes: []
-    };
+  
+  // Get the current scenario from the store
+  const scenario = scenarios.find(s => s.id === id);
+  const isCreating = id === 'new';
+  
+  // Form state for basic fields
+  const [formData, setFormData] = useState({
+    name: scenario?.name || '',
+    country: scenario?.location?.country || '',
+    state: scenario?.location?.state || '',
+    city: scenario?.location?.city || '',
+    projectionPeriod: (scenario?.projectionPeriod ?? 1) as number,
+    residencyStartDate: scenario?.residencyStartDate ? new Date(scenario.residencyStartDate) : new Date(),
+    shortTermRate: scenario?.tax?.capitalGains?.shortTermRate || 0,
+    longTermRate: scenario?.tax?.capitalGains?.longTermRate || 0,
+    incomeRate: scenario?.tax?.incomeRate || 0,
   });
+
+  // Update form data when scenario changes
+  useEffect(() => {
+    if (scenario) {
+      setFormData({
+        name: scenario.name,
+        country: scenario.location?.country || '',
+        state: scenario.location?.state || '',
+        city: scenario.location?.city || '',
+        projectionPeriod: (scenario.projectionPeriod ?? 1) as number,
+        residencyStartDate: new Date(scenario.residencyStartDate),
+        shortTermRate: scenario.tax?.capitalGains?.shortTermRate || 0,
+        longTermRate: scenario.tax?.capitalGains?.longTermRate || 0,
+        incomeRate: scenario.tax?.incomeRate || 0,
+      });
+    }
+  }, [scenario]);
+
   const [errors, setErrors] = useState<ScenarioValidationErrors>({});
   const [isIncomeSourceDialogOpen, setIsIncomeSourceDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
@@ -162,8 +155,6 @@ export function ScenarioEditorView() {
   const [copyDialogType, setCopyDialogType] = useState<'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale'>('incomeSource');
   const [isQuickAddDialogOpen, setIsQuickAddDialogOpen] = useState(false);
   
-  const isCreating = id === 'new';
-
   useEffect(() => {
     // Check if we're creating a new scenario by checking the pathname
     const isNewScenario = location.pathname === '/scenarios/new';
@@ -172,7 +163,17 @@ export function ScenarioEditorView() {
     if (id && !isNewScenario) {
       const existingScenario = scenarios.find(s => s.id === id);
       if (existingScenario) {
-        setScenario(deepClone(existingScenario) as FormScenario);
+        setFormData({
+          name: existingScenario.name,
+          country: existingScenario.location?.country || '',
+          state: existingScenario.location?.state || '',
+          city: existingScenario.location?.city || '',
+          projectionPeriod: existingScenario.projectionPeriod,
+          residencyStartDate: new Date(existingScenario.residencyStartDate),
+          shortTermRate: existingScenario.tax?.capitalGains?.shortTermRate || 0,
+          longTermRate: existingScenario.tax?.capitalGains?.longTermRate || 0,
+          incomeRate: existingScenario.tax?.incomeRate || 0,
+        });
       } else {
         // If scenario not found, redirect to scenarios list
         navigate('/scenarios');
@@ -211,7 +212,17 @@ export function ScenarioEditorView() {
           plannedAssetSales: templateCopy.plannedAssetSales ?? [],
           scenarioSpecificAttributes: templateCopy.scenarioSpecificAttributes || []
         };
-        setScenario(newScenario);
+        setFormData({
+          name: newScenario.name,
+          country: newScenario.location?.country || '',
+          state: newScenario.location?.state || '',
+          city: newScenario.location?.city || '',
+          projectionPeriod: newScenario.projectionPeriod || 10,
+          residencyStartDate: new Date(newScenario.residencyStartDate),
+          shortTermRate: newScenario.tax?.capitalGains?.shortTermRate || 0,
+          longTermRate: newScenario.tax?.capitalGains?.longTermRate || 0,
+          incomeRate: newScenario.tax?.incomeRate || 0,
+        });
       }
     }
   }, [id, location.state, location.pathname, scenarios, navigate]);
@@ -223,105 +234,70 @@ export function ScenarioEditorView() {
   };
 
   const handleFieldChange = (field: ValidationField, value: any) => {
-    // Always update the form value to allow free editing
-    const updatedScenario = { ...scenario };
-    switch (field) {
-      case 'name':
-        updatedScenario.name = value;
-        break;
-      case 'country':
-        updatedScenario.location = { ...updatedScenario.location, country: value };
-        break;
-      case 'projectionPeriod':
-        updatedScenario.projectionPeriod = value;
-        break;
-      case 'residencyStartDate':
-        updatedScenario.residencyStartDate = value;
-        break;
-      case 'shortTermRate':
-        updatedScenario.tax = { 
-          capitalGains: { 
-            shortTermRate: value === '' ? undefined : Number(value),
-            longTermRate: updatedScenario.tax?.capitalGains?.longTermRate
-          },
-          incomeRate: updatedScenario.tax?.incomeRate
-        };
-        break;
-      case 'longTermRate':
-        updatedScenario.tax = { 
-          capitalGains: { 
-            shortTermRate: updatedScenario.tax?.capitalGains?.shortTermRate,
-            longTermRate: value === '' ? undefined : Number(value)
-          },
-          incomeRate: updatedScenario.tax?.incomeRate
-        };
-        break;
-      case 'incomeRate':
-        updatedScenario.tax = { 
-          capitalGains: { 
-            shortTermRate: updatedScenario.tax?.capitalGains?.shortTermRate,
-            longTermRate: updatedScenario.tax?.capitalGains?.longTermRate
-          },
-          incomeRate: value === '' ? undefined : Number(value)
-        };
-        break;
-    }
-    setScenario(updatedScenario);
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleFieldBlur = (field: ValidationField, value: any) => {
     const error = validateField(field, value);
     setErrors(prev => ({ ...prev, [field]: error }));
     
-    // For required fields, only update store if the new value is valid and not empty
-    const requiredFields = ['name', 'country', 'projectionPeriod', 'residencyStartDate'] as const;
-    const isRequiredField = requiredFields.includes(field as typeof requiredFields[number]);
-    
-    if (id && id !== 'new') {
-      if (!isRequiredField || (value !== undefined && value !== '' && value !== null)) {
-        // For non-required fields or valid required fields, update the store
-        const scenarioToUpdate = convertFormScenarioToScenario(scenario);
-        updateScenario(id, scenarioToUpdate);
-      } else {
-        // For invalid required fields, revert to the last valid value from the store
-        const currentScenario = scenarios.find(s => s.id === id);
-        if (currentScenario) {
-          const revertedScenario = { ...scenario };
-          switch (field) {
-            case 'name':
-              revertedScenario.name = currentScenario.name;
-              break;
-            case 'country':
-              revertedScenario.location = { 
-                ...revertedScenario.location, 
-                country: currentScenario.location.country 
-              };
-              break;
-            case 'projectionPeriod':
-              revertedScenario.projectionPeriod = currentScenario.projectionPeriod;
-              break;
-            case 'residencyStartDate':
-              revertedScenario.residencyStartDate = currentScenario.residencyStartDate;
-              break;
-          }
-          setScenario(revertedScenario);
-        }
-      }
+    if (id && id !== 'new' && scenario) {
+      const updatedScenario = {
+        ...scenario,
+        name: formData.name,
+        location: {
+          country: formData.country,
+          state: formData.state,
+          city: formData.city,
+        },
+        projectionPeriod: formData.projectionPeriod,
+        residencyStartDate: formData.residencyStartDate,
+        tax: {
+          capitalGains: {
+            shortTermRate: formData.shortTermRate,
+            longTermRate: formData.longTermRate,
+          },
+          incomeRate: formData.incomeRate,
+        },
+      };
+      updateScenario(id, updatedScenario);
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
-
+  const validateForm = () => {
+    const newErrors: ScenarioValidationErrors = {};
+    
     // Validate each field using the validation rules
     validationRules.forEach(validationRule => {
-      const value = validationRule.getValue(scenario);
+      const value = validationRule.getValue(scenario || {
+        id: '',
+        name: '',
+        projectionPeriod: 1,
+        residencyStartDate: new Date(),
+        location: {
+          country: '',
+          state: '',
+          city: '',
+        },
+        tax: {
+          capitalGains: {
+            shortTermRate: 0,
+            longTermRate: 0,
+          },
+          incomeRate: 0,
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [],
+      });
       const error = validationRule.validate(value);
       if (error) {
         newErrors[validationRule.field] = error;
       }
     });
-
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -330,64 +306,94 @@ export function ScenarioEditorView() {
 
   useEffect(() => {
     validateForm();
-  }, [scenario]);
+  }, [formData]);
 
   const handleIncomeSourceSave = (incomeSource: IncomeSource) => {
-    // Check if this is an existing item in our list
-    const existingItem = scenario.incomeSources?.find(source => source.id === incomeSource.id);
+    if (!id) return;
     
-    const updatedScenario = { ...scenario };
-    if (existingItem) {
-      // Update existing item
-      updatedScenario.incomeSources = scenario.incomeSources?.map((source) =>
-        source.id === incomeSource.id ? incomeSource : source
-      );
-    } else {
-      // Add new item (either from duplicate or new)
-      updatedScenario.incomeSources = [...(scenario.incomeSources || []), incomeSource];
+    if (id === 'new') {
+      // Create new scenario first
+      const newScenario = {
+        id: uuidv4(),
+        name: formData.name,
+        location: {
+          country: formData.country,
+          state: formData.state,
+          city: formData.city,
+        },
+        projectionPeriod: formData.projectionPeriod,
+        residencyStartDate: formData.residencyStartDate,
+        tax: {
+          capitalGains: {
+            shortTermRate: formData.shortTermRate,
+            longTermRate: formData.longTermRate,
+          },
+          incomeRate: formData.incomeRate,
+        },
+        incomeSources: [incomeSource],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [],
+      };
+      addScenario(newScenario);
+      navigate(`/scenarios/${newScenario.id}/edit`);
+    } else if (scenario) {
+      if (incomeSource.id) {
+        updateIncomeSource(id, incomeSource.id, incomeSource);
+      } else {
+        addIncomeSource(id, incomeSource);
+      }
     }
-    
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
+    setIsIncomeSourceDialogOpen(false);
+  };
+
+  const handleIncomeSourceDelete = (id: string) => {
+    removeIncomeSource(id, id);
   };
 
   const handleExpenseSave = (expense: AnnualExpense | OneTimeExpense) => {
-    const updatedScenario = { ...scenario };
+    if (!id) return;
     
-    if (expenseType === 'annual') {
-      // Check if this is an existing annual expense
-      const existingItem = scenario.annualExpenses?.find(exp => exp.id === expense.id);
-      
-      if (existingItem) {
-        // Update existing annual expense
-        updatedScenario.annualExpenses = scenario.annualExpenses?.map((exp) =>
-          exp.id === expense.id ? expense as AnnualExpense : exp
-        );
+    if (id === 'new') {
+      // Create new scenario first
+      const newScenario = {
+        id: uuidv4(),
+        name: formData.name,
+        location: {
+          country: formData.country,
+          state: formData.state,
+          city: formData.city,
+        },
+        projectionPeriod: formData.projectionPeriod,
+        residencyStartDate: formData.residencyStartDate,
+        tax: {
+          capitalGains: {
+            shortTermRate: formData.shortTermRate,
+            longTermRate: formData.longTermRate,
+          },
+          incomeRate: formData.incomeRate,
+        },
+        incomeSources: [],
+        annualExpenses: expenseType === 'annual' ? [expense as AnnualExpense] : [],
+        oneTimeExpenses: expenseType === 'oneTime' ? [expense as OneTimeExpense] : [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [],
+      };
+      addScenario(newScenario);
+      navigate(`/scenarios/${newScenario.id}/edit`);
+    } else if (scenario) {
+      if (expense.id) {
+        updateExpense(id, expense.id, expense, expenseType);
       } else {
-        // Add new annual expense
-        updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), expense as AnnualExpense];
-      }
-    } else {
-      // Check if this is an existing one-time expense
-      const existingItem = scenario.oneTimeExpenses?.find(exp => exp.id === expense.id);
-      
-      if (existingItem) {
-        // Update existing one-time expense
-        updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses?.map((exp) =>
-          exp.id === expense.id ? expense as OneTimeExpense : exp
-        );
-      } else {
-        // Add new one-time expense
-        updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), expense as OneTimeExpense];
+        addExpense(id, expense, expenseType);
       }
     }
-    
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
+    setIsExpenseDialogOpen(false);
+  };
+
+  const handleExpenseDelete = (id: string, type: 'annual' | 'oneTime') => {
+    removeExpense(id, id, type);
   };
 
   const handleEditIncomeSource = (incomeSource: IncomeSource) => {
@@ -419,28 +425,6 @@ export function ScenarioEditorView() {
     setIsExpenseDialogOpen(true);
   };
 
-  const removeIncomeSource = (id: string) => {
-    const updatedScenario = { ...scenario };
-    updatedScenario.incomeSources = scenario.incomeSources?.filter((source) => source.id !== id);
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
-  };
-
-  const removeExpense = (id: string, type: 'annual' | 'oneTime') => {
-    const updatedScenario = { ...scenario };
-    if (type === 'annual') {
-      updatedScenario.annualExpenses = scenario.annualExpenses?.filter((exp) => exp.id !== id) || [];
-    } else {
-      updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses?.filter((exp) => exp.id !== id) || [];
-    }
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -461,6 +445,8 @@ export function ScenarioEditorView() {
   };
 
   const handleCopyItemsSave = (items: any[]) => {
+    if (!id || !scenario) return;
+    
     const updatedScenario = { ...scenario };
     
     switch (copyDialogType) {
@@ -478,10 +464,7 @@ export function ScenarioEditorView() {
         break;
     }
     
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
+    updateScenario(id, updatedScenario);
     setIsCopyDialogOpen(false);
   };
 
@@ -490,23 +473,47 @@ export function ScenarioEditorView() {
   };
 
   const handlePlannedAssetSaleSave = (sale: PlannedAssetSale) => {
-    const updatedScenario = { ...scenario };
+    if (!id) return;
     
-    if (editingPlannedAssetSale && scenario.plannedAssetSales?.some(s => s.id === sale.id)) {
-      // Update existing sale
-      updatedScenario.plannedAssetSales = updatedScenario.plannedAssetSales.map(s => 
-        s.id === sale.id ? sale : s
-      );
-    } else {
-      // Add new sale (either from duplicate or new)
-      updatedScenario.plannedAssetSales = [...(updatedScenario.plannedAssetSales || []), sale];
+    if (id === 'new') {
+      // Create new scenario first
+      const newScenario = {
+        id: uuidv4(),
+        name: formData.name,
+        location: {
+          country: formData.country,
+          state: formData.state,
+          city: formData.city,
+        },
+        projectionPeriod: formData.projectionPeriod,
+        residencyStartDate: formData.residencyStartDate,
+        tax: {
+          capitalGains: {
+            shortTermRate: formData.shortTermRate,
+            longTermRate: formData.longTermRate,
+          },
+          incomeRate: formData.incomeRate,
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [sale],
+        scenarioSpecificAttributes: [],
+      };
+      addScenario(newScenario);
+      navigate(`/scenarios/${newScenario.id}/edit`);
+    } else if (scenario) {
+      if (sale.id) {
+        updatePlannedAssetSale(id, sale.id, sale);
+      } else {
+        addPlannedAssetSale(id, sale);
+      }
     }
-    
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
-    handlePlannedAssetSaleDialogClose();
+    setIsPlannedAssetSaleDialogOpen(false);
+  };
+
+  const handlePlannedAssetSaleDelete = (id: string) => {
+    removePlannedAssetSale(id, id);
   };
 
   const handleEditPlannedAssetSale = (sale: PlannedAssetSale) => {
@@ -519,20 +526,6 @@ export function ScenarioEditorView() {
     setIsPlannedAssetSaleDialogOpen(true);
   };
 
-  const removePlannedAssetSale = (id: string) => {
-    const updatedScenario = { ...scenario };
-    updatedScenario.plannedAssetSales = updatedScenario.plannedAssetSales.filter(s => s.id !== id);
-    setScenario(updatedScenario);
-    if (id && id !== 'new') {
-      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-    }
-  };
-
-  const handlePlannedAssetSaleDialogClose = () => {
-    setIsPlannedAssetSaleDialogOpen(false);
-    setEditingPlannedAssetSale(undefined);
-  };
-
   const duplicatePlannedAssetSale = (sale: PlannedAssetSale) => {
     const duplicatedSale = { ...sale, id: uuidv4() };
     setEditingPlannedAssetSale(duplicatedSale);
@@ -540,6 +533,8 @@ export function ScenarioEditorView() {
   };
 
   const handleQuickAddAttributes = (attributes: { goalId: string; description: string }[]) => {
+    if (!id || !scenario) return;
+
     const newAttributes = attributes.map(attr => ({
       id: uuidv4(),
       scenarioId: scenario.id,
@@ -555,16 +550,11 @@ export function ScenarioEditorView() {
       scenarioSpecificAttributes: [...(scenario.scenarioSpecificAttributes || []), ...newAttributes]
     };
 
-    setScenario(updatedScenario);
+    updateScenario(id, updatedScenario);
 
-    if (id && id !== 'new') {
-      const scenarioToUpdate = convertFormScenarioToScenario(updatedScenario);
-      updateScenario(id, scenarioToUpdate);
-      
-      // Recalculate and update scenario results
-      const results = calculateScenarioResults(scenarioToUpdate, initialAssets, userQualitativeGoals);
-      setScenarioResults(id, results);
-    }
+    // Recalculate and update scenario results
+    const results = calculateScenarioResults(updatedScenario, initialAssets, userQualitativeGoals);
+    setScenarioResults(id, results);
   };
 
   return (
@@ -612,7 +602,7 @@ export function ScenarioEditorView() {
                 error={errors.name}
               >
                 <Input
-                  value={scenario.name}
+                  value={formData.name}
                   onChange={(e) => handleFieldChange('name', e.target.value)}
                   onBlur={(e) => handleFieldBlur('name', e.target.value)}
                   placeholder="Enter scenario name"
@@ -626,7 +616,7 @@ export function ScenarioEditorView() {
                   error={errors.country}
                 >
                   <Input
-                    value={scenario.location?.country || ''}
+                    value={formData.country}
                     onChange={(e) => handleFieldChange('country', e.target.value)}
                     onBlur={(e) => handleFieldBlur('country', e.target.value)}
                     placeholder="Enter country"
@@ -638,17 +628,9 @@ export function ScenarioEditorView() {
                   label="State/Province"
                 >
                   <Input
-                    value={scenario.location?.state || ''}
+                    value={formData.state}
                     onChange={(e) => {
-                      const updatedScenario = { ...scenario };
-                      updatedScenario.location = {
-                        ...updatedScenario.location,
-                        state: e.target.value
-                      };
-                      setScenario(updatedScenario);
-                      if (id && id !== 'new') {
-                        updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-                      }
+                      handleFieldChange('state', e.target.value);
                     }}
                     placeholder="Enter state/province (optional)"
                   />
@@ -659,17 +641,9 @@ export function ScenarioEditorView() {
                   label="City"
                 >
                   <Input
-                    value={scenario.location?.city || ''}
+                    value={formData.city}
                     onChange={(e) => {
-                      const updatedScenario = { ...scenario };
-                      updatedScenario.location = {
-                        ...updatedScenario.location,
-                        city: e.target.value
-                      };
-                      setScenario(updatedScenario);
-                      if (id && id !== 'new') {
-                        updateScenario(id, convertFormScenarioToScenario(updatedScenario));
-                      }
+                      handleFieldChange('city', e.target.value);
                     }}
                     placeholder="Enter city (optional)"
                   />
@@ -684,7 +658,7 @@ export function ScenarioEditorView() {
                 >
                   <Input
                     type="number"
-                    value={scenario.projectionPeriod || ''}
+                    value={formData.projectionPeriod}
                     onChange={(e) => handleFieldChange('projectionPeriod', parseInt(e.target.value))}
                     onBlur={(e) => handleFieldBlur('projectionPeriod', parseInt(e.target.value))}
                     placeholder="Enter projection period"
@@ -698,7 +672,7 @@ export function ScenarioEditorView() {
                 >
                   <Input
                     type="date"
-                    value={scenario.residencyStartDate ? new Date(scenario.residencyStartDate).toISOString().split('T')[0] : ''}
+                    value={formData.residencyStartDate.toISOString().split('T')[0]}
                     onChange={(e) => {
                       const date = e.target.value ? new Date(e.target.value) : new Date();
                       handleFieldChange('residencyStartDate', date);
@@ -722,7 +696,7 @@ export function ScenarioEditorView() {
               >
                 <Input
                   type="number"
-                  value={scenario.tax?.capitalGains?.shortTermRate || ''}
+                  value={formData.shortTermRate}
                   onChange={(e) => handleFieldChange('shortTermRate', parseFloat(e.target.value))}
                   onBlur={(e) => handleFieldBlur('shortTermRate', parseFloat(e.target.value))}
                   placeholder="Enter short-term rate"
@@ -736,7 +710,7 @@ export function ScenarioEditorView() {
               >
                 <Input
                   type="number"
-                  value={scenario.tax?.capitalGains?.longTermRate || ''}
+                  value={formData.longTermRate}
                   onChange={(e) => handleFieldChange('longTermRate', parseFloat(e.target.value))}
                   onBlur={(e) => handleFieldBlur('longTermRate', parseFloat(e.target.value))}
                   placeholder="Enter long-term rate"
@@ -750,7 +724,7 @@ export function ScenarioEditorView() {
               >
                 <Input
                   type="number"
-                  value={scenario.tax?.incomeRate || ''}
+                  value={formData.incomeRate}
                   onChange={(e) => handleFieldChange('incomeRate', parseFloat(e.target.value))}
                   onBlur={(e) => handleFieldBlur('incomeRate', parseFloat(e.target.value))}
                   placeholder="Enter income tax rate"
@@ -762,7 +736,7 @@ export function ScenarioEditorView() {
 
         <TabsContent value="qualitative">
           <QualitativeAttributesContainer
-            scenarioId={scenario.id}
+            scenarioId={scenario?.id || ''}
             disabled={false}
             onQuickAdd={() => setIsQuickAddDialogOpen(true)}
           />
@@ -778,12 +752,12 @@ export function ScenarioEditorView() {
               setIsCopyDialogOpen(true);
             }}
             onAdd={handleAddPlannedAssetSale}
-            hasItems={(scenario.plannedAssetSales?.length ?? 0) > 0}
+            hasItems={(scenario?.plannedAssetSales?.length ?? 0) > 0}
             emptyMessage="No planned asset sales added yet. Add your first planned sale to get started."
           >
             {plannedAssetSaleView === 'card' ? (
               <CardList>
-                {(scenario.plannedAssetSales || []).map((sale) => {
+                {(scenario?.plannedAssetSales || []).map((sale) => {
                   const asset = initialAssets.find((a: Asset) => a.id === sale.assetId);
                   return (
                     <ListItemCard
@@ -795,7 +769,7 @@ export function ScenarioEditorView() {
                         `Total: $${(sale.quantity * sale.salePricePerUnit).toFixed(2)}`
                       ]}
                       onEdit={() => handleEditPlannedAssetSale(sale)}
-                      onDelete={() => removePlannedAssetSale(sale.id)}
+                      onDelete={() => handlePlannedAssetSaleDelete(sale.id)}
                       onDuplicate={() => duplicatePlannedAssetSale(sale)}
                     />
                   );
@@ -811,7 +785,7 @@ export function ScenarioEditorView() {
                   { key: 'total', label: 'Total' }
                 ]}
               >
-                {(scenario.plannedAssetSales || []).map((sale) => {
+                {(scenario?.plannedAssetSales || []).map((sale) => {
                   const asset = initialAssets.find((a: Asset) => a.id === sale.assetId);
                   return (
                     <TableListItem
@@ -831,7 +805,7 @@ export function ScenarioEditorView() {
                         { key: 'total', label: 'Total' }
                       ]}
                       onEdit={() => handleEditPlannedAssetSale(sale)}
-                      onDelete={() => removePlannedAssetSale(sale.id)}
+                      onDelete={() => handlePlannedAssetSaleDelete(sale.id)}
                       onDuplicate={() => duplicatePlannedAssetSale(sale)}
                     />
                   );
@@ -852,12 +826,12 @@ export function ScenarioEditorView() {
             }}
             onAdd={() => handleAddExpense('annual')}
             error={errors.annualExpenses}
-            hasItems={(scenario.annualExpenses?.length ?? 0) > 0}
+            hasItems={(scenario?.annualExpenses?.length ?? 0) > 0}
             emptyMessage="No annual expenses added yet. Add your first annual expense to get started."
           >
             {annualExpenseView === 'card' ? (
               <CardList>
-                {scenario.annualExpenses?.map((expense) => (
+                {scenario?.annualExpenses?.map((expense) => (
                   <ListItemCard
                     key={expense.id}
                     title={expense.name}
@@ -865,7 +839,7 @@ export function ScenarioEditorView() {
                       formatCurrency(expense.amount) + '/year'
                     ]}
                     onEdit={() => handleEditExpense(expense)}
-                    onDelete={() => removeExpense(expense.id, 'annual')}
+                    onDelete={() => handleExpenseDelete(expense.id, 'annual')}
                     onDuplicate={() => duplicateExpense(expense)}
                   />
                 ))}
@@ -877,7 +851,7 @@ export function ScenarioEditorView() {
                   { key: 'amount', label: 'Amount' },
                 ]}
               >
-                {scenario.annualExpenses?.map((expense) => (
+                {scenario?.annualExpenses?.map((expense) => (
                   <TableListItem
                     key={expense.id}
                     data={{
@@ -889,7 +863,7 @@ export function ScenarioEditorView() {
                       { key: 'amount', label: 'Amount' },
                     ]}
                     onEdit={() => handleEditExpense(expense)}
-                    onDelete={() => removeExpense(expense.id, 'annual')}
+                    onDelete={() => handleExpenseDelete(expense.id, 'annual')}
                     onDuplicate={() => duplicateExpense(expense)}
                   />
                 ))}
@@ -909,12 +883,12 @@ export function ScenarioEditorView() {
             }}
             onAdd={() => handleAddExpense('oneTime')}
             error={errors.oneTimeExpenses}
-            hasItems={(scenario.oneTimeExpenses?.length ?? 0) > 0}
+            hasItems={(scenario?.oneTimeExpenses?.length ?? 0) > 0}
             emptyMessage="No one-time expenses added yet. Add your first one-time expense to get started."
           >
             {oneTimeExpenseView === 'card' ? (
               <CardList>
-                {scenario.oneTimeExpenses?.map((expense) => (
+                {scenario?.oneTimeExpenses?.map((expense) => (
                   <ListItemCard
                     key={expense.id}
                     title={expense.name}
@@ -922,7 +896,7 @@ export function ScenarioEditorView() {
                       `${formatCurrency(expense.amount)} in ${expense.year}`
                     ]}
                     onEdit={() => handleEditExpense(expense)}
-                    onDelete={() => removeExpense(expense.id, 'oneTime')}
+                    onDelete={() => handleExpenseDelete(expense.id, 'oneTime')}
                     onDuplicate={() => duplicateExpense(expense)}
                   />
                 ))}
@@ -935,7 +909,7 @@ export function ScenarioEditorView() {
                   { key: 'year', label: 'Year' },
                 ]}
               >
-                {scenario.oneTimeExpenses?.map((expense) => (
+                {scenario?.oneTimeExpenses?.map((expense) => (
                   <TableListItem
                     key={expense.id}
                     data={{
@@ -949,7 +923,7 @@ export function ScenarioEditorView() {
                       { key: 'year', label: 'Year' },
                     ]}
                     onEdit={() => handleEditExpense(expense)}
-                    onDelete={() => removeExpense(expense.id, 'oneTime')}
+                    onDelete={() => handleExpenseDelete(expense.id, 'oneTime')}
                     onDuplicate={() => duplicateExpense(expense)}
                   />
                 ))}
@@ -972,12 +946,12 @@ export function ScenarioEditorView() {
               setIsIncomeSourceDialogOpen(true);
             }}
             error={errors.incomeSources}
-            hasItems={(scenario.incomeSources?.length ?? 0) > 0}
+            hasItems={(scenario?.incomeSources?.length ?? 0) > 0}
             emptyMessage="No income sources added yet. Add your first income source to get started."
           >
             {incomeSourceView === 'card' ? (
               <CardList>
-                {scenario.incomeSources?.map((source) => (
+                {scenario?.incomeSources?.map((source) => (
                   <ListItemCard
                     key={source.id}
                     title={source.name}
@@ -986,7 +960,7 @@ export function ScenarioEditorView() {
                       `${source.startYear} - ${source.endYear || 'Ongoing'}`
                     ]}
                     onEdit={() => handleEditIncomeSource(source)}
-                    onDelete={() => removeIncomeSource(source.id)}
+                    onDelete={() => handleIncomeSourceDelete(source.id)}
                     onDuplicate={() => duplicateIncomeSource(source)}
                   />
                 ))}
@@ -1001,7 +975,7 @@ export function ScenarioEditorView() {
                   { key: 'endYear', label: 'End Year' },
                 ]}
               >
-                {scenario.incomeSources?.map((source) => (
+                {scenario?.incomeSources?.map((source) => (
                   <TableListItem
                     key={source.id}
                     data={{
@@ -1019,7 +993,7 @@ export function ScenarioEditorView() {
                       { key: 'endYear', label: 'End Year' },
                     ]}
                     onEdit={() => handleEditIncomeSource(source)}
-                    onDelete={() => removeIncomeSource(source.id)}
+                    onDelete={() => handleIncomeSourceDelete(source.id)}
                     onDuplicate={() => duplicateIncomeSource(source)}
                   />
                 ))}
@@ -1033,7 +1007,7 @@ export function ScenarioEditorView() {
         open={isIncomeSourceDialogOpen}
         onOpenChange={handleIncomeSourceDialogClose}
         incomeSource={editingIncomeSource}
-        mode={!editingIncomeSource ? 'add' : scenario.incomeSources?.some(s => s.id === editingIncomeSource.id) ? 'edit' : 'duplicate'}
+        mode={!editingIncomeSource ? 'add' : scenario?.incomeSources?.some(s => s.id === editingIncomeSource.id) ? 'edit' : 'duplicate'}
         onSave={handleIncomeSourceSave}
       />
 
@@ -1042,18 +1016,18 @@ export function ScenarioEditorView() {
         onOpenChange={handleExpenseDialogClose}
         expense={editingExpense}
         type={expenseType}
-        mode={!editingExpense ? 'add' : (scenario.annualExpenses?.some(e => e.id === editingExpense.id) || scenario.oneTimeExpenses?.some(e => e.id === editingExpense.id)) ? 'edit' : 'duplicate'}
+        mode={!editingExpense ? 'add' : (scenario?.annualExpenses?.some(e => e.id === editingExpense.id) || scenario?.oneTimeExpenses?.some(e => e.id === editingExpense.id)) ? 'edit' : 'duplicate'}
         onSave={handleExpenseSave}
       />
 
       <PlannedAssetSaleDialog
         open={isPlannedAssetSaleDialogOpen}
-        onOpenChange={handlePlannedAssetSaleDialogClose}
+        onOpenChange={setIsPlannedAssetSaleDialogOpen}
         onSave={handlePlannedAssetSaleSave}
         sale={editingPlannedAssetSale}
-        mode={!editingPlannedAssetSale ? 'add' : scenario.plannedAssetSales?.some(s => s.id === editingPlannedAssetSale.id) ? 'edit' : 'duplicate'}
+        mode={!editingPlannedAssetSale ? 'add' : scenario?.plannedAssetSales?.some(s => s.id === editingPlannedAssetSale.id) ? 'edit' : 'duplicate'}
         assets={initialAssets}
-        projectionPeriod={scenario.projectionPeriod ?? 0}
+        projectionPeriod={scenario?.projectionPeriod ?? 0}
       />
 
       <CopyItemsDialog
@@ -1061,7 +1035,7 @@ export function ScenarioEditorView() {
         onOpenChange={handleCopyDialogClose}
         onSave={handleCopyItemsSave}
         scenarios={scenarios}
-        currentScenarioId={scenario.id}
+        currentScenarioId={scenario?.id || ''}
         type={copyDialogType}
         assets={initialAssets}
       />

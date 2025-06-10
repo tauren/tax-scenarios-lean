@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { appConfigService } from '@/services/appConfigService';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/utils/formatting';
 import type { Scenario } from '@/types';
 
@@ -17,20 +17,29 @@ interface CreateScenarioDialogProps {
 
 export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogProps) {
   const navigate = useNavigate();
-  const { scenarios: userScenarios } = useUserAppState();
+  const { scenarios: userScenarios, addScenario } = useUserAppState();
   const templateScenarios = appConfigService.getConfig().templateScenarios;
   const [selectedTemplate, setSelectedTemplate] = useState<Scenario | null>(null);
   const [selectedMyScenario, setSelectedMyScenario] = useState<Scenario | null>(null);
+  const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null);
 
-  const handleCreateFromTemplate = (scenarioArg?: Scenario | null) => {
-    const template = scenarioArg || selectedTemplate || selectedMyScenario;
-    if (template) {
-      navigate('/scenarios/new', { 
-        state: { template }
-      });
-    } else {
-      navigate('/scenarios/new');
+  // Watch for the scenario to be added to the store
+  useEffect(() => {
+    if (pendingScenarioId && userScenarios.some(s => s.id === pendingScenarioId)) {
+      // Scenario is now in the store, safe to navigate
+      navigate(`/scenarios/${pendingScenarioId}/edit`);
+      setPendingScenarioId(null);
     }
+  }, [pendingScenarioId, userScenarios, navigate]);
+
+  const handleCreateScenario = () => {
+    const template = selectedTemplate || selectedMyScenario || templateScenarios[0];
+    if (!template) return;
+
+    const newScenarioData = { ...template, name: `${template.name} (Copy)` };
+    const createdScenario = addScenario(newScenarioData);
+    onClose();
+    navigate(`/scenarios/${createdScenario.id}/edit`);
   };
 
   const renderScenarioCard = (scenario: Scenario, isTemplate: boolean) => {
@@ -93,7 +102,7 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
             onClick={(e) => {
               e.stopPropagation();
               handleSelect();
-              handleCreateFromTemplate(scenario);
+              handleCreateScenario();
             }}
           >
             Use This {isTemplate ? 'Template' : 'Scenario'}
@@ -143,7 +152,7 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
             Cancel
           </Button>
           <Button 
-            onClick={() => handleCreateFromTemplate()}
+            onClick={handleCreateScenario}
             disabled={!selectedTemplate && !selectedMyScenario}
           >
             Continue
