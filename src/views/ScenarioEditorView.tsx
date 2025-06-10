@@ -22,6 +22,9 @@ import { INCOME_SOURCE_TYPE_LABELS } from '@/types';
 import { PlannedAssetSaleDialog } from '@/components/dialogs/PlannedAssetSaleDialog';
 import { convertFormScenarioToScenario } from '@/types';
 import { QualitativeAttributesContainer } from '@/components/shared/QualitativeAttributesContainer';
+import { QuickAddAttributesDialog } from '@/components/dialogs/QuickAddAttributesDialog';
+import { useCalculationState } from '@/store/calculationStateSlice';
+import { calculateScenarioResults } from '@/services/calculationService';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -101,6 +104,7 @@ export function ScenarioEditorView() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { addScenario, updateScenario, scenarios, initialAssets, userQualitativeGoals } = useUserAppState();
+  const { setScenarioResults } = useCalculationState();
   const [scenario, setScenario] = useState<FormScenario>(() => {
     if (id && id !== 'new') {
       const existingScenario = scenarios.find(s => s.id === id);
@@ -156,6 +160,7 @@ export function ScenarioEditorView() {
   const [oneTimeExpenseView, setOneTimeExpenseView] = useState<'card' | 'table'>('card');
   const [plannedAssetSaleView, setPlannedAssetSaleView] = useState<'card' | 'table'>('card');
   const [copyDialogType, setCopyDialogType] = useState<'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale'>('incomeSource');
+  const [isQuickAddDialogOpen, setIsQuickAddDialogOpen] = useState(false);
   
   const isCreating = id === 'new';
 
@@ -331,42 +336,38 @@ export function ScenarioEditorView() {
     // Check if this is an existing item in our list
     const existingItem = scenario.incomeSources?.find(source => source.id === incomeSource.id);
     
+    const updatedScenario = { ...scenario };
     if (existingItem) {
       // Update existing item
-      setScenario({
-        ...scenario,
-        incomeSources: scenario.incomeSources?.map((source) =>
-          source.id === incomeSource.id ? incomeSource : source
-        ),
-      });
+      updatedScenario.incomeSources = scenario.incomeSources?.map((source) =>
+        source.id === incomeSource.id ? incomeSource : source
+      );
     } else {
       // Add new item (either from duplicate or new)
-      setScenario({
-        ...scenario,
-        incomeSources: [...(scenario.incomeSources || []), incomeSource],
-      });
+      updatedScenario.incomeSources = [...(scenario.incomeSources || []), incomeSource];
+    }
+    
+    setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
     }
   };
 
   const handleExpenseSave = (expense: AnnualExpense | OneTimeExpense) => {
+    const updatedScenario = { ...scenario };
+    
     if (expenseType === 'annual') {
       // Check if this is an existing annual expense
       const existingItem = scenario.annualExpenses?.find(exp => exp.id === expense.id);
       
       if (existingItem) {
         // Update existing annual expense
-        setScenario({
-          ...scenario,
-          annualExpenses: scenario.annualExpenses?.map((exp) =>
-            exp.id === expense.id ? expense as AnnualExpense : exp
-          ),
-        });
+        updatedScenario.annualExpenses = scenario.annualExpenses?.map((exp) =>
+          exp.id === expense.id ? expense as AnnualExpense : exp
+        );
       } else {
         // Add new annual expense
-        setScenario({
-          ...scenario,
-          annualExpenses: [...(scenario.annualExpenses || []), expense as AnnualExpense],
-        });
+        updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), expense as AnnualExpense];
       }
     } else {
       // Check if this is an existing one-time expense
@@ -374,19 +375,18 @@ export function ScenarioEditorView() {
       
       if (existingItem) {
         // Update existing one-time expense
-        setScenario({
-          ...scenario,
-          oneTimeExpenses: scenario.oneTimeExpenses?.map((exp) =>
-            exp.id === expense.id ? expense as OneTimeExpense : exp
-          ),
-        });
+        updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses?.map((exp) =>
+          exp.id === expense.id ? expense as OneTimeExpense : exp
+        );
       } else {
         // Add new one-time expense
-        setScenario({
-          ...scenario,
-          oneTimeExpenses: [...(scenario.oneTimeExpenses || []), expense as OneTimeExpense],
-        });
+        updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), expense as OneTimeExpense];
       }
+    }
+    
+    setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
     }
   };
 
@@ -420,23 +420,24 @@ export function ScenarioEditorView() {
   };
 
   const removeIncomeSource = (id: string) => {
-    setScenario({
-      ...scenario,
-      incomeSources: scenario.incomeSources?.filter((source) => source.id !== id),
-    });
+    const updatedScenario = { ...scenario };
+    updatedScenario.incomeSources = scenario.incomeSources?.filter((source) => source.id !== id);
+    setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
+    }
   };
 
   const removeExpense = (id: string, type: 'annual' | 'oneTime') => {
+    const updatedScenario = { ...scenario };
     if (type === 'annual') {
-      setScenario({
-        ...scenario,
-        annualExpenses: scenario.annualExpenses?.filter((exp) => exp.id !== id) || [],
-      });
+      updatedScenario.annualExpenses = scenario.annualExpenses?.filter((exp) => exp.id !== id) || [];
     } else {
-      setScenario({
-        ...scenario,
-        oneTimeExpenses: scenario.oneTimeExpenses?.filter((exp) => exp.id !== id) || [],
-      });
+      updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses?.filter((exp) => exp.id !== id) || [];
+    }
+    setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
     }
   };
 
@@ -460,7 +461,7 @@ export function ScenarioEditorView() {
   };
 
   const handleCopyItemsSave = (items: any[]) => {
-    const updatedScenario = deepClone(scenario);
+    const updatedScenario = { ...scenario };
     
     switch (copyDialogType) {
       case 'incomeSource':
@@ -478,6 +479,9 @@ export function ScenarioEditorView() {
     }
     
     setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
+    }
     setIsCopyDialogOpen(false);
   };
 
@@ -486,20 +490,22 @@ export function ScenarioEditorView() {
   };
 
   const handlePlannedAssetSaleSave = (sale: PlannedAssetSale) => {
-    const updatedScenario = deepClone(scenario);
+    const updatedScenario = { ...scenario };
     
     if (editingPlannedAssetSale && scenario.plannedAssetSales?.some(s => s.id === sale.id)) {
       // Update existing sale
-      const index = updatedScenario.plannedAssetSales.findIndex(s => s.id === sale.id);
-      if (index !== -1) {
-        updatedScenario.plannedAssetSales[index] = sale;
-      }
+      updatedScenario.plannedAssetSales = updatedScenario.plannedAssetSales.map(s => 
+        s.id === sale.id ? sale : s
+      );
     } else {
       // Add new sale (either from duplicate or new)
       updatedScenario.plannedAssetSales = [...(updatedScenario.plannedAssetSales || []), sale];
     }
     
     setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
+    }
     handlePlannedAssetSaleDialogClose();
   };
 
@@ -514,9 +520,12 @@ export function ScenarioEditorView() {
   };
 
   const removePlannedAssetSale = (id: string) => {
-    const updatedScenario = deepClone(scenario);
+    const updatedScenario = { ...scenario };
     updatedScenario.plannedAssetSales = updatedScenario.plannedAssetSales.filter(s => s.id !== id);
     setScenario(updatedScenario);
+    if (id && id !== 'new') {
+      updateScenario(id, convertFormScenarioToScenario(updatedScenario));
+    }
   };
 
   const handlePlannedAssetSaleDialogClose = () => {
@@ -530,6 +539,34 @@ export function ScenarioEditorView() {
     setIsPlannedAssetSaleDialogOpen(true);
   };
 
+  const handleQuickAddAttributes = (attributes: { goalId: string; description: string }[]) => {
+    const newAttributes = attributes.map(attr => ({
+      id: uuidv4(),
+      scenarioId: scenario.id,
+      text: attr.description,
+      goalId: attr.goalId,
+      significance: "Low" as const,
+      sentiment: "Neutral" as const,
+      mappedGoalId: attr.goalId
+    }));
+
+    const updatedScenario = {
+      ...scenario,
+      scenarioSpecificAttributes: [...(scenario.scenarioSpecificAttributes || []), ...newAttributes]
+    };
+
+    setScenario(updatedScenario);
+
+    if (id && id !== 'new') {
+      const scenarioToUpdate = convertFormScenarioToScenario(updatedScenario);
+      updateScenario(id, scenarioToUpdate);
+      
+      // Recalculate and update scenario results
+      const results = calculateScenarioResults(scenarioToUpdate, initialAssets, userQualitativeGoals);
+      setScenarioResults(id, results);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -539,12 +576,21 @@ export function ScenarioEditorView() {
             {isCreating ? 'Configure your new scenario details and settings' : 'Configure your scenario details and settings'}
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate('/scenarios')}
-        >
-          Back to Scenarios
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/scenarios/${id}/view`)}
+            disabled={isCreating}
+          >
+            View Scenario
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/scenarios')}
+          >
+            Back to Scenarios
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="basic" className="space-y-6">
@@ -593,8 +639,7 @@ export function ScenarioEditorView() {
                 >
                   <Input
                     value={scenario.location?.state || ''}
-                    onChange={(e) => handleFieldChange('state', e.target.value)}
-                    onBlur={(e) => {
+                    onChange={(e) => {
                       const updatedScenario = { ...scenario };
                       updatedScenario.location = {
                         ...updatedScenario.location,
@@ -615,8 +660,7 @@ export function ScenarioEditorView() {
                 >
                   <Input
                     value={scenario.location?.city || ''}
-                    onChange={(e) => handleFieldChange('city', e.target.value)}
-                    onBlur={(e) => {
+                    onChange={(e) => {
                       const updatedScenario = { ...scenario };
                       updatedScenario.location = {
                         ...updatedScenario.location,
@@ -655,8 +699,14 @@ export function ScenarioEditorView() {
                   <Input
                     type="date"
                     value={scenario.residencyStartDate ? new Date(scenario.residencyStartDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleFieldChange('residencyStartDate', new Date(e.target.value))}
-                    onBlur={(e) => handleFieldBlur('residencyStartDate', new Date(e.target.value))}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : new Date();
+                      handleFieldChange('residencyStartDate', date);
+                    }}
+                    onBlur={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : new Date();
+                      handleFieldBlur('residencyStartDate', date);
+                    }}
                   />
                 </FormField>
               </div>
@@ -714,6 +764,7 @@ export function ScenarioEditorView() {
           <QualitativeAttributesContainer
             scenarioId={scenario.id}
             disabled={false}
+            onQuickAdd={() => setIsQuickAddDialogOpen(true)}
           />
         </TabsContent>
 
@@ -1013,6 +1064,13 @@ export function ScenarioEditorView() {
         currentScenarioId={scenario.id}
         type={copyDialogType}
         assets={initialAssets}
+      />
+
+      <QuickAddAttributesDialog
+        open={isQuickAddDialogOpen}
+        onOpenChange={setIsQuickAddDialogOpen}
+        onSave={handleQuickAddAttributes}
+        goals={userQualitativeGoals}
       />
     </div>
   );

@@ -13,6 +13,7 @@ import { QualitativeAttributeService } from '@/services/qualitativeAttributeServ
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
   disabled?: boolean;
+  onQuickAdd?: () => void;
 }
 
 // Utility functions for normalization
@@ -46,6 +47,7 @@ function getWeightValue(weight: string): number {
 export function QualitativeAttributesContainer({
   scenarioId,
   disabled = false,
+  onQuickAdd,
 }: QualitativeAttributesContainerProps) {
   const { scenarios, userQualitativeGoals = [], updateScenarioAttribute, deleteScenarioAttribute } = useUserAppState();
   const scenario = scenarios.find(s => s.id === scenarioId);
@@ -162,9 +164,16 @@ export function QualitativeAttributesContainer({
       {/* 2. Qualitative Attributes Row */}
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Qualitative Attributes</h2>
-        <Button onClick={() => handleOpenDialog()} disabled={disabled}>
-          Add Attribute
-        </Button>
+        <div className="flex gap-2">
+          {onQuickAdd && (
+            <Button onClick={onQuickAdd} variant="outline" disabled={disabled}>
+              Quick Add
+            </Button>
+          )}
+          <Button onClick={() => handleOpenDialog()} disabled={disabled}>
+            Add Attribute
+          </Button>
+        </div>
       </div>
 
       {/* 3. Attribute Cards Grouped by Mapping */}
