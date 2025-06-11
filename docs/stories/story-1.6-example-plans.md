@@ -1,7 +1,3 @@
-Okay, here is the draft for Story 1.6, which will reference your `get-started-view.tsx` mockup.
-
----
-
 ## Story 1.6: Display Example Scenario Links (CGT Focused)
 
 **Status:** Complete

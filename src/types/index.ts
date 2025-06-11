@@ -259,8 +259,7 @@ export interface QualitativeConcept {
   id: string;
   name: string;
   description: string;
-  category: string;
-  statements: QualitativeStatement[];
+  aspects?: string[];
 }
 
 export interface QualitativeStatement {
