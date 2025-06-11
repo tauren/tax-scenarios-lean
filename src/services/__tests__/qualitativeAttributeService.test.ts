@@ -1,78 +1,72 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { QualitativeAttributeService } from '../qualitativeAttributeService';
-import type { ScenarioQualitativeAttribute, UserQualitativeGoal, Scenario } from '@/types';
+import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
+import type { UserQualitativeGoal, Scenario } from '@/types';
 
 describe('QualitativeAttributeService', () => {
-  const mockScenarioId = 'test-scenario';
+  const scenarioId = 'test-scenario';
   let service: QualitativeAttributeService;
 
   beforeEach(() => {
     service = new QualitativeAttributeService();
   });
 
-  describe('addAttribute', () => {
-    it('should add a new attribute with generated id', () => {
-      const attribute: Omit<ScenarioQualitativeAttribute, 'id' | 'scenarioId'> = {
-        text: 'Test attribute',
-        sentiment: 'Positive',
-        significance: 'High',
-      };
+  it('should add an attribute', () => {
+    const attribute: Omit<ScenarioQualitativeAttribute, 'id'> = {
+      name: 'Test Attribute',
+      sentiment: 'Positive',
+      significance: 'High'
+    };
 
-      const result = service.addAttribute(mockScenarioId, attribute);
-
-      expect(result.id).toBeDefined();
-      expect(result.scenarioId).toBe(mockScenarioId);
-      expect(result.text).toBe(attribute.text);
-      expect(result.sentiment).toBe(attribute.sentiment);
-      expect(result.significance).toBe(attribute.significance);
+    const result = service.addAttribute(scenarioId, attribute);
+    expect(result).toMatchObject({
+      ...attribute,
+      id: expect.any(String)
     });
+    expect(service.getAttributesByScenario(scenarioId)).toHaveLength(1);
   });
 
-  describe('deleteAttribute', () => {
-    it('should remove the attribute with the specified id', () => {
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Positive',
-        significance: 'High',
-      });
-
-      service.deleteAttribute(attribute.id);
-
-      const attributes = service.getAttributesByScenario(mockScenarioId);
-      expect(attributes).toHaveLength(0);
+  it('should update an attribute', () => {
+    const attribute = service.addAttribute(scenarioId, {
+      name: 'Test Attribute',
+      sentiment: 'Positive',
+      significance: 'High'
     });
+
+    const updatedAttribute = {
+      ...attribute,
+      name: 'Updated Attribute'
+    };
+
+    const result = service.updateAttribute(scenarioId, updatedAttribute);
+    expect(result).toEqual(updatedAttribute);
+    expect(service.getAttributesByScenario(scenarioId)[0]).toEqual(updatedAttribute);
   });
 
-  describe('mapAttributeToGoal', () => {
-    it('should map an attribute to a goal', () => {
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Positive',
-        significance: 'High',
-      });
-
-      const goalId = 'goal-1';
-      service.mapAttributeToGoal(attribute.id, goalId);
-
-      const attributes = service.getAttributesByScenario(mockScenarioId);
-      expect(attributes[0].mappedGoalId).toBe(goalId);
+  it('should delete an attribute', () => {
+    const attribute = service.addAttribute(scenarioId, {
+      name: 'Test Attribute',
+      sentiment: 'Positive',
+      significance: 'High'
     });
+
+    service.deleteAttribute(scenarioId, attribute.id);
+    expect(service.getAttributesByScenario(scenarioId)).toHaveLength(0);
   });
 
-  describe('unmapAttribute', () => {
-    it('should remove the goal mapping from an attribute', () => {
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
-        sentiment: 'Positive',
-        significance: 'High',
-      });
-
-      service.mapAttributeToGoal(attribute.id, 'goal-1');
-      service.unmapAttribute(attribute.id);
-
-      const attributes = service.getAttributesByScenario(mockScenarioId);
-      expect(attributes[0].mappedGoalId).toBeUndefined();
+  it('should map and unmap attributes to goals', () => {
+    const attribute = service.addAttribute(scenarioId, {
+      name: 'Test Attribute',
+      sentiment: 'Positive',
+      significance: 'High'
     });
+
+    const goalId = 'test-goal';
+    service.mapAttributeToGoal(scenarioId, attribute.id, goalId);
+    expect(service.getAttributesByScenario(scenarioId)[0].mappedGoalId).toBe(goalId);
+
+    service.unmapAttribute(scenarioId, attribute.id);
+    expect(service.getAttributesByScenario(scenarioId)[0].mappedGoalId).toBeUndefined();
   });
 
   describe('calculateFitScore', () => {
@@ -85,7 +79,7 @@ describe('QualitativeAttributeService', () => {
       }];
 
       const scenario: Scenario = {
-        id: mockScenarioId,
+        id: scenarioId,
         name: 'Test Scenario',
         projectionPeriod: 10,
         residencyStartDate: new Date(),
@@ -113,15 +107,15 @@ describe('QualitativeAttributeService', () => {
         weight: 'Critical'
       }];
 
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
+      const attribute = service.addAttribute(scenarioId, {
+        name: 'Test Attribute',
         sentiment: 'Positive',
         significance: 'Critical'
       });
-      service.mapAttributeToGoal(attribute.id, goals[0].id);
+      service.mapAttributeToGoal(scenarioId, attribute.id, goals[0].id);
 
       const scenario: Scenario = {
-        id: mockScenarioId,
+        id: scenarioId,
         name: 'Test Scenario',
         projectionPeriod: 10,
         residencyStartDate: new Date(),
@@ -151,15 +145,15 @@ describe('QualitativeAttributeService', () => {
         weight: 'High'
       }];
 
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
+      const attribute = service.addAttribute(scenarioId, {
+        name: 'Test Attribute',
         sentiment: 'Negative',
         significance: 'High'
       });
-      service.mapAttributeToGoal(attribute.id, goals[0].id);
+      service.mapAttributeToGoal(scenarioId, attribute.id, goals[0].id);
 
       const scenario: Scenario = {
-        id: mockScenarioId,
+        id: scenarioId,
         name: 'Test Scenario',
         projectionPeriod: 10,
         residencyStartDate: new Date(),
@@ -189,15 +183,15 @@ describe('QualitativeAttributeService', () => {
         weight: 'Medium'
       }];
 
-      const attribute = service.addAttribute(mockScenarioId, {
-        text: 'Test attribute',
+      const attribute = service.addAttribute(scenarioId, {
+        name: 'Test Attribute',
         sentiment: 'Neutral',
         significance: 'Medium'
       });
-      service.mapAttributeToGoal(attribute.id, goals[0].id);
+      service.mapAttributeToGoal(scenarioId, attribute.id, goals[0].id);
 
       const scenario: Scenario = {
-        id: mockScenarioId,
+        id: scenarioId,
         name: 'Test Scenario',
         projectionPeriod: 10,
         residencyStartDate: new Date(),

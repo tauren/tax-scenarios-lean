@@ -60,7 +60,7 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
                   {alignment.contributingAttributes.map((attr) => {
                     return (
                       <li key={attr.attributeId} className="flex items-center gap-1">
-                        <span>{attr.conceptName}</span>
+                        <span>{attr.name}</span>
                         <span className="text-sm text-muted-foreground">
                           ({attr.contribution}% of {attr.maxPossiblePercent}%)
                         </span>

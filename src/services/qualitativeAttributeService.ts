@@ -3,51 +3,79 @@ import type { ScenarioQualitativeAttribute, UserQualitativeGoal, QualitativeGoal
 import type { Scenario } from '@/types';
 
 export class QualitativeAttributeService {
-  private attributes: ScenarioQualitativeAttribute[] = [];
+  private attributes: Map<string, ScenarioQualitativeAttribute[]> = new Map();
 
   constructor(initialAttributes: ScenarioQualitativeAttribute[] = []) {
-    this.attributes = initialAttributes;
+    // Group attributes by scenarioId
+    initialAttributes.forEach(attr => {
+      const scenarioId = attr.scenarioId;
+      if (!this.attributes.has(scenarioId)) {
+        this.attributes.set(scenarioId, []);
+      }
+      this.attributes.get(scenarioId)?.push(attr);
+    });
   }
 
-  addAttribute(scenarioId: string, attribute: Omit<ScenarioQualitativeAttribute, 'id' | 'scenarioId'>): ScenarioQualitativeAttribute {
+  addAttribute(scenarioId: string, attribute: Omit<ScenarioQualitativeAttribute, 'id'>): ScenarioQualitativeAttribute {
     const newAttribute: ScenarioQualitativeAttribute = {
       id: uuidv4(),
-      scenarioId,
       ...attribute,
     };
-    this.attributes.push(newAttribute);
+    
+    if (!this.attributes.has(scenarioId)) {
+      this.attributes.set(scenarioId, []);
+    }
+    this.attributes.get(scenarioId)?.push(newAttribute);
     return newAttribute;
   }
 
-  updateAttribute(attribute: ScenarioQualitativeAttribute): ScenarioQualitativeAttribute {
-    const index = this.attributes.findIndex(a => a.id === attribute.id);
-    if (index === -1) {
-      throw new Error(`Attribute with id ${attribute.id} not found`);
+  updateAttribute(scenarioId: string, attribute: ScenarioQualitativeAttribute): ScenarioQualitativeAttribute {
+    const scenarioAttributes = this.attributes.get(scenarioId);
+    if (!scenarioAttributes) {
+      throw new Error(`No attributes found for scenario ${scenarioId}`);
     }
-    this.attributes[index] = attribute;
+    
+    const index = scenarioAttributes.findIndex(a => a.id === attribute.id);
+    if (index === -1) {
+      throw new Error(`Attribute with id ${attribute.id} not found in scenario ${scenarioId}`);
+    }
+    
+    scenarioAttributes[index] = attribute;
     return attribute;
   }
 
-  deleteAttribute(id: string): void {
-    this.attributes = this.attributes.filter((attr) => attr.id !== id);
+  deleteAttribute(scenarioId: string, attributeId: string): void {
+    const scenarioAttributes = this.attributes.get(scenarioId);
+    if (!scenarioAttributes) return;
+    
+    this.attributes.set(
+      scenarioId,
+      scenarioAttributes.filter(attr => attr.id !== attributeId)
+    );
   }
 
-  mapAttributeToGoal(attributeId: string, goalId: string): void {
-    const attribute = this.attributes.find((attr) => attr.id === attributeId);
+  mapAttributeToGoal(scenarioId: string, attributeId: string, goalId: string): void {
+    const scenarioAttributes = this.attributes.get(scenarioId);
+    if (!scenarioAttributes) return;
+    
+    const attribute = scenarioAttributes.find(attr => attr.id === attributeId);
     if (attribute) {
       attribute.mappedGoalId = goalId;
     }
   }
 
-  unmapAttribute(attributeId: string): void {
-    const attribute = this.attributes.find((attr) => attr.id === attributeId);
+  unmapAttribute(scenarioId: string, attributeId: string): void {
+    const scenarioAttributes = this.attributes.get(scenarioId);
+    if (!scenarioAttributes) return;
+    
+    const attribute = scenarioAttributes.find(attr => attr.id === attributeId);
     if (attribute) {
       attribute.mappedGoalId = undefined;
     }
   }
 
   getAttributesByScenario(scenarioId: string): ScenarioQualitativeAttribute[] {
-    return this.attributes.filter((attr) => attr.scenarioId === scenarioId);
+    return this.attributes.get(scenarioId) || [];
   }
 
   /**
@@ -83,7 +111,8 @@ export class QualitativeAttributeService {
       if (goalWeight === 0) continue;
 
       // Find mapped attributes for this goal
-      const mappedAttributes = scenario.scenarioSpecificAttributes?.filter(
+      const scenarioAttributes = this.attributes.get(scenario.id);
+      const mappedAttributes = scenarioAttributes?.filter(
         attr => attr.mappedGoalId === goal.id
       ) || [];
 

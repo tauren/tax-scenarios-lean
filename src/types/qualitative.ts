@@ -22,7 +22,6 @@ export interface UserQualitativeGoal {
 
 export interface ScenarioQualitativeAttribute {
   id: string;
-  scenarioId: string;
   name: string;
   sentiment: "Positive" | "Negative" | "Neutral";
   significance: "Low" | "Medium" | "High" | "Critical";

@@ -1,4 +1,4 @@
-import type { QualitativeGoalAlignment } from '@/types/qualitative';
+import type { QualitativeGoalAlignment, ScenarioQualitativeAttribute } from '@/types/qualitative';
 
 /**
  * Core application state representing the active plan.
@@ -274,13 +274,4 @@ export interface UserQualitativeGoal {
   conceptId: string;
   name: string;
   weight: "Low" | "Medium" | "High" | "Critical";
-}
-
-export interface ScenarioQualitativeAttribute {
-  id: string;
-  scenarioId: string;
-  name: string;
-  sentiment: "Positive" | "Negative" | "Neutral";
-  significance: "Low" | "Medium" | "High" | "Critical";
-  mappedGoalId?: string;
 }

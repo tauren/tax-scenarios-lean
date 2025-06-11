@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, ScenarioQualitativeAttribute, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
+import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
+import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
 import { v4 as uuid } from 'uuid';
 
 // Simple function to ensure scenario data is valid
@@ -170,11 +171,11 @@ export const useUserAppState = create<UserAppStateSlice>()(
         const scenario = state.scenarios.find(s => s.id === scenarioId);
         if (!scenario) return state;
 
-        const existingIndex = scenario.scenarioSpecificAttributes.findIndex(
+        const updatedScenario = { ...scenario };
+        const existingIndex = updatedScenario.scenarioSpecificAttributes.findIndex(
           attr => attr.id === attribute.id
         );
 
-        const updatedScenario = { ...scenario };
         if (existingIndex >= 0) {
           updatedScenario.scenarioSpecificAttributes[existingIndex] = attribute;
         } else {
@@ -182,7 +183,10 @@ export const useUserAppState = create<UserAppStateSlice>()(
         }
 
         return {
-          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+          ...state,
+          scenarios: state.scenarios.map(s => 
+            s.id === scenarioId ? updatedScenario : s
+          )
         };
       }),
       
@@ -198,7 +202,10 @@ export const useUserAppState = create<UserAppStateSlice>()(
         };
 
         return {
-          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+          ...state,
+          scenarios: state.scenarios.map(s => 
+            s.id === scenarioId ? updatedScenario : s
+          )
         };
       }),
       
