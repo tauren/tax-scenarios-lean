@@ -1,5 +1,5 @@
 import React from 'react';
-import { Unlink } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { UserQualitativeGoal, ScenarioQualitativeAttribute } from '@/types/qualitative';
 import type { Scenario } from '@/types';
 import { getImportanceIcon } from '@/components/icons/ImportanceLevelIcons';
@@ -76,8 +76,11 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
           : 'bg-blue-50';
     };
 
-    // Determine border color based on sentiment
+    // Determine border color based on sentiment and mapping status
     const getBorderColor = () => {
+      if (!mappedGoal) {
+        return 'border-gray-200';
+      }
       return attribute.sentiment === 'Positive' 
         ? 'border-green-200'
         : attribute.sentiment === 'Negative'
@@ -112,14 +115,16 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
           <Popover>
             <PopoverTrigger asChild>
               <div className="absolute right-3 cursor-help">
-                <Unlink className="h-5 w-5 text-red-400" />
+                <div className="h-5 w-5 rounded-full bg-red-100 flex items-center justify-center">
+                  <X className="h-3 w-3 text-red-600" />
+                </div>
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-2">
-                <h4 className="font-medium text-sm">Unmapped Attribute</h4>
+                <h4 className="font-medium text-sm">Not Linked to Goal</h4>
                 <p className="text-sm text-muted-foreground">
-                  This attribute hasn't been mapped to a goal yet. Map it to a goal to track its impact on your objectives.
+                  This pro/con isn't linked to any of your goals yet. Link it to a goal to track its impact on your priorities.
                 </p>
               </div>
             </PopoverContent>
@@ -138,7 +143,7 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-2">
-                <h4 className="font-medium text-sm">Mapped to Goal</h4>
+                <h4 className="font-medium text-sm">Linked to Goal</h4>
                 <p className="text-sm text-muted-foreground">{mappedGoal.name}</p>
               </div>
             </PopoverContent>
@@ -164,11 +169,11 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
   return (
     <div className="border rounded-lg p-4 mb-2">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Qualitative Attributes</h2>
+        <h2 className="text-lg font-semibold">Pros & Cons</h2>
       </div>
       
       {attributes.length === 0 ? (
-        <div className="text-muted-foreground">No qualitative attributes defined for this scenario.</div>
+        <div className="text-muted-foreground">No pros or cons defined for this scenario.</div>
       ) : (
         <div className="space-y-6">
           {renderSection('Pros', sortedPros, 'text-green-600')}

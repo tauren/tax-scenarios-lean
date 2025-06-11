@@ -57,12 +57,12 @@ export function StatementSelectionDialog({ open, onOpenChange, onConfirm }: Stat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Goals from Statements</DialogTitle>
+          <DialogTitle>Add Location Objectives from Examples</DialogTitle>
           <DialogDescription>
-            Select one or more statements to create goals.  
-            Pick statements that match or are similar to your personal goals. 
-            You can modify the statement to better match your actual goal once your goal is created.
-            You can choose statements from different concepts.
+            Select one or more examples to create location objectives.  
+            Pick examples that match or are similar to your location objectives. 
+            You can modify the example to better match your actual objective once your location objective is created.
+            You can choose multiple examples from different categories.
           </DialogDescription>
         </DialogHeader>
 
@@ -109,7 +109,7 @@ export function StatementSelectionDialog({ open, onOpenChange, onConfirm }: Stat
             onClick={handleConfirm}
             disabled={selectedStatements.size === 0}
           >
-            Add Selected Goals
+            Add Selected Objectives
           </Button>
         </DialogFooter>
       </DialogContent>

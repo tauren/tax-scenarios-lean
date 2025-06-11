@@ -80,7 +80,7 @@ export function Breadcrumbs() {
       });
     } else if (pathSegments[0] === 'personal-goals') {
       items.push({
-        label: 'Personal Goals',
+        label: 'Location Objectives',
         isCurrentPage: true,
       });
     }

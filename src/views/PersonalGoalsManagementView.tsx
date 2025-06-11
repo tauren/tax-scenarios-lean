@@ -59,19 +59,22 @@ export default function PersonalGoalsManagementView() {
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* View Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">My Personal Goals</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">My Location Objectives</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsStatementDialogOpen(true)}>
-            Add from Statements
+          <Button
+            variant="outline"
+            onClick={() => setIsStatementDialogOpen(true)}
+          >
+            Add Objectives from Examples
           </Button>
-          <Button onClick={() => handleOpenDialog()}>Add New Goal</Button>
+          <Button onClick={() => handleOpenDialog()}>Add New Objective</Button>
         </div>
       </div>
 
       {/* Goals Summary */}
       <div className="mb-6 p-4 bg-muted/50 rounded-lg">
         <p className="text-sm text-muted-foreground">
-          Define the lifestyle factors that matter most to you. These goals will be used to score and compare your tax
+          Define the lifestyle factors that matter most to you. These objectives will be used to score and compare your tax
           residency scenarios.
         </p>
       </div>
@@ -93,12 +96,15 @@ export default function PersonalGoalsManagementView() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">You haven't added any personal goals yet.</p>
+          <p className="text-gray-500 mb-4">You haven't added any location objectives yet.</p>
           <div className="flex gap-2 justify-center">
-            <Button variant="outline" onClick={() => setIsStatementDialogOpen(true)}>
-              Add from Statements
+            <Button
+              variant="outline"
+              onClick={() => setIsStatementDialogOpen(true)}
+            >
+              Add Objectives from Examples
             </Button>
-            <Button onClick={() => handleOpenDialog()}>Add Your First Goal</Button>
+            <Button onClick={() => handleOpenDialog()}>Add Your First Objective</Button>
           </div>
         </div>
       )}

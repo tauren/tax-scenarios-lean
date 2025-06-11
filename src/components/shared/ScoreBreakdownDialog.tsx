@@ -59,6 +59,9 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
     }
   };
 
+  // Sort goals by alignment score (highest to lowest)
+  const sortedGoalAlignments = [...goalAlignments].sort((a, b) => b.alignmentScore - a.alignmentScore);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -118,7 +121,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                     </Popover>
                   </div>
                   <p className="text-sm text-gray-500">
-                    This score represents how well this scenario aligns with your personal goals, weighted by importance.
+                    This score represents how well this scenario aligns with your location objectives, weighted by importance.
                   </p>
                 </div>
                 <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
@@ -129,18 +132,19 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
 
             {/* Goal Alignments */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Goal Alignments</h3>
+              <h3 className="text-lg font-medium">Location Objectives Alignment</h3>
               <div className="space-y-4">
-                {goalAlignments.length > 0 ? (
-                  goalAlignments.map((alignment) => {
+                {sortedGoalAlignments.length > 0 ? (
+                  sortedGoalAlignments.map((alignment) => {
+                    const goal = goals.find((g) => g.id === alignment.goalId);
                     const badge = getBadgeStyle(alignment.alignmentScore);
                     return (
                       <div key={alignment.goalId} className="rounded-lg border p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium">{alignment.goalName}</h4>
+                            <h4 className="font-medium">{goal?.name || alignment.goalName}</h4>
                             <p className="text-sm text-gray-500">
-                              Weight: {goals.find(g => g.id === alignment.goalId)?.weight}
+                              Weight: {goal?.weight}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -154,7 +158,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                         </div>
 
                         {/* Contributing Attributes */}
-                        {alignment.contributingAttributes.length > 0 && (
+                        {alignment.contributingAttributes && alignment.contributingAttributes.length > 0 && (
                           <div className="mt-4 space-y-2">
                             <h5 className="text-sm font-medium text-gray-700">Contributing Attributes</h5>
                             <div className="space-y-2">
@@ -194,7 +198,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                     );
                   })
                 ) : (
-                  <p className="text-sm text-gray-500">No goal alignments available.</p>
+                  <p className="text-sm text-gray-500">No location objective alignments available.</p>
                 )}
               </div>
             </div>

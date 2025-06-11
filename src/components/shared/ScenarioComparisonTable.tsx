@@ -238,7 +238,7 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
         <Table style={{ tableLayout: 'fixed', width: '100%' }}>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px] max-w-[200px] truncate">Goal</TableHead>
+              <TableHead className="w-[200px] max-w-[200px] truncate">Location Objective</TableHead>
               {selectedScenariosData.map((scenario) => (
                 <TableHead key={scenario.id} className="w-[160px] max-w-[160px] text-center truncate">
                   <div className="flex items-center justify-center w-full truncate">

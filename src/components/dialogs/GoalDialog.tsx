@@ -75,7 +75,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
   }
 
   const validateConcept = (value: string | undefined): string | undefined => {
-    return !value ? 'Base concept is required' : undefined
+    return !value ? 'Category is required' : undefined
   }
 
   const validateWeight = (value: WeightOption | undefined): string | undefined => {
@@ -132,11 +132,11 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editingGoal ? "Edit Goal" : "Add New Goal"}</DialogTitle>
+          <DialogTitle>{editingGoal ? "Edit Location Objective" : "Add New Location Objective"}</DialogTitle>
           <DialogDescription>
             {editingGoal
-              ? "Modify your personal goal details below."
-              : "Create a new personal goal by selecting a base concept and customizing it to your needs."}
+              ? "Modify your location objective details below."
+              : "Create a new location objective by selecting a category and customizing it to your needs."}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +152,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
           <div className="space-y-4 py-4">
             <FormField
               id="concept"
-              label="Base Concept"
+              label="Objective Category"
               error={errors.conceptId}
             >
               <Select
@@ -163,7 +163,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                 }}
               >
                 <SelectTrigger className={errors.conceptId ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Select a concept" />
+                  <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
                   {qualitativeConcepts.map((concept) => (
@@ -177,7 +177,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
 
             <FormField
               id="name"
-              label="Goal Name"
+              label="Objective Name"
               error={errors.name}
             >
               <Input
@@ -189,7 +189,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                   setFieldError('name', validateName(value))
                 }}
                 onBlur={() => setFieldError('name', validateName(formData.name))}
-                placeholder="Enter a name for your goal"
+                placeholder="Enter a name for your location objective"
                 className={errors.name ? 'border-destructive' : ''}
               />
             </FormField>
@@ -205,7 +205,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                   const value = e.target.value
                   setFormData(prev => ({ ...prev, description: value }))
                 }}
-                placeholder="Describe your goal (optional)"
+                placeholder="Describe your location objective (optional)"
               />
             </FormField>
 
@@ -227,7 +227,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
               Cancel
             </Button>
             <Button type="submit">
-              {editingGoal ? "Save Changes" : "Add Goal"}
+              {editingGoal ? "Save Changes" : "Add Objective"}
             </Button>
           </DialogFooter>
         </form>
