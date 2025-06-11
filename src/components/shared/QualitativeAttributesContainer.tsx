@@ -7,7 +7,7 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
 import type { WeightOption } from './WeightSelector';
 import { QualitativeFitScoreDisplay } from './QualitativeFitScoreDisplay';
-import { QualitativeAttributeService } from '@/services/qualitativeAttributeService';
+import { qualitativeAttributeService } from '@/services/qualitativeAttributeService';
 
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
@@ -30,12 +30,9 @@ export function QualitativeAttributesContainer({
   const [editingAttribute, setEditingAttribute] = useState<ScenarioQualitativeAttribute | null>(null);
   const [mappingAttribute, setMappingAttribute] = useState<ScenarioQualitativeAttribute | null>(null);
 
-  // Create service instance with current attributes
-  const attributeService = new QualitativeAttributeService(attributes);
-
   // Use service for fit score and alignments
   const { score: fitScore, goalAlignments } = scenario && userQualitativeGoals.length > 0
-    ? attributeService.calculateQualitativeFitScore(scenario, userQualitativeGoals)
+    ? qualitativeAttributeService.calculateQualitativeFitScore(scenario, userQualitativeGoals)
     : { score: 0, goalAlignments: [] };
 
   const handleOpenDialog = (attribute?: ScenarioQualitativeAttribute) => {
@@ -53,7 +50,6 @@ export function QualitativeAttributesContainer({
 
     const updatedAttribute = {
       ...attribute,
-      scenarioId,
       sentiment: attribute.sentiment.charAt(0).toUpperCase() + attribute.sentiment.slice(1).toLowerCase() as "Positive" | "Negative" | "Neutral"
     };
 
