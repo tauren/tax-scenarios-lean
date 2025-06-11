@@ -34,16 +34,16 @@ export function QualitativeAttributeCard({
   goalAlignments,
   disabled = false,
 }: QualitativeAttributeCardProps) {
-  const [editValue, setEditValue] = useState(attribute.text);
+  const [editValue, setEditValue] = useState(attribute.name);
   const [isEditing, setIsEditing] = useState(false);
 
   React.useEffect(() => {
-    setEditValue(attribute.text);
-  }, [attribute.text]);
+    setEditValue(attribute.name);
+  }, [attribute.name]);
 
   const commitEdit = () => {
     const trimmed = editValue.trim();
-    if (trimmed !== attribute.text) {
+    if (trimmed !== attribute.name) {
       onUpdateName(attribute.id, trimmed);
     }
     setEditValue(trimmed);
@@ -72,14 +72,19 @@ export function QualitativeAttributeCard({
   return (
     <div className="flex flex-col">
       {/* Main card with border, all corners rounded */}
-      <div className="border border-gray-300 rounded-lg p-4 flex flex-col">
+      <div className={`border border-gray-300 rounded-lg p-4 flex flex-col ${
+        !attribute.mappedGoalId ? 'bg-gray-50' :
+        attribute.sentiment === 'Positive' ? 'bg-green-50' :
+        attribute.sentiment === 'Negative' ? 'bg-red-50' :
+        'bg-blue-50'
+      }`}>
         {/* First row: title + buttons, fixed min height for alignment */}
         <div className="flex items-start justify-between gap-4 min-h-[3.5rem]">
           <div
             className={`flex items-center justify-between w-full rounded px-3 py-1 cursor-pointer transition-colors duration-150 group/title ${
               isEditing
-                ? 'border border-gray-300 bg-gray-100'
-                : 'border border-transparent bg-transparent hover:border-gray-300 hover:bg-gray-100 focus:border-gray-300 focus:bg-gray-100'
+                ? 'border border-gray-300 bg-white'
+                : 'border border-transparent bg-transparent hover:border-gray-300 hover:bg-white focus:border-gray-300 focus:bg-white'
             }`}
             style={{ minHeight: '3.5rem' }}
             tabIndex={0}
@@ -106,7 +111,7 @@ export function QualitativeAttributeCard({
               />
             ) : (
               <span className="font-semibold break-words overflow-hidden text-ellipsis line-clamp-2 mb-0.5">
-                {attribute.text}
+                {attribute.name}
               </span>
             )}
             <Pencil className={`h-4 w-4 text-muted-foreground ml-2 transition-opacity ${isEditing ? 'opacity-100' : 'opacity-0 group-hover/title:opacity-100 group-focus/title:opacity-100'}`} />
@@ -142,6 +147,11 @@ export function QualitativeAttributeCard({
               value={attribute.sentiment}
               onChange={(sentiment) => onUpdateSentiment(attribute.id, sentiment)}
               className="mt-0"
+              labels={{
+                Positive: 'Pro',
+                Negative: 'Con',
+                Neutral: 'Neutral'
+              }}
             />
           </div>
           <div className="mb-2">
@@ -174,7 +184,8 @@ export function QualitativeAttributeCard({
               })()}
             </span>
             <div className="flex flex-row items-center gap-2 mt-1 w-full">
-              {typeof contribution === 'number' && (
+              {/* TODO: This value is not very useful and should remove it, but need to remove business logic also. */}
+              {/* {typeof contribution === 'number' && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -191,12 +202,12 @@ export function QualitativeAttributeCard({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              )}
+              )} */}
               {typeof maxPossiblePercent === 'number' && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`font-semibold text-blue-700 cursor-help ml-3`}>
+                      <span className={`font-semibold text-blue-700 cursor-help`}>
                         <div className="text-sm text-muted-foreground">
                           {maxPossiblePercent > 0 ? '+' : ''}{maxPossiblePercent}%
                         </div>
@@ -213,7 +224,7 @@ export function QualitativeAttributeCard({
               {/* Spacer to push badge right */}
               <span className="flex-1" />
               {contributionBadge && (
-                <span className={`absolute right-3 bottom-2 rounded-full py-0.5 px-2 text-xs font-medium border border-white/30 bg-white/20`}>{contributionBadge.label}</span>
+                <span className={`absolute right-3 bottom-2 rounded-full py-0.5 px-2 text-xs font-medium border border-white/30 bg-white/30`}>{contributionBadge.label}</span>
               )}
             </div>
           </>

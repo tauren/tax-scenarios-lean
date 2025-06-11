@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
 import { QualitativeAttributeCard } from './QualitativeAttributeCard';
 import type { SentimentOption } from './SentimentSelector';

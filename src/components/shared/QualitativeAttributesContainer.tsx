@@ -4,44 +4,15 @@ import { QualitativeAttributeCard } from './QualitativeAttributeCard';
 import { QualitativeAttributeDialog } from '@/components/dialogs/QualitativeAttributeDialog';
 import { AttributeMappingDialog } from '@/components/shared/AttributeMappingDialog';
 import { useUserAppState } from '@/store/userAppStateSlice';
-import type { ScenarioQualitativeAttribute } from '@/types';
+import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
 import type { WeightOption } from './WeightSelector';
 import { QualitativeFitScoreDisplay } from './QualitativeFitScoreDisplay';
-import type { QualitativeGoalAlignment } from '@/types/qualitative';
 import { QualitativeAttributeService } from '@/services/qualitativeAttributeService';
 
 interface QualitativeAttributesContainerProps {
   scenarioId: string;
   disabled?: boolean;
   onQuickAdd?: () => void;
-}
-
-// Utility functions for normalization
-function getSentimentValue(sentiment: string): number {
-  switch (sentiment) {
-    case 'Positive': return 1;
-    case 'Negative': return -1;
-    case 'Neutral':
-    default: return 0;
-  }
-}
-function getSignificanceValue(significance: string): number {
-  switch (significance) {
-    case 'Critical': return 1;
-    case 'High': return 0.75;
-    case 'Medium': return 0.5;
-    case 'Low':
-    default: return 0.25;
-  }
-}
-function getWeightValue(weight: string): number {
-  switch (weight) {
-    case 'Critical': return 1;
-    case 'High': return 0.75;
-    case 'Medium': return 0.5;
-    case 'Low':
-    default: return 0.25;
-  }
 }
 
 export function QualitativeAttributesContainer({
@@ -102,7 +73,7 @@ export function QualitativeAttributesContainer({
 
     updateScenarioAttribute(scenarioId, {
       ...attribute,
-      text: newName.trim()
+      name: newName.trim()
     });
   };
 
@@ -163,7 +134,7 @@ export function QualitativeAttributesContainer({
 
       {/* 2. Qualitative Attributes Row */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Qualitative Attributes</h2>
+        <h2 className="text-lg font-semibold">Location Considerations</h2>
         <div className="flex gap-2">
           {onQuickAdd && (
             <Button onClick={onQuickAdd} variant="outline" disabled={disabled}>
@@ -171,56 +142,122 @@ export function QualitativeAttributesContainer({
             </Button>
           )}
           <Button onClick={() => handleOpenDialog()} disabled={disabled}>
-            Add Attribute
+            Add Consideration
           </Button>
         </div>
       </div>
 
-      {/* 3. Attribute Cards Grouped by Mapping */}
-      {/* Unmapped Attributes Section */}
-      {attributes.filter(attr => !attr.mappedGoalId).length > 0 && (
+      {/* 3. Attribute Cards Grouped by Sentiment */}
+      {/* Pros Section */}
+      {attributes.filter(attr => attr.sentiment === 'Positive').length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-base font-semibold mt-4 mb-2">Unmapped Attributes</h3>
+          <h3 className="text-base font-semibold mt-4 mb-2">Pros</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-            {attributes.filter(attr => !attr.mappedGoalId).map((attribute) => (
-              <QualitativeAttributeCard
-                key={attribute.id}
-                attribute={attribute}
-                onEdit={handleOpenDialog}
-                onDelete={handleDeleteAttribute}
-                onUpdateName={handleUpdateName}
-                onUpdateSentiment={handleUpdateSentiment}
-                onUpdateSignificance={handleUpdateSignificance}
-                onMapToGoal={handleMapToGoal}
-                getGoalNameById={getGoalNameById}
-                goalAlignments={goalAlignments}
-                disabled={disabled}
-              />
-            ))}
+            {attributes
+              .filter(attr => attr.sentiment === 'Positive')
+              .sort((a, b) => {
+                // First sort by significance (Critical > High > Medium > Low)
+                const significanceOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+                const significanceDiff = significanceOrder[a.significance] - significanceOrder[b.significance];
+                if (significanceDiff !== 0) return significanceDiff;
+                
+                // Then sort by mapping status (mapped first)
+                if (a.mappedGoalId && !b.mappedGoalId) return -1;
+                if (!a.mappedGoalId && b.mappedGoalId) return 1;
+                
+                return 0;
+              })
+              .map((attribute) => (
+                <QualitativeAttributeCard
+                  key={attribute.id}
+                  attribute={attribute}
+                  onEdit={handleOpenDialog}
+                  onDelete={handleDeleteAttribute}
+                  onUpdateName={handleUpdateName}
+                  onUpdateSentiment={handleUpdateSentiment}
+                  onUpdateSignificance={handleUpdateSignificance}
+                  onMapToGoal={handleMapToGoal}
+                  getGoalNameById={getGoalNameById}
+                  goalAlignments={goalAlignments}
+                  disabled={disabled}
+                />
+              ))}
           </div>
         </div>
       )}
 
-      {/* Mapped Attributes Section */}
-      {attributes.filter(attr => attr.mappedGoalId).length > 0 && (
+      {/* Cons Section */}
+      {attributes.filter(attr => attr.sentiment === 'Negative').length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-base font-semibold mt-6 mb-2">Mapped Attributes</h3>
+          <h3 className="text-base font-semibold mt-6 mb-2">Cons</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-            {attributes.filter(attr => attr.mappedGoalId).map((attribute) => (
-              <QualitativeAttributeCard
-                key={attribute.id}
-                attribute={attribute}
-                onEdit={handleOpenDialog}
-                onDelete={handleDeleteAttribute}
-                onUpdateName={handleUpdateName}
-                onUpdateSentiment={handleUpdateSentiment}
-                onUpdateSignificance={handleUpdateSignificance}
-                onMapToGoal={handleMapToGoal}
-                getGoalNameById={getGoalNameById}
-                goalAlignments={goalAlignments}
-                disabled={disabled}
-              />
-            ))}
+            {attributes
+              .filter(attr => attr.sentiment === 'Negative')
+              .sort((a, b) => {
+                // First sort by significance (Critical > High > Medium > Low)
+                const significanceOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+                const significanceDiff = significanceOrder[a.significance] - significanceOrder[b.significance];
+                if (significanceDiff !== 0) return significanceDiff;
+                
+                // Then sort by mapping status (mapped first)
+                if (a.mappedGoalId && !b.mappedGoalId) return -1;
+                if (!a.mappedGoalId && b.mappedGoalId) return 1;
+                
+                return 0;
+              })
+              .map((attribute) => (
+                <QualitativeAttributeCard
+                  key={attribute.id}
+                  attribute={attribute}
+                  onEdit={handleOpenDialog}
+                  onDelete={handleDeleteAttribute}
+                  onUpdateName={handleUpdateName}
+                  onUpdateSentiment={handleUpdateSentiment}
+                  onUpdateSignificance={handleUpdateSignificance}
+                  onMapToGoal={handleMapToGoal}
+                  getGoalNameById={getGoalNameById}
+                  goalAlignments={goalAlignments}
+                  disabled={disabled}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* Neutral Section */}
+      {attributes.filter(attr => attr.sentiment === 'Neutral').length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold mt-6 mb-2">Neutral</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+            {attributes
+              .filter(attr => attr.sentiment === 'Neutral')
+              .sort((a, b) => {
+                // First sort by significance (Critical > High > Medium > Low)
+                const significanceOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+                const significanceDiff = significanceOrder[a.significance] - significanceOrder[b.significance];
+                if (significanceDiff !== 0) return significanceDiff;
+                
+                // Then sort by mapping status (mapped first)
+                if (a.mappedGoalId && !b.mappedGoalId) return -1;
+                if (!a.mappedGoalId && b.mappedGoalId) return 1;
+                
+                return 0;
+              })
+              .map((attribute) => (
+                <QualitativeAttributeCard
+                  key={attribute.id}
+                  attribute={attribute}
+                  onEdit={handleOpenDialog}
+                  onDelete={handleDeleteAttribute}
+                  onUpdateName={handleUpdateName}
+                  onUpdateSentiment={handleUpdateSentiment}
+                  onUpdateSignificance={handleUpdateSignificance}
+                  onMapToGoal={handleMapToGoal}
+                  getGoalNameById={getGoalNameById}
+                  goalAlignments={goalAlignments}
+                  disabled={disabled}
+                />
+              ))}
           </div>
         </div>
       )}

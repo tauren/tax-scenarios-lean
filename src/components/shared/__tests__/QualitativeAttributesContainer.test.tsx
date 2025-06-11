@@ -28,16 +28,14 @@ describe('QualitativeAttributesContainer', () => {
   const mockAttributes: ScenarioQualitativeAttribute[] = [
     {
       id: 'attr-1',
-      scenarioId: mockScenarioId,
-      text: 'Test attribute 1',
+      name: 'Test attribute 1',
       sentiment: 'Positive',
       significance: 'High',
       mappedGoalId: 'goal-1'
     },
     {
       id: 'attr-2',
-      scenarioId: mockScenarioId,
-      text: 'Test attribute 2',
+      name: 'Test attribute 2',
       sentiment: 'Neutral',
       significance: 'Medium',
       mappedGoalId: 'goal-2'

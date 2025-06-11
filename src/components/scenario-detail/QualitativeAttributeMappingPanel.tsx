@@ -169,11 +169,11 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
   return (
     <div className="border rounded-lg p-4 mb-2">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Pros & Cons</h2>
+        <h2 className="text-lg font-semibold">Location Considerations</h2>
       </div>
       
       {attributes.length === 0 ? (
-        <div className="text-muted-foreground">No pros or cons defined for this scenario.</div>
+        <div className="text-muted-foreground">No location considerations defined for this scenario.</div>
       ) : (
         <div className="space-y-6">
           {renderSection('Pros', sortedPros, 'text-green-600')}

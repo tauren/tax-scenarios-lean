@@ -400,7 +400,7 @@ export function ScenarioEditorView() {
       <Tabs defaultValue="basic" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="qualitative">Qualitative</TabsTrigger>
+          <TabsTrigger value="qualitative">Considerations</TabsTrigger>
           <TabsTrigger value="assets">Asset Sales</TabsTrigger>
           <TabsTrigger value="annual">Annual Expenses</TabsTrigger>
           <TabsTrigger value="oneTime">One-Time Expenses</TabsTrigger>

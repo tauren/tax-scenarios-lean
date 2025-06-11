@@ -96,7 +96,6 @@ export function QualitativeAttributeDialog({
 
     const attributeToSave: ScenarioQualitativeAttribute = {
       id: attribute?.id || uuidv4(),
-      scenarioId: attribute?.scenarioId || '',
       name: formData.name || '',
       sentiment: formData.sentiment || 'Neutral',
       significance: formData.significance || 'Medium',
@@ -110,24 +109,24 @@ export function QualitativeAttributeDialog({
   const getDialogTitle = () => {
     switch (mode) {
       case 'add':
-        return 'Add Qualitative Attribute';
+        return 'Add Location Consideration';
       case 'edit':
-        return 'Edit Qualitative Attribute';
+        return 'Edit Location Consideration';
       case 'duplicate':
-        return 'Duplicate Qualitative Attribute';
+        return 'Duplicate Location Consideration';
       default:
-        return 'Qualitative Attribute';
+        return 'Location Consideration';
     }
   };
 
   const getDialogDescription = () => {
     switch (mode) {
       case 'add':
-        return 'Add a new qualitative attribute to your scenario.';
+        return 'Describe something notable about this location and how it affects your decision. For example: "Low cost of living", "Great healthcare system", or "Limited English proficiency".';
       case 'edit':
-        return 'Update the details of this qualitative attribute.';
+        return 'Update the details of this location consideration.';
       case 'duplicate':
-        return 'Create a copy of this qualitative attribute.';
+        return 'Create a copy of this location consideration.';
       default:
         return '';
     }
@@ -175,11 +174,16 @@ export function QualitativeAttributeDialog({
 
             <FormField
               id="sentiment"
-              label="How do you feel about this?"
+              label="Is this a pro, con, or neutral factor?"
             >
               <SentimentSelector
                 value={formData.sentiment || 'Neutral'}
                 onChange={(value) => setFormData({ ...formData, sentiment: value })}
+                labels={{
+                  Positive: 'Pro',
+                  Negative: 'Con',
+                  Neutral: 'Neutral'
+                }}
               />
             </FormField>
 

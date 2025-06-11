@@ -101,17 +101,17 @@ export function PlanOverview() {
         {/* Qualitative Goals Card */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle>Personal Goals</CardTitle>
+            <CardTitle>Location Objectives</CardTitle>
             <CardDescription>
-              {userQualitativeGoals.length} {userQualitativeGoals.length === 1 ? 'goal' : 'goals'} defined
+              {userQualitativeGoals.length} {userQualitativeGoals.length === 1 ? 'objective' : 'objectives'} defined
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => navigate('/personal-goals')}
+              onClick={() => navigate('/objectives')}
               className="w-full justify-between"
             >
-              View Goals
+              View Location Objectives
               <ArrowRight className="h-4 w-4" />
             </Button>
           </CardContent>

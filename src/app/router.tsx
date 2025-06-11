@@ -46,7 +46,7 @@ export const router = createBrowserRouter([
         element: <ScenarioDetailView />,
       },
       {
-        path: 'personal-goals',
+        path: 'objectives',
         element: <PersonalGoalsManagementView />,
       },
     ],

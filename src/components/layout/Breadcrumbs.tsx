@@ -78,7 +78,7 @@ export function Breadcrumbs() {
         label: 'Assets',
         isCurrentPage: true,
       });
-    } else if (pathSegments[0] === 'personal-goals') {
+    } else if (pathSegments[0] === 'objectives') {
       items.push({
         label: 'Location Objectives',
         isCurrentPage: true,
