@@ -33,11 +33,11 @@ export function QualitativeAttributeDialog({
   onSave,
 }: QualitativeAttributeDialogProps) {
   const [formData, setFormData] = useState<Partial<ScenarioQualitativeAttribute>>({
-    text: attribute?.text || '',
+    name: attribute?.name || '',
     sentiment: attribute?.sentiment || 'Neutral',
     significance: attribute?.significance || 'Medium',
   });
-  const [errors, setErrors] = useState<{ text?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string }>({});
 
   // Reset form when dialog opens with new data
   useEffect(() => {
@@ -48,7 +48,7 @@ export function QualitativeAttributeDialog({
         });
       } else {
         setFormData({
-          text: '',
+          name: '',
           sentiment: 'Neutral',
           significance: 'Medium',
         });
@@ -64,8 +64,8 @@ export function QualitativeAttributeDialog({
     }
   }, [open, formData]);
 
-  const validateText = (value: string | undefined): string | undefined => {
-    return !value?.trim() ? 'Thoughts are required' : undefined;
+  const validateName = (value: string | undefined): string | undefined => {
+    return !value?.trim() ? 'Name is required' : undefined;
   };
 
   const setFieldError = (field: keyof typeof errors, error: string | undefined) => {
@@ -84,8 +84,8 @@ export function QualitativeAttributeDialog({
     const newErrors: typeof errors = {};
 
     // Validate all fields
-    const textError = validateText(formData.text);
-    if (textError) newErrors.text = textError;
+    const nameError = validateName(formData.name);
+    if (nameError) newErrors.name = nameError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,7 +97,7 @@ export function QualitativeAttributeDialog({
     const attributeToSave: ScenarioQualitativeAttribute = {
       id: attribute?.id || uuidv4(),
       scenarioId: attribute?.scenarioId || '',
-      text: formData.text || '',
+      name: formData.name || '',
       sentiment: formData.sentiment || 'Neutral',
       significance: formData.significance || 'Medium',
       mappedGoalId: attribute?.mappedGoalId,
@@ -154,21 +154,21 @@ export function QualitativeAttributeDialog({
         >
           <div className="space-y-4 py-4">
             <FormField
-              id="text"
+              id="name"
               label="What's one thing you've noticed about this location?"
-              error={errors.text}
+              error={errors.name}
             >
               <input
-                id="text"
+                id="name"
                 type="text"
-                value={formData.text}
+                value={formData.name}
                 onChange={(e) => {
                   const value = e.target.value;
-                  setFormData({ ...formData, text: value });
-                  setFieldError('text', validateText(value));
+                  setFormData({ ...formData, name: value });
+                  setFieldError('name', validateName(value));
                 }}
-                onBlur={() => setFieldError('text', validateText(formData.text))}
-                className={`w-full rounded-md border ${errors.text ? 'border-destructive' : 'border-input'} bg-background px-3 py-2`}
+                onBlur={() => setFieldError('name', validateName(formData.name))}
+                className={`w-full rounded-md border ${errors.name ? 'border-destructive' : 'border-input'} bg-background px-3 py-2`}
                 placeholder="e.g., Low cost of living, Great healthcare, Many outdoor activities..."
               />
             </FormField>

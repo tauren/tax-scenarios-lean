@@ -106,7 +106,7 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
         {/* Title with padding for the icon */}
         <div className="pl-8 pr-8 w-full">
           <div className="font-semibold text-sm text-left">
-            {attribute.text}
+            {attribute.name}
           </div>
         </div>
 

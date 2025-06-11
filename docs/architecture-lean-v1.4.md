@@ -35,7 +35,7 @@ The Tax Scenarios Analyzer Lean MVP is architected as an entirely client-side Si
 
 For this lean MVP, the core calculation engine focuses exclusively on **estimating capital gains tax**. All date-related properties within the application's in-memory data models are handled as native JavaScript `Date` objects to ensure type safety and ease of calculation. Conversion to and from ISO 8601 strings occurs only at the serialization/deserialization boundary (e.g., when interacting with `localStorage` or URL parameters).
 
-The application supports qualitative assessment through a **"Jot Down & Map" workflow**. Users can create personalized, weighted goals (derived from a master list of statements) and create scenario-specific attributes (notes) which are then mapped to these goals to calculate a fit score. Data persistence for the MVP is simplified to a **single "Active Plan"** continuously auto-saved to `localStorage`. The ability to share this active plan via a compressed, URL-encoded string is retained.
+The application supports qualitative assessment through a **"Jot Down & Map" workflow**. Users can create personalized, weighted goals (derived from a master list of statements) and create scenario-specific attributes which are then mapped to these goals to calculate a fit score. Data persistence for the MVP is simplified to a **single "Active Plan"** continuously auto-saved to `localStorage`. The ability to share this active plan via a compressed, URL-encoded string is retained.
 
 The architecture is designed for automated CI/CD deployment to static hosting platforms like Cloudflare Pages.
 
@@ -182,7 +182,7 @@ interface UserQualitativeGoal {
 ```typescript
 interface ScenarioAttribute {
     id: string;
-    notes: string;
+    name: string;
     userSentiment: "Positive" | "Neutral" | "Negative"; 
     significanceToUser: "None" | "Low" | "Medium" | "High"; 
     goalId?: string;

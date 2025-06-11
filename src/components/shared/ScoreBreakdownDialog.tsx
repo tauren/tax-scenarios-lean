@@ -170,7 +170,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                                   <div key={attr.attributeId} className="rounded-md bg-gray-50 p-3">
                                     <div className="flex items-start justify-between">
                                       <div className="space-y-1">
-                                        <p className="text-sm">{attribute.text}</p>
+                                        <p className="text-sm">{attribute.name}</p>
                                         <div className="flex items-center gap-2 text-xs text-gray-500">
                                           <span>
                                             {attribute.sentiment.charAt(0).toUpperCase() + attribute.sentiment.slice(1)}

@@ -23,7 +23,7 @@ export interface UserQualitativeGoal {
 export interface ScenarioQualitativeAttribute {
   id: string;
   scenarioId: string;
-  text: string;
+  name: string;
   sentiment: "Positive" | "Negative" | "Neutral";
   significance: "Low" | "Medium" | "High" | "Critical";
   mappedGoalId?: string;
@@ -36,7 +36,7 @@ export interface QualitativeGoalAlignment {
   isAligned: boolean;
   contributingAttributes: Array<{
     attributeId: string;
-    conceptName: string;
+    name: string;
     contribution: number;
     maxPossiblePercent: number;
   }>;

@@ -538,7 +538,7 @@ This section describes the conceptual layout and key elements for the main scree
         * For each year: Gross Income, Total Annual Expenses, Realized Capital Gains Income, Detailed Tax Breakdown (CGT MVP calculated, other taxes estimated/placeholders), Net Financial Outcome.
     * **"Personal Goals" Fit / Qualitative Assessment Section:**
         * Display overall "Qualitative Fit Score."
-        * List each `ScenarioAttribute` with underlying concept, user's sentiment/significance, notes.
+        * List each `ScenarioAttribute` with underlying concept, user's sentiment/significance, name.
         * Intuitive summary/indication of how attributes contributed to the score (visual cues or text).
     * **Navigation:**
         * Clear "Back" button/link to "Scenario Hub / Comparison Dashboard".

@@ -105,7 +105,7 @@ export class QualitativeScoringService {
         // Track raw contributions for normalization
         rawContributions.push({
           attributeId: attr.id,
-          conceptName: attr.text,
+          name: attr.name,
           raw: Math.abs(attributeContribution),
           signed: attributeContribution,
           maxPossiblePercent: goalWeight > 0 ? (attributeContribution / (goalWeight * 2 * 2)) * 100 : 0
@@ -117,7 +117,7 @@ export class QualitativeScoringService {
       for (const c of rawContributions) {
         contributingAttributes.push({
           attributeId: c.attributeId,
-          conceptName: c.conceptName,
+          name: c.name,
           contribution: totalRaw > 0 ? (c.signed / totalRaw) * 100 : 0,
           maxPossiblePercent: c.maxPossiblePercent
         });
