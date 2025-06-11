@@ -1,8 +1,16 @@
 import { Button } from "@/components/ui/button"
 import React from "react"
+import { LowImportanceIcon, MediumImportanceIcon, HighImportanceIcon, CriticalImportanceIcon } from "@/components/icons/ImportanceLevelIcons"
 
-export const weightOptions = ["Low", "Medium", "High", "Critical"] as const
+export const weightOptions = ["Critical", "High", "Medium", "Low"] as const
 export type WeightOption = typeof weightOptions[number]
+
+const weightIcons: Record<WeightOption, React.ReactNode> = {
+  Low: <LowImportanceIcon className="h-4 w-4 mr-1" />,
+  Medium: <MediumImportanceIcon className="h-4 w-4 mr-1" />,
+  High: <HighImportanceIcon className="h-4 w-4 mr-1" />,
+  Critical: <CriticalImportanceIcon className="h-4 w-4 mr-1" />
+}
 
 interface WeightSelectorProps {
   value: WeightOption
@@ -31,7 +39,10 @@ export const WeightSelector: React.FC<WeightSelectorProps> = ({
           type="button"
           disabled={disabled}
         >
-          {weight}
+          <div className="flex items-center justify-center">
+            {weightIcons[weight]}
+            {weight}
+          </div>
         </Button>
       ))}
     </div>

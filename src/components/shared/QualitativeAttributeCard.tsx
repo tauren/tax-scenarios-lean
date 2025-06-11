@@ -72,16 +72,17 @@ export function QualitativeAttributeCard({
   return (
     <div className="flex flex-col">
       {/* Main card with border, all corners rounded */}
-      <div className={`border border-gray-300 rounded-lg p-4 flex flex-col ${
-        !attribute.mappedGoalId ? 'bg-gray-50' :
+      <div className={`rounded-lg p-4 flex flex-col ${
         attribute.sentiment === 'Positive' ? 'bg-green-50' :
         attribute.sentiment === 'Negative' ? 'bg-red-50' :
         'bg-blue-50'
+      } ${
+        !attribute.mappedGoalId ? 'border-t-2 border-b-2 border-red-300' : 'border border-gray-200'
       }`}>
         {/* First row: title + buttons, fixed min height for alignment */}
         <div className="flex items-start justify-between gap-4 min-h-[3.5rem]">
           <div
-            className={`flex items-center justify-between w-full rounded px-3 py-1 cursor-pointer transition-colors duration-150 group/title ${
+            className={`flex items-start justify-between w-full rounded px-3 py-1 cursor-pointer transition-colors duration-150 group/title ${
               isEditing
                 ? 'border border-gray-300 bg-white'
                 : 'border border-transparent bg-transparent hover:border-gray-300 hover:bg-white focus:border-gray-300 focus:bg-white'
@@ -114,7 +115,7 @@ export function QualitativeAttributeCard({
                 {attribute.name}
               </span>
             )}
-            <Pencil className={`h-4 w-4 text-muted-foreground ml-2 transition-opacity ${isEditing ? 'opacity-100' : 'opacity-0 group-hover/title:opacity-100 group-focus/title:opacity-100'}`} />
+            <Pencil className={`h-4 w-4 text-muted-foreground ml-2 mt-1 transition-opacity ${isEditing ? 'opacity-100' : 'opacity-0 group-hover/title:opacity-100 group-focus/title:opacity-100'}`} />
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <Button

@@ -1,5 +1,4 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
 import { ScoreBreakdownDialog } from './ScoreBreakdownDialog';
 import type { ScenarioQualitativeAttribute, UserQualitativeGoal, QualitativeGoalAlignment } from '@/types/qualitative';
 import { getScoreColor } from '@/utils/scoreColors';
@@ -17,13 +16,6 @@ export const QualitativeFitScoreDisplay: React.FC<QualitativeFitScoreDisplayProp
   score,
   goalAlignments,
 }) => {
-  const getMappedGoal = (attribute: ScenarioQualitativeAttribute) => {
-    return goals.find((goal) => goal.id === attribute.mappedGoalId);
-  };
-
-  const mappedAttributes = attributes.filter((attr) => attr.mappedGoalId);
-  const unmappedAttributes = attributes.filter((attr) => !attr.mappedGoalId);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

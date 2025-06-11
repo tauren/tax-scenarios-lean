@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import React from "react"
+import { ThumbsUp, CircleDashed, ThumbsDown } from "lucide-react"
 
 export const sentimentOptions = ["Negative", "Neutral", "Positive"] as const
 export type SentimentOption = typeof sentimentOptions[number]
@@ -8,6 +9,12 @@ const defaultLabels: Record<SentimentOption, string> = {
   Negative: "Negative",
   Neutral: "Neutral",
   Positive: "Positive"
+}
+
+const sentimentIcons: Record<SentimentOption, React.ReactNode> = {
+  Positive: <ThumbsUp className="h-4 w-4 mr-1" />,
+  Neutral: <CircleDashed className="h-4 w-4 mr-1" />,
+  Negative: <ThumbsDown className="h-4 w-4 mr-1" />
 }
 
 interface SentimentSelectorProps {
@@ -43,7 +50,10 @@ export const SentimentSelector: React.FC<SentimentSelectorProps> = ({
             type="button"
             disabled={disabled}
           >
-            {displayLabels[sentiment]}
+            <div className="flex items-center justify-center">
+              {sentimentIcons[sentiment]}
+              {displayLabels[sentiment]}
+            </div>
           </Button>
         ))}
       </div>
