@@ -146,9 +146,25 @@ export const useUserAppState = create<UserAppStateSlice>()(
         )
       })),
       
-      deleteQualitativeGoal: (goalId: string) => set((state) => ({
-        userQualitativeGoals: (state.userQualitativeGoals || []).filter((goal) => goal.id !== goalId)
-      })),
+      deleteQualitativeGoal: (goalId: string) => set((state) => {
+        // Remove the goal
+        const updatedGoals = (state.userQualitativeGoals || []).filter((goal) => goal.id !== goalId);
+        
+        // Unmap any attributes that referenced this goal
+        const updatedScenarios = state.scenarios.map(scenario => ({
+          ...scenario,
+          scenarioSpecificAttributes: scenario.scenarioSpecificAttributes.map(attr => 
+            attr.mappedGoalId === goalId 
+              ? { ...attr, mappedGoalId: undefined }
+              : attr
+          )
+        }));
+
+        return {
+          userQualitativeGoals: updatedGoals,
+          scenarios: updatedScenarios
+        };
+      }),
       
       updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => set((state) => {
         const scenario = state.scenarios.find(s => s.id === scenarioId);

@@ -5,6 +5,7 @@ import ViewActions from '../components/scenario-detail/ViewActions';
 import FinancialTimelineChart from '../components/scenario-detail/FinancialTimelineChart';
 import YearlyBreakdownTable from '../components/scenario-detail/YearlyBreakdownTable';
 import QualitativeAssessmentPanel from '../components/scenario-detail/QualitativeAssessmentPanel';
+import QualitativeAttributeMappingPanel from '../components/scenario-detail/QualitativeAttributeMappingPanel';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { useCalculationState } from '@/store/calculationStateSlice';
 import { calculateScenarioResults } from '@/services/calculationService';
@@ -66,6 +67,7 @@ const ScenarioDetailView = () => {
       <FinancialTimelineChart results={results} />
       <YearlyBreakdownTable results={results} />
       <QualitativeAssessmentPanel results={results} goals={userQualitativeGoals} />
+      <QualitativeAttributeMappingPanel scenario={scenario} goals={userQualitativeGoals} />
     </div>
   );
 };
