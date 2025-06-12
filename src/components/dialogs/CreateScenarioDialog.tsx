@@ -6,9 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { appConfigService } from '@/services/appConfigService';
+import { copyItemsToScenario } from '@/services/scenarioService';
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/utils/formatting';
 import type { Scenario } from '@/types';
+import type { TemplateScenario } from '@/data/templateScenarios.data';
 
 interface CreateScenarioDialogProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
   const navigate = useNavigate();
   const { scenarios: userScenarios, addScenario } = useUserAppState();
   const templateScenarios = appConfigService.getConfig().templateScenarios;
-  const [selectedTemplate, setSelectedTemplate] = useState<Scenario | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateScenario | null>(null);
   const [selectedMyScenario, setSelectedMyScenario] = useState<Scenario | null>(null);
   const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null);
 
@@ -36,7 +38,53 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
     const template = selectedTemplate || selectedMyScenario || templateScenarios[0];
     if (!template) return;
 
-    const newScenarioData = { ...template, name: `${template.name} (Copy)` };
+    // Create a new scenario with all required fields, excluding template-specific properties
+    const { shortDescription, longDescription, keyReasons, ...templateData } = template as TemplateScenario;
+    
+    // Create base scenario data
+    const baseScenarioData = {
+      ...templateData,
+      id: undefined, // Remove the template ID so a new one will be generated
+      name: `${template.name} (from Template)`,
+      projectionPeriod: template.projectionPeriod || 10,
+      residencyStartDate: template.residencyStartDate || new Date(),
+      location: {
+        country: template.location?.country || '',
+        state: template.location?.state || '',
+        city: template.location?.city || '',
+      },
+      tax: {
+        capitalGains: {
+          shortTermRate: template.tax?.capitalGains?.shortTermRate || 0,
+          longTermRate: template.tax?.capitalGains?.longTermRate || 0,
+        },
+        incomeRate: template.tax?.incomeRate || 0,
+      },
+      incomeSources: [],
+      annualExpenses: [],
+      oneTimeExpenses: [],
+      plannedAssetSales: [],
+      scenarioSpecificAttributes: [],
+    };
+
+    // Create a temporary scenario to use with copyItemsToScenario
+    const tempScenario = { ...baseScenarioData, id: 'temp' } as Scenario;
+
+    // Copy each type of item with new IDs
+    const scenarioWithIncomeSources = copyItemsToScenario(tempScenario, template.incomeSources || [], 'incomeSource');
+    const scenarioWithAnnualExpenses = copyItemsToScenario(scenarioWithIncomeSources, template.annualExpenses || [], 'annualExpense');
+    const scenarioWithOneTimeExpenses = copyItemsToScenario(scenarioWithAnnualExpenses, template.oneTimeExpenses || [], 'oneTimeExpense');
+    const scenarioWithPlannedSales = copyItemsToScenario(scenarioWithOneTimeExpenses, template.plannedAssetSales || [], 'plannedAssetSale');
+
+    // Create the final scenario data
+    const newScenarioData = {
+      ...baseScenarioData,
+      incomeSources: scenarioWithPlannedSales.incomeSources,
+      annualExpenses: scenarioWithPlannedSales.annualExpenses,
+      oneTimeExpenses: scenarioWithPlannedSales.oneTimeExpenses,
+      plannedAssetSales: scenarioWithPlannedSales.plannedAssetSales,
+    };
+
     const createdScenario = addScenario(newScenarioData);
     onClose();
     navigate(`/scenarios/${createdScenario.id}/edit`);
@@ -49,7 +97,7 @@ export function CreateScenarioDialog({ isOpen, onClose }: CreateScenarioDialogPr
     
     const handleSelect = () => {
       if (isTemplate) {
-        setSelectedTemplate(scenario);
+        setSelectedTemplate(scenario as TemplateScenario);
         setSelectedMyScenario(null);
       } else {
         setSelectedMyScenario(scenario);

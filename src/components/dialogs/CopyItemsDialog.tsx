@@ -3,10 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Scenario, Asset } from '@/types';
+import type { Scenario, Asset, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
 import { formatCurrency } from '@/utils/formatting';
 
 type ItemType = 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale';
+type CopyableItem = IncomeSource | AnnualExpense | OneTimeExpense | PlannedAssetSale;
 
 const ITEM_TYPE_LABELS = {
   incomeSource: {
@@ -34,7 +35,7 @@ const ITEM_TYPE_LABELS = {
 interface CopyItemsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (items: any[]) => void;
+  onSave: (items: CopyableItem[]) => void;
   scenarios: Scenario[];
   currentScenarioId: string;
   type: ItemType;
@@ -52,7 +53,7 @@ export function CopyItemsDialog({
 }: CopyItemsDialogProps) {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
-  const getItemsFromScenario = (scenario: Scenario) => {
+  const getItemsFromScenario = (scenario: Scenario): CopyableItem[] => {
     switch (type) {
       case 'incomeSource':
         return scenario.incomeSources || [];
@@ -67,29 +68,42 @@ export function CopyItemsDialog({
     }
   };
 
-  const getItemLabel = (item: any) => {
+  const getItemLabel = (item: CopyableItem): string => {
     switch (type) {
-      case 'incomeSource':
-        return `${item.name} (${formatCurrency(item.annualAmount)}/year)`;
-      case 'annualExpense':
-        return `${item.name} (${formatCurrency(item.amount)}/year)`;
-      case 'oneTimeExpense':
-        return `${item.name} (${formatCurrency(item.amount)} in ${item.year})`;
+      case 'incomeSource': {
+        const incomeSource = item as IncomeSource;
+        return `${incomeSource.name} (${formatCurrency(incomeSource.annualAmount)}/year)`;
+      }
+      case 'annualExpense': {
+        const expense = item as AnnualExpense;
+        return `${expense.name} (${formatCurrency(expense.amount)}/year)`;
+      }
+      case 'oneTimeExpense': {
+        const expense = item as OneTimeExpense;
+        return `${expense.name} (${formatCurrency(expense.amount)} in ${expense.year})`;
+      }
       case 'plannedAssetSale': {
-        const asset = assets?.find(a => a.id === item.assetId);
-        return `${asset?.name || 'Unknown Asset'} (${item.quantity} in ${item.year})`;
+        const sale = item as PlannedAssetSale;
+        const asset = assets?.find(a => a.id === sale.assetId);
+        return `${asset?.name || 'Unknown Asset'} (${sale.quantity} in ${sale.year})`;
       }
       default:
-        return item.name;
+        return (item as any).name;
     }
   };
 
   const handleSave = () => {
     const itemsToCopy = scenarios.flatMap(scenario => {
       const items = getItemsFromScenario(scenario);
-      return items.filter(item => selectedItems.has(item.id));
+      return items
+        .filter(item => selectedItems.has(item.id))
+        .map(item => {
+          // Create a new object without the id
+          const { id, ...itemWithoutId } = item;
+          return itemWithoutId;
+        });
     });
-    onSave(itemsToCopy);
+    onSave(itemsToCopy as CopyableItem[]);
     setSelectedItems(new Set());
   };
 

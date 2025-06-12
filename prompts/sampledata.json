@@ -1,0 +1,473 @@
+{
+    "activePlanInternalName": "Portugal vs Paraguay vs Vietnam",
+    "scenarios": [
+      {
+        "id": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+        "name": "Portugal",
+        "projectionPeriod": 10,
+        "residencyStartDate": "2025-06-04T05:47:34.897Z",
+        "location": {
+          "country": "Portugal",
+          "state": "",
+          "city": ""
+        },
+        "tax": {
+          "capitalGains": {
+            "shortTermRate": 28,
+            "longTermRate": 28
+          },
+          "incomeRate": 0
+        },
+        "annualExpenses": [
+          {
+            "id": "housing",
+            "name": "Housing",
+            "amount": 3000
+          },
+          {
+            "id": "transportation",
+            "name": "Transportation",
+            "amount": 200
+          },
+          {
+            "id": "food",
+            "name": "Food",
+            "amount": 1000
+          },
+          {
+            "id": "utilities",
+            "name": "Utilities",
+            "amount": 200
+          },
+          {
+            "id": "healthcare",
+            "name": "Healthcare",
+            "amount": 300
+          },
+          {
+            "id": "insurance",
+            "name": "Insurance",
+            "amount": 100
+          },
+          {
+            "id": "entertainment",
+            "name": "Entertainment",
+            "amount": 400
+          },
+          {
+            "id": "education",
+            "name": "Education",
+            "amount": 400
+          },
+          {
+            "id": "personal-care",
+            "name": "Personal Care",
+            "amount": 300
+          },
+          {
+            "id": "legal",
+            "name": "Legal",
+            "amount": 5000
+          },
+          {
+            "id": "other",
+            "name": "Other",
+            "amount": 500
+          }
+        ],
+        "oneTimeExpenses": [
+          {
+            "id": "new-car",
+            "name": "New Car",
+            "amount": 40000,
+            "year": 2025
+          },
+          {
+            "id": "rental-deposit",
+            "name": "Rental Deposit",
+            "amount": 5000,
+            "year": 2025
+          },
+          {
+            "id": "furniture",
+            "name": "Furniture",
+            "amount": 20000,
+            "year": 2025
+          },
+          {
+            "id": "tax-program-donation",
+            "name": "Tax Program Donation",
+            "amount": 100000,
+            "year": 2025
+          }
+        ],
+        "scenarioSpecificAttributes": [
+          {
+            "id": "8bd6913c-3c62-4b5c-905e-6ea64ef32b52",
+            "scenarioId": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+            "sentiment": "Positive",
+            "significance": "Critical",
+            "mappedGoalId": "5ae6d648-2847-4c8b-9483-3c97bc6d9297",
+            "name": "Pleasant climate year round"
+          },
+          {
+            "id": "6886d2f8-c781-43b0-8371-a0d8137194d2",
+            "scenarioId": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+            "sentiment": "Positive",
+            "significance": "Medium",
+            "mappedGoalId": "aa8eb86d-ad5e-445d-9d0a-70490746a266",
+            "name": "Simplest path to EU citizenship"
+          },
+          {
+            "id": "01472203-7112-44f6-8062-85858eb64ed9",
+            "scenarioId": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+            "sentiment": "Positive",
+            "significance": "High",
+            "mappedGoalId": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+            "name": "Many outdoor activities"
+          },
+          {
+            "id": "ce04b7f7-8452-4291-a448-944ef2284cf7",
+            "scenarioId": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+            "sentiment": "Negative",
+            "significance": "Low",
+            "mappedGoalId": "c1de3451-7ff1-4c9e-a79b-3a1ad765be0d",
+            "name": "I don't know Portuguese"
+          },
+          {
+            "id": "764ee342-0932-4a55-b852-239d4c9827ae",
+            "scenarioId": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+            "sentiment": "Positive",
+            "significance": "Medium",
+            "mappedGoalId": "9a2a8311-5010-4b86-a70e-ca16542de727",
+            "name": "Low tax rates for 10 years"
+          },
+          {
+            "id": "eabac724-87c7-4a83-bfd8-3d11d2d7d87a",
+            "scenarioId": "b51adcab-9478-4141-9f38-f3bcf6d7d6a3",
+            "sentiment": "Positive",
+            "significance": "Medium",
+            "mappedGoalId": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+            "name": "test"
+          }
+        ]
+      },
+      {
+        "id": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+        "name": "Da Nang Vietnam",
+        "projectionPeriod": 5,
+        "residencyStartDate": "2025-07-08T00:00:00.000Z",
+        "annualExpenses": [
+          {
+            "id": "housing",
+            "name": "Housing",
+            "amount": 3000
+          }
+        ],
+        "oneTimeExpenses": [
+          {
+            "id": "rental-deposit",
+            "name": "Rental Deposit",
+            "amount": 5000,
+            "year": 2025
+          }
+        ],
+        "location": {
+          "country": "Vietnam",
+          "state": "",
+          "city": "Da Nang"
+        },
+        "tax": {
+          "capitalGains": {
+            "shortTermRate": 10,
+            "longTermRate": 10
+          },
+          "incomeRate": 10
+        },
+        "scenarioSpecificAttributes": [
+          {
+            "id": "c6ed7de4-f9ed-43ec-8964-536349563cc5",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "9a2a8311-5010-4b86-a70e-ca16542de727",
+            "significance": "Low",
+            "sentiment": "Negative",
+            "mappedGoalId": "9a2a8311-5010-4b86-a70e-ca16542de727",
+            "name": "Has capital gains taxes when staying over 6 months"
+          },
+          {
+            "id": "9f1741af-9f23-4a1f-8fee-09c93d9cfc1b",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "f3783333-729d-44a4-a69f-28a0ef30964e",
+            "significance": "Medium",
+            "sentiment": "Positive",
+            "mappedGoalId": "f3783333-729d-44a4-a69f-28a0ef30964e",
+            "name": "Very cheap rent"
+          },
+          {
+            "id": "fd0d72ad-6a07-4607-a494-131c51b6f4c3",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "f3783333-729d-44a4-a69f-28a0ef30964e",
+            "significance": "Medium",
+            "sentiment": "Positive",
+            "mappedGoalId": "f3783333-729d-44a4-a69f-28a0ef30964e",
+            "name": "Inexpensive to purchase condos"
+          },
+          {
+            "id": "cd45cbf3-3eaa-41d0-b9a9-8af4d47e63f7",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "07773063-a701-49be-8559-67eab2c32284",
+            "significance": "Medium",
+            "sentiment": "Positive",
+            "mappedGoalId": "07773063-a701-49be-8559-67eab2c32284",
+            "name": "Super cheap groceries"
+          },
+          {
+            "id": "286742d0-d87f-454d-a053-9850c04904ce",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "07773063-a701-49be-8559-67eab2c32284",
+            "significance": "Low",
+            "sentiment": "Neutral",
+            "mappedGoalId": "07773063-a701-49be-8559-67eab2c32284",
+            "name": "Electricity can get expensive"
+          },
+          {
+            "id": "3337a886-e4d6-499d-bf8c-e0fec3ad73fc",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "a5a56928-c85c-48b3-8ab2-23ab7a5ac187",
+            "significance": "Critical",
+            "sentiment": "Positive",
+            "mappedGoalId": "a5a56928-c85c-48b3-8ab2-23ab7a5ac187",
+            "name": "Many vegan and vegetarian options in touristy areas"
+          },
+          {
+            "id": "fb1586d1-e9ef-4acf-b1c9-dd70e124aeef",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+            "significance": "Low",
+            "sentiment": "Positive",
+            "mappedGoalId": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+            "name": "Lots of beach activities"
+          },
+          {
+            "id": "eb82f96e-441b-48cd-b6f1-166bd609a809",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+            "significance": "Medium",
+            "sentiment": "Negative",
+            "mappedGoalId": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+            "name": "Heat and humidity isn't great for many outdoor activities"
+          },
+          {
+            "id": "835aa049-ad82-41be-8ee8-b3fd2830e27f",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "523e88a4-1668-4579-8421-1d8e18cace41",
+            "significance": "High",
+            "sentiment": "Positive",
+            "mappedGoalId": "523e88a4-1668-4579-8421-1d8e18cace41",
+            "name": "Feels totally safe"
+          },
+          {
+            "id": "b1c03883-cd94-497e-a693-b9e3057d05b5",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "f3a727c4-e6d1-4233-b54e-567fe7a4f800",
+            "significance": "Low",
+            "sentiment": "Positive",
+            "mappedGoalId": "f3a727c4-e6d1-4233-b54e-567fe7a4f800",
+            "name": "Geopolitical conflicts have minor impact"
+          },
+          {
+            "id": "11405cb3-7e09-4314-82ee-0fc746e43476",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "5ae6d648-2847-4c8b-9483-3c97bc6d9297",
+            "significance": "High",
+            "sentiment": "Negative",
+            "mappedGoalId": "5ae6d648-2847-4c8b-9483-3c97bc6d9297",
+            "name": "Can be hot and humid"
+          },
+          {
+            "id": "fac23e85-0339-4206-a4d3-926bbca25b7a",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "aa8eb86d-ad5e-445d-9d0a-70490746a266",
+            "significance": "Medium",
+            "sentiment": "Positive",
+            "mappedGoalId": "aa8eb86d-ad5e-445d-9d0a-70490746a266",
+            "name": "Residency options exist"
+          },
+          {
+            "id": "9e8e8856-efd6-4b91-9f46-0126f793692a",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "aa8eb86d-ad5e-445d-9d0a-70490746a266",
+            "significance": "Low",
+            "sentiment": "Negative",
+            "mappedGoalId": "aa8eb86d-ad5e-445d-9d0a-70490746a266",
+            "name": "No real path to citizenship"
+          },
+          {
+            "id": "e02b4367-b784-49b5-a95a-1bfacca85495",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "13b7edfd-bba9-4a6e-a389-b314b9ca91c2",
+            "significance": "Medium",
+            "sentiment": "Positive",
+            "mappedGoalId": "13b7edfd-bba9-4a6e-a389-b314b9ca91c2",
+            "name": "Internet and cellular data can be very good"
+          },
+          {
+            "id": "38e1be1e-98b7-4e24-8031-597b07d900a3",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "80eb179e-c5cc-44cd-a3e1-a0fd1e217366",
+            "significance": "Low",
+            "sentiment": "Positive",
+            "mappedGoalId": "80eb179e-c5cc-44cd-a3e1-a0fd1e217366",
+            "name": "Good connectivity via airports in major cities"
+          },
+          {
+            "id": "690e83ee-81cc-4539-a13b-7416be9b564c",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "bf5b087c-fcfc-43fd-be39-a07431e2b0ee",
+            "significance": "Low",
+            "sentiment": "Positive",
+            "mappedGoalId": "bf5b087c-fcfc-43fd-be39-a07431e2b0ee",
+            "name": "Da Nang has a very vibrant expat community"
+          },
+          {
+            "id": "9ee82819-0e52-4790-ab4d-a1bac777842c",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "goalId": "c1de3451-7ff1-4c9e-a79b-3a1ad765be0d",
+            "significance": "Medium",
+            "sentiment": "Negative",
+            "mappedGoalId": "c1de3451-7ff1-4c9e-a79b-3a1ad765be0d",
+            "name": "Difficult to make local friends with language barrier"
+          },
+          {
+            "id": "b8facb6d-0f05-40ad-b92c-d5a90467e44c",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "sentiment": "Neutral",
+            "significance": "Medium",
+            "name": "foobar"
+          },
+          {
+            "id": "52b2c142-5a34-49f2-adc1-64f738058fcd",
+            "scenarioId": "46c5efe2-40b7-4ed1-8e87-bd11af5aea5b",
+            "sentiment": "Positive",
+            "significance": "Medium",
+            "name": "yes"
+          }
+        ]
+      }
+    ],
+    "userQualitativeGoals": [
+      {
+        "id": "9a2a8311-5010-4b86-a70e-ca16542de727",
+        "conceptId": "fi",
+        "name": "A low or zero Capital Gains Tax rate",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "f3783333-729d-44a4-a69f-28a0ef30964e",
+        "conceptId": "fi",
+        "name": "Reasonable and affordable housing options (rent or buy)",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "07773063-a701-49be-8559-67eab2c32284",
+        "conceptId": "fi",
+        "name": "A low general cost of living (groceries, utilities, etc.)",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "a5a56928-c85c-48b3-8ab2-23ab7a5ac187",
+        "conceptId": "lc",
+        "name": "Many vegan and vegetarian restaurants",
+        "weight": "High",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "41ec4b6d-6ce2-4c84-9f80-517e2c76f1f6",
+        "conceptId": "lc",
+        "name": "Abundant opportunities for outdoor recreation (hiking, beaches, parks)",
+        "weight": "High",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "523e88a4-1668-4579-8421-1d8e18cace41",
+        "conceptId": "ss",
+        "name": "Low crime rates and a strong sense of personal safety",
+        "weight": "High",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "f3a727c4-e6d1-4233-b54e-567fe7a4f800",
+        "conceptId": "ss",
+        "name": "A stable political environment, distant from geopolitical conflicts",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "5ae6d648-2847-4c8b-9483-3c97bc6d9297",
+        "conceptId": "ec",
+        "name": "A comfortable climate most of the year",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "aa8eb86d-ad5e-445d-9d0a-70490746a266",
+        "conceptId": "gb",
+        "name": "Clear and attainable pathways to long-term residency or citizenship",
+        "weight": "Low",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "44b5fac2-c5a6-4927-b999-a04657e1ff7d",
+        "conceptId": "gb",
+        "name": "A strong and impartial rule of law that protects personal and property rights",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "13b7edfd-bba9-4a6e-a389-b314b9ca91c2",
+        "conceptId": "ic",
+        "name": "Fast, reliable, and affordable high-speed internet",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "80eb179e-c5cc-44cd-a3e1-a0fd1e217366",
+        "conceptId": "ic",
+        "name": "Excellent connectivity via a major international airport",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "bf5b087c-fcfc-43fd-be39-a07431e2b0ee",
+        "conceptId": "sc",
+        "name": "A large, active, and welcoming expat community",
+        "weight": "Low",
+        "category": "",
+        "description": ""
+      },
+      {
+        "id": "c1de3451-7ff1-4c9e-a79b-3a1ad765be0d",
+        "conceptId": "sc",
+        "name": "Ease of social integration with the local population",
+        "weight": "Medium",
+        "category": "",
+        "description": ""
+      }
+    ],
+    "version": 1
+  }

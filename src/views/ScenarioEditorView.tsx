@@ -23,6 +23,7 @@ import { QualitativeAttributesContainer } from '@/components/shared/QualitativeA
 import { QuickAddAttributesDialog } from '@/components/dialogs/QuickAddAttributesDialog';
 import { useCalculationState } from '@/store/calculationStateSlice';
 import { calculateScenarioResults } from '@/services/calculationService';
+import { copyItemsToScenario } from '@/services/scenarioService';
 
 interface ValidationErrors {
   [key: string]: string | undefined;
@@ -279,25 +280,9 @@ export function ScenarioEditorView() {
   };
 
   const handleCopyItemsSave = (items: any[]) => {
-    if (!id) return;
+    if (!id || !scenario) return;
     
-    const updatedScenario = { ...scenario! };
-    
-    switch (copyDialogType) {
-      case 'incomeSource':
-        updatedScenario.incomeSources = [...(updatedScenario.incomeSources || []), ...items];
-        break;
-      case 'annualExpense':
-        updatedScenario.annualExpenses = [...(updatedScenario.annualExpenses || []), ...items];
-        break;
-      case 'oneTimeExpense':
-        updatedScenario.oneTimeExpenses = [...(updatedScenario.oneTimeExpenses || []), ...items];
-        break;
-      case 'plannedAssetSale':
-        updatedScenario.plannedAssetSales = [...(updatedScenario.plannedAssetSales || []), ...items];
-        break;
-    }
-    
+    const updatedScenario = copyItemsToScenario(scenario, items, copyDialogType);
     updateScenario(id, updatedScenario);
     setIsCopyDialogOpen(false);
   };
@@ -390,7 +375,7 @@ export function ScenarioEditorView() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate('/scenarios')}
+            onClick={() => navigate('/overview')}
           >
             Back to Scenarios
           </Button>
