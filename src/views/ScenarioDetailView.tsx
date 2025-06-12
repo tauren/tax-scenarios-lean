@@ -63,7 +63,7 @@ const ScenarioDetailView = () => {
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
       <ScenarioSummaryHeader scenario={scenario} results={results} />
-      <ViewActions onEdit={() => navigate(`/scenarios/${id}/edit`)} onBack={() => navigate('/scenarios')} />
+      <ViewActions onEdit={() => navigate(`/scenarios/${id}/edit`)} onBack={() => navigate('/overview')} />
       <FinancialTimelineChart results={results} />
       <YearlyBreakdownTable results={results} />
       <QualitativeAssessmentPanel results={results} goals={userQualitativeGoals} />

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { App } from '@/App';
 import { AssetManagementView } from '@/components/views/AssetManagementView';
 import { GetStartedView } from "@/views/GetStartedView";
@@ -21,16 +21,16 @@ export const router = createBrowserRouter([
         element: <PlanOverview />,
       },
       {
+        path: 'scenarios',
+        element: <Navigate to="/overview" replace />,
+      },
+      {
         path: 'assets',
         element: <AssetManagementView />,
       },
       {
-        path: 'scenarios/new',
-        element: <ScenarioEditorView />,
-      },
-      {
         path: 'scenarios/:id',
-        element: <ScenarioEditorView />,
+        element: <ScenarioDetailView />,
       },
       {
         path: 'scenarios/:id/edit',

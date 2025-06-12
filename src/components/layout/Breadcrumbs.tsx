@@ -32,59 +32,46 @@ export function Breadcrumbs() {
       });
     }
 
-    // Add the current section
+    // Add other segments based on the path
     if (pathSegments[0] === 'overview') {
       items.push({
         label: 'Overview',
-        isCurrentPage: true,
+        path: '/overview',
       });
-    } else if (pathSegments[0] === 'scenarios') {
-      items.push({
-        label: 'Scenarios',
-        path: '/scenarios',
-      });
-
-      // If we're creating a new scenario
-      if (pathSegments[1] === 'new') {
-        items.push({
-          label: 'Create New',
-          path: '/scenarios/new',
-        });
-      }
-      // If we're editing a scenario
-      else if (pathSegments[1] && pathSegments[2] === 'edit') {
-        const scenario = scenarios.find(s => s.id === pathSegments[1]);
-        if (scenario) {
-          items.push({
-            label: scenario.name,
-            path: `/scenarios/${pathSegments[1]}`,
-          });
-        }
-        items.push({
-          label: 'Edit Scenario',
-          path: `/scenarios/${pathSegments[1]}/edit`,
-        });
-      }
-      // If we're viewing a scenario
-      else if (pathSegments[1] && !pathSegments[2]) {
-        const scenario = scenarios.find(s => s.id === pathSegments[1]);
-        items.push({
-          label: scenario?.name || 'View Scenario',
-          path: `/scenarios/${pathSegments[1]}`,
-        });
-      }
     } else if (pathSegments[0] === 'assets') {
       items.push({
         label: 'Assets',
-        isCurrentPage: true,
+        path: '/assets',
       });
     } else if (pathSegments[0] === 'objectives') {
       items.push({
         label: 'Location Objectives',
         isCurrentPage: true,
       });
-    }
+    } else if (pathSegments[0] === 'scenarios') {
+      // We're editing or viewing a scenario
+      if (pathSegments[1]) {
+        const scenario = scenarios.find(s => s.id === pathSegments[1]);
+        if (scenario) {
+          items.push({
+            label: scenario.name,
+            path: `/scenarios/${pathSegments[1]}/view`,
+          });
 
+          if (pathSegments[2] === 'edit') {
+            items.push({
+              label: 'Edit Scenario',
+              path: `/scenarios/${pathSegments[1]}/edit`,
+            });
+          } else if (pathSegments[2] === 'view') {
+            items.push({
+              label: 'View Scenario',
+              path: `/scenarios/${pathSegments[1]}/view`,
+            });
+          }
+        }
+      }
+    }
     return items;
   };
 
