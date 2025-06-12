@@ -37,6 +37,11 @@ function findAndValidateScenario(state: UserAppState, scenarioId: string): Scena
   return ensureValidScenario(scenario);
 }
 
+// Helper function to validate selected scenario IDs
+function validateSelectedScenarioIds(state: UserAppState): string[] {
+  return state.selectedScenarioIds.filter(id => state.scenarios.some(s => s.id === id));
+}
+
 // Simple function to ensure asset data is valid
 function ensureValidAsset(asset: Asset): Asset {
   return {
@@ -120,7 +125,10 @@ export const useUserAppState = create<UserAppStateSlice>()(
       
       deleteScenario: (scenarioId: string) => set((state) => ({
         scenarios: state.scenarios.filter((scenario) => scenario.id !== scenarioId),
-        selectedScenarioIds: state.selectedScenarioIds.filter(id => state.scenarios.some(s => s.id === id))
+        selectedScenarioIds: validateSelectedScenarioIds({
+          ...state,
+          scenarios: state.scenarios.filter((scenario) => scenario.id !== scenarioId)
+        })
       })),
       
       setScenarioAsPrimary: (scenarioId: string) => set((state) => {
@@ -136,6 +144,13 @@ export const useUserAppState = create<UserAppStateSlice>()(
           scenarios: newScenarios
         };
       }),
+
+      setSelectedScenarioIds: (ids: string[]) => set((state) => ({
+        selectedScenarioIds: validateSelectedScenarioIds({
+          ...state,
+          selectedScenarioIds: ids
+        })
+      })),
       
       addQualitativeGoal: (goal: UserQualitativeGoal) => set((state) => ({
         userQualitativeGoals: [...(state.userQualitativeGoals || []), goal]
@@ -219,8 +234,6 @@ export const useUserAppState = create<UserAppStateSlice>()(
       
       setAppState: (newState: UserAppState) => set(newState),
       
-      setSelectedScenarioIds: (ids: string[]) => set({ selectedScenarioIds: ids }),
-
       // Income Source Actions
       addIncomeSource: (scenarioId: string, incomeSource: Omit<IncomeSource, 'id'>): IncomeSource => {
         const newIncomeSource = { ...incomeSource, id: uuid() };

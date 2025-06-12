@@ -1,11 +1,9 @@
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { useCalculationState } from '@/store/calculationStateSlice';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowUpDown, ArrowUp, ArrowDown, Target, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Target } from 'lucide-react';
 import { useState } from 'react';
-import type { QualitativeGoalAlignment } from '@/types/qualitative';
 
 interface ScenarioComparisonTableProps {
   selectedScenarioIds: Set<string>;
@@ -21,7 +19,7 @@ const formatCurrency = (amount: number) => {
 };
 
 type SortDirection = 'asc' | 'desc' | null;
-type SortKey = 'scenario' | 'totalGrossIncome' | 'totalExpenses' | 'estimatedCapitalGainsTax' | 'netFinancialOutcome' | 'qualitativeFitScore' | 'goalAlignment';
+type SortKey = 'scenario' | 'totalGrossIncome' | 'totalExpenses' | 'estimatedCapitalGainsTax' | 'netFinancialOutcome' | 'qualitativeFitScore';
 
 export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioComparisonTableProps) {
   const { scenarios } = useUserAppState();
@@ -55,12 +53,6 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
     const results = resultsByScenario[scenarioId];
     if (!results) return 0;
     return results.yearlyProjections.reduce((sum, year) => sum + year.expenses, 0);
-  };
-
-  const getGoalAlignments = (scenarioId: string): QualitativeGoalAlignment[] => {
-    const results = resultsByScenario[scenarioId];
-    if (!results) return [];
-    return results.goalAlignments;
   };
 
   const comparisonMetrics = [
@@ -115,12 +107,6 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
           aValue = resultsByScenario[a.id]?.qualitativeFitScore || 0;
           bValue = resultsByScenario[b.id]?.qualitativeFitScore || 0;
           break;
-        case 'goalAlignment':
-          const aAlignments = getGoalAlignments(a.id);
-          const bAlignments = getGoalAlignments(b.id);
-          aValue = aAlignments.filter(g => g.isAligned).length;
-          bValue = bAlignments.filter(g => g.isAligned).length;
-          break;
       }
       return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
     });
@@ -141,159 +127,91 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
 
   if (!selectedScenarioIds || selectedScenarioIds.size === 0) return null;
 
-  const allGoalAlignments = selectedScenariosData.flatMap(scenario => 
-    getGoalAlignments(scenario.id).map(alignment => alignment.goalId)
-  );
-  const uniqueGoalIds = [...new Set(allGoalAlignments)];
-
   return (
-    <div className="space-y-6">
-      <div className="border rounded-lg">
-        <Table style={{ tableLayout: 'fixed', width: '100%' }}>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[150px] max-w-[150px] break-words">
+    <div className="border rounded-lg">
+      <Table style={{ tableLayout: 'fixed', width: '100%' }}>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[150px] max-w-[150px] break-words">
+              <button
+                onClick={() => handleSort('scenario')}
+                className="flex items-center hover:text-primary transition-colors text-left w-full"
+              >
+                <span className="whitespace-normal break-words">
+                  Scenario
+                </span>
+                <span className="flex-shrink-0 ml-1">
+                  {getSortIcon('scenario')}
+                </span>
+              </button>
+            </TableHead>
+            {comparisonMetrics.map((metric) => (
+              <TableHead key={metric.key} className="w-auto">
                 <button
-                  onClick={() => handleSort('scenario')}
+                  onClick={() => handleSort(metric.key)}
                   className="flex items-center hover:text-primary transition-colors text-left w-full"
                 >
                   <span className="whitespace-normal break-words">
-                    Scenario
+                    {metric.label}
                   </span>
                   <span className="flex-shrink-0 ml-1">
-                    {getSortIcon('scenario')}
+                    {getSortIcon(metric.key)}
                   </span>
                 </button>
               </TableHead>
-              {comparisonMetrics.map((metric) => (
-                <TableHead key={metric.key} className="w-auto">
-                  <button
-                    onClick={() => handleSort(metric.key)}
-                    className="flex items-center hover:text-primary transition-colors text-left w-full"
-                  >
-                    <span className="whitespace-normal break-words">
-                      {metric.label}
-                    </span>
-                    <span className="flex-shrink-0 ml-1">
-                      {getSortIcon(metric.key)}
-                    </span>
-                  </button>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {getSortedScenarios().map((scenario) => (
-              <TableRow key={scenario.id}>
-                <TableCell className="font-medium w-[150px] max-w-[150px] break-words">
-                  <div className="flex items-center">
-                    {scenario.id === scenarios[0]?.id && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Target className="h-3 w-3 mr-1 text-primary" />
-                          </TooltipTrigger>
-                          <TooltipContent>Baseline scenario</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                    <span className="line-clamp-2 break-words">{scenario.name}</span>
-                  </div>
-                </TableCell>
-                {comparisonMetrics.map((metric) => {
-                  let value = 0;
-                  switch (metric.key) {
-                    case 'estimatedCapitalGainsTax':
-                      value = getTotalCapitalGainsTax(scenario.id);
-                      break;
-                    case 'netFinancialOutcome':
-                      value = getTotalNetFinancialOutcome(scenario.id);
-                      break;
-                    case 'qualitativeFitScore':
-                      value = resultsByScenario[scenario.id]?.qualitativeFitScore || 0;
-                      break;
-                    case 'totalGrossIncome':
-                      value = getTotalIncome(scenario.id);
-                      break;
-                    case 'totalExpenses':
-                      value = getTotalExpenses(scenario.id);
-                      break;
-                  }
-                  return (
-                    <TableCell
-                      key={metric.key}
-                      className={`${metric.highlight ? 'bg-muted/50 font-medium' : ''} text-right w-auto`}
-                    >
-                      {metric.format(value)}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
             ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="border rounded-lg">
-        <Table style={{ tableLayout: 'fixed', width: '100%' }}>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px] max-w-[200px] truncate">Location Objective</TableHead>
-              {selectedScenariosData.map((scenario) => (
-                <TableHead key={scenario.id} className="w-[160px] max-w-[160px] text-center truncate">
-                  <div className="flex items-center justify-center w-full truncate">
-                    {scenario.id === scenarios[0]?.id && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Target className="h-3 w-3 mr-1 text-primary" />
-                          </TooltipTrigger>
-                          <TooltipContent>Baseline scenario</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                    <span className="truncate max-w-[110px]">{scenario.name}</span>
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {uniqueGoalIds.map((goalId) => {
-              const firstScenario = selectedScenariosData[0];
-              const firstAlignment = getGoalAlignments(firstScenario.id).find(g => g.goalId === goalId);
-              if (!firstAlignment) return null;
-
-              return (
-                <TableRow key={goalId}>
-                  <TableCell className="font-medium w-[200px] max-w-[200px] truncate overflow-hidden text-ellipsis align-middle">
-                    {firstAlignment.goalName}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {getSortedScenarios().map((scenario) => (
+            <TableRow key={scenario.id}>
+              <TableCell className="font-medium w-[150px] max-w-[150px] break-words">
+                <div className="flex items-center">
+                  {scenario.id === scenarios[0]?.id && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Target className="h-3 w-3 mr-1 text-primary" />
+                        </TooltipTrigger>
+                        <TooltipContent>Baseline scenario</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  <span className="line-clamp-2 break-words">{scenario.name}</span>
+                </div>
+              </TableCell>
+              {comparisonMetrics.map((metric) => {
+                let value = 0;
+                switch (metric.key) {
+                  case 'estimatedCapitalGainsTax':
+                    value = getTotalCapitalGainsTax(scenario.id);
+                    break;
+                  case 'netFinancialOutcome':
+                    value = getTotalNetFinancialOutcome(scenario.id);
+                    break;
+                  case 'qualitativeFitScore':
+                    value = resultsByScenario[scenario.id]?.qualitativeFitScore || 0;
+                    break;
+                  case 'totalGrossIncome':
+                    value = getTotalIncome(scenario.id);
+                    break;
+                  case 'totalExpenses':
+                    value = getTotalExpenses(scenario.id);
+                    break;
+                }
+                return (
+                  <TableCell
+                    key={metric.key}
+                    className={`${metric.highlight ? 'bg-muted/50 font-medium' : ''} text-right w-auto`}
+                  >
+                    {metric.format(value)}
                   </TableCell>
-                  {selectedScenariosData.map((scenario) => {
-                    const alignment = getGoalAlignments(scenario.id).find(g => g.goalId === goalId);
-                    if (!alignment) return <TableCell key={scenario.id} />;
-
-                    return (
-                      <TableCell key={scenario.id} className="text-center w-[160px] max-w-[160px] align-middle">
-                        <div className="flex items-center justify-center gap-2 w-full">
-                          {alignment.isAligned ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          )}
-                          <span className="text-sm">
-                            {alignment.alignmentScore}/100
-                          </span>
-                        </div>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 } 

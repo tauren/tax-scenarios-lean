@@ -3,7 +3,6 @@ import { App } from '@/App';
 import { AssetManagementView } from '@/components/views/AssetManagementView';
 import { GetStartedView } from "@/views/GetStartedView";
 import { ScenarioEditorView } from "@/views/ScenarioEditorView";
-import { ScenarioHubView } from "@/views/ScenarioHubView";
 import { PlanOverview } from "@/views/PlanOverview";
 import PersonalGoalsManagementView from "@/views/PersonalGoalsManagementView";
 import ScenarioDetailView from '../views/ScenarioDetailView';
@@ -24,10 +23,6 @@ export const router = createBrowserRouter([
       {
         path: 'assets',
         element: <AssetManagementView />,
-      },
-      {
-        path: 'scenarios',
-        element: <ScenarioHubView />,
       },
       {
         path: 'scenarios/new',

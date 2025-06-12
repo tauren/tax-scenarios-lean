@@ -1,6 +1,6 @@
 import { useUserAppState } from '@/store/userAppStateSlice';
 import { useCalculationState } from '@/store/calculationStateSlice';
-import { Layers, BadgeCheck, TrendingUp } from 'lucide-react';
+import { BadgeCheck, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,12 +35,6 @@ export function ScenarioSummaryDashboard() {
 
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-8">
-      {/* Total Scenarios */}
-      <div className="flex-1 bg-white rounded-lg shadow p-4 flex flex-col items-center min-w-[180px]">
-        <Layers className="h-6 w-6 text-muted-foreground mb-2" />
-        <span className="text-sm text-muted-foreground">Total Scenarios</span>
-        <span className="text-3xl font-bold text-primary">{scenarios.length}</span>
-      </div>
       {/* Best Qualitative Fit */}
       <div 
         className="flex-1 bg-white rounded-lg shadow p-4 flex flex-col items-center min-w-[180px] cursor-pointer hover:bg-gray-50 transition-colors"
