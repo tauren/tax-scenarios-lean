@@ -33,6 +33,24 @@ export function App() {
   // due to a new object being created on every render
   const setAppState = useUserAppState((state) => state.setAppState);
   const activePlanInternalName = useUserAppState((state) => state.activePlanInternalName);
+  const loadAndMigrateState = useUserAppState(state => state.loadAndMigrateState);
+
+  // Add a development-only migration trigger
+  useEffect(() => {
+    // Only run in development
+    if (process.env.NODE_ENV === 'development') {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        // Press Ctrl+Shift+M to trigger migration
+        if (e.ctrlKey && e.shiftKey && e.key === 'M') {
+          console.log('Triggering manual migration...');
+          loadAndMigrateState();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }
+  }, [loadAndMigrateState]);
 
   // Handle route protection
   useEffect(() => {

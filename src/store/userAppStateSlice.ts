@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
 import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
 import { idService } from '@/services/idService';
+import { migrationService } from '@/services/migrationService';
 
 // Simple function to ensure scenario data is valid
 function ensureValidScenario(scenario: Scenario): Scenario {
@@ -455,6 +456,36 @@ export const useUserAppState = create<UserAppStateSlice>()(
             )
           };
         });
+      },
+
+      // Add a function to load and migrate state from UUIDs to nanoids
+      loadAndMigrateState: () => {
+        const storedState = localStorage.getItem('tax-scenarios-app-state');
+        if (storedState) {
+          try {
+            const parsedState = JSON.parse(storedState);
+            console.log('Loaded state from localStorage:', parsedState);
+            
+            // Migrate the state
+            const migratedState = migrationService.migrateUuidsToNanoids(parsedState);
+            console.log('Migrated state:', migratedState);
+            
+            // Update the store state
+            set(migratedState);
+            
+            // Force a save to localStorage with the correct structure
+            localStorage.setItem('tax-scenarios-app-state', JSON.stringify({
+              state: migratedState,
+              version: 0
+            }));
+            console.log('Saved migrated state to localStorage');
+            
+            // Clean up the migration mapping
+            migrationService.cleanupMigration();
+          } catch (error) {
+            console.error('Error during migration:', error);
+          }
+        }
       },
     }),
     {

@@ -59,6 +59,9 @@ export interface UserAppStateSlice extends UserAppState {
   // New actions
   addScenarioAttribute: (scenarioId: string, attribute: Omit<ScenarioQualitativeAttribute, 'id'>) => void;
   addMultipleScenarioAttributes: (scenarioId: string, attributes: Omit<ScenarioQualitativeAttribute, 'id'>[]) => void;
+
+  // New function
+  loadAndMigrateState: () => void;
 }
 
 /**
