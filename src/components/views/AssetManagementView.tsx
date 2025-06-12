@@ -3,7 +3,6 @@ import { useUserAppState } from '@/store/userAppStateSlice';
 import type { Asset } from '@/types';
 import { AssetDialog } from '@/components/dialogs/AssetDialog';
 import { DeleteConfirmationDialog } from '@/components/dialogs/DeleteConfirmationDialog';
-import { v4 as uuidv4 } from 'uuid';
 import { formatAssetType, formatDate, formatCurrency } from '@/utils/formatting';
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +32,7 @@ export function AssetManagementView() {
     if (selectedAsset?.id) {
       updateAsset(selectedAsset.id, assetData);
     } else {
-      addAsset({ ...assetData, id: uuidv4() });
+      addAsset(assetData);
     }
   };
 

@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { SentimentSelector } from '@/components/shared/SentimentSelector';
 import { WeightSelector } from '@/components/shared/WeightSelector';
-import { v4 as uuidv4 } from 'uuid';
 
 type DialogMode = 'add' | 'edit' | 'duplicate';
 
@@ -22,7 +21,7 @@ interface QualitativeAttributeDialogProps {
   onOpenChange: (open: boolean) => void;
   attribute?: ScenarioQualitativeAttribute;
   mode?: DialogMode;
-  onSave: (attribute: ScenarioQualitativeAttribute) => void;
+  onSave: (attribute: Omit<ScenarioQualitativeAttribute, 'id'>) => void;
 }
 
 export function QualitativeAttributeDialog({
@@ -94,8 +93,7 @@ export function QualitativeAttributeDialog({
   const handleSave = () => {
     if (!validateForm()) return;
 
-    const attributeToSave: ScenarioQualitativeAttribute = {
-      id: attribute?.id || uuidv4(),
+    const attributeToSave: Omit<ScenarioQualitativeAttribute, 'id'> = {
       name: formData.name || '',
       sentiment: formData.sentiment || 'Neutral',
       significance: formData.significance || 'Medium',

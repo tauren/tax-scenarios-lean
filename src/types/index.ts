@@ -19,12 +19,12 @@ export interface UserAppStateSlice extends UserAppState {
   setSelectedScenarioIds: (ids: string[]) => void;
 
   // Asset Actions
-  addAsset: (asset: Asset) => void;
+  addAsset: (asset: Omit<Asset, 'id'>) => void;
   updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => void;
   deleteAsset: (assetId: string) => void;
 
   // Qualitative Goal Actions
-  addQualitativeGoal: (goal: UserQualitativeGoal) => void;
+  addQualitativeGoal: (goal: Omit<UserQualitativeGoal, 'id'>) => void;
   updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => void;
   deleteQualitativeGoal: (goalId: string) => void;
 
@@ -55,6 +55,10 @@ export interface UserAppStateSlice extends UserAppState {
 
   // Scenario Copy Items Action
   copyItems: (scenarioId: string, items: any[], type: 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale') => void;
+
+  // New actions
+  addScenarioAttribute: (scenarioId: string, attribute: Omit<ScenarioQualitativeAttribute, 'id'>) => void;
+  addMultipleScenarioAttributes: (scenarioId: string, attributes: Omit<ScenarioQualitativeAttribute, 'id'>[]) => void;
 }
 
 /**

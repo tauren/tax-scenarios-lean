@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { Scenario, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
+import { idService } from '@/services/idService';
 
 type CopyableItem = IncomeSource | AnnualExpense | OneTimeExpense | PlannedAssetSale;
 type ItemType = 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale';
@@ -14,7 +14,7 @@ export const copyItemsToScenario = (
   // Generate new IDs for copied items
   const itemsWithNewIds = items.map(item => ({
     ...item,
-    id: uuidv4()
+    id: idService.generateId()
   }));
   
   switch (itemType) {

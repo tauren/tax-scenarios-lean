@@ -21,18 +21,18 @@ export default function PersonalGoalsManagementView() {
     setIsDialogOpen(true)
   }
 
-  const handleSaveGoal = (goalData: Omit<UserQualitativeGoal, "id">) => {
+  const handleSaveGoal = (goalData: Omit<UserQualitativeGoal, 'id'>) => {
     if (editingGoal) {
-      updateQualitativeGoal(editingGoal.id, { ...goalData, id: editingGoal.id })
+      updateQualitativeGoal(editingGoal.id, goalData)
     } else {
-      addQualitativeGoal({ ...goalData, id: crypto.randomUUID() })
+      addQualitativeGoal(goalData)
     }
+    setIsDialogOpen(false)
   }
 
   const handleAddFromStatements = (statements: { conceptId: string; name: string }[]) => {
     statements.forEach(statement => {
       addQualitativeGoal({
-        id: crypto.randomUUID(),
         conceptId: statement.conceptId,
         name: statement.name,
         weight: "Medium"

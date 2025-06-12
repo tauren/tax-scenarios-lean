@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { UserAppStateSlice, Asset, Scenario, UserAppState, UserQualitativeGoal, IncomeSource, AnnualExpense, OneTimeExpense, PlannedAssetSale } from '@/types';
 import type { ScenarioQualitativeAttribute } from '@/types/qualitative';
-import { v4 as uuid } from 'uuid';
+import { idService } from '@/services/idService';
 
 // Simple function to ensure scenario data is valid
 function ensureValidScenario(scenario: Scenario): Scenario {
@@ -77,8 +77,8 @@ export const useUserAppState = create<UserAppStateSlice>()(
       // Actions
       setActivePlanInternalName: (name: string) => set({ activePlanInternalName: name }),
       
-      addAsset: (asset: Asset) => set((state) => ({
-        initialAssets: [...state.initialAssets, { ...asset, id: uuid() }]
+      addAsset: (asset: Omit<Asset, 'id'>) => set((state) => ({
+        initialAssets: [...state.initialAssets, { ...asset, id: idService.generateId() }]
       })),
       
       updateAsset: (assetId: string, updatedAsset: Partial<Asset>) => set((state) => ({
@@ -92,7 +92,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       })),
       
       addScenario: (scenarioData: Omit<Scenario, 'id'>, options?: { isBaseline?: boolean }): Scenario => {
-        const newId = uuid();
+        const newId = idService.generateId();
         const newScenario = ensureValidScenario({ ...scenarioData, id: newId });
         set((state) => {
           let selectedScenarioIds = state.selectedScenarioIds;
@@ -132,7 +132,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       })),
       
       setScenarioAsPrimary: (scenarioId: string) => set((state) => {
-        const scenarioToMakePrimary = state.scenarios.find(s => s.id === scenarioId);
+        const scenarioToMakePrimary = findAndValidateScenario(state, scenarioId);
         if (!scenarioToMakePrimary) return state;
 
         const newScenarios = [
@@ -152,8 +152,8 @@ export const useUserAppState = create<UserAppStateSlice>()(
         })
       })),
       
-      addQualitativeGoal: (goal: UserQualitativeGoal) => set((state) => ({
-        userQualitativeGoals: [...(state.userQualitativeGoals || []), goal]
+      addQualitativeGoal: (goal: Omit<UserQualitativeGoal, 'id'>) => set((state) => ({
+        userQualitativeGoals: [...(state.userQualitativeGoals || []), { ...goal, id: idService.generateId() }]
       })),
       
       updateQualitativeGoal: (goalId: string, updatedGoal: Partial<UserQualitativeGoal>) => set((state) => ({
@@ -183,7 +183,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
       
       updateScenarioAttribute: (scenarioId: string, attribute: ScenarioQualitativeAttribute) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = { ...scenario };
@@ -198,15 +198,12 @@ export const useUserAppState = create<UserAppStateSlice>()(
         }
 
         return {
-          ...state,
-          scenarios: state.scenarios.map(s => 
-            s.id === scenarioId ? updatedScenario : s
-          )
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
         };
       }),
       
       deleteScenarioAttribute: (scenarioId: string, attributeId: string) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = {
@@ -217,10 +214,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
         };
 
         return {
-          ...state,
-          scenarios: state.scenarios.map(s => 
-            s.id === scenarioId ? updatedScenario : s
-          )
+          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
         };
       }),
       
@@ -236,7 +230,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       
       // Income Source Actions
       addIncomeSource: (scenarioId: string, incomeSource: Omit<IncomeSource, 'id'>): IncomeSource => {
-        const newIncomeSource = { ...incomeSource, id: uuid() };
+        const newIncomeSource = { ...incomeSource, id: idService.generateId() };
         set((state) => {
           const scenario = findAndValidateScenario(state, scenarioId);
           if (!scenario) return state;
@@ -287,7 +281,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
 
       // Expense Actions
       addExpense: (scenarioId: string, expense: Omit<AnnualExpense, 'id'> | Omit<OneTimeExpense, 'id'>, type: 'annual' | 'oneTime'): AnnualExpense | OneTimeExpense => {
-        const newExpense = { ...expense, id: uuid() };
+        const newExpense = { ...expense, id: idService.generateId() };
         set((state) => {
           const scenario = findAndValidateScenario(state, scenarioId);
           if (!scenario) return state;
@@ -312,12 +306,16 @@ export const useUserAppState = create<UserAppStateSlice>()(
 
         const updatedScenario = { ...scenario };
         if (type === 'annual') {
-          updatedScenario.annualExpenses = (scenario.annualExpenses || []).map(e => 
-            e.id === expenseId ? { ...e, ...updatedExpense } : e
+          updatedScenario.annualExpenses = scenario.annualExpenses.map(expense =>
+            expense.id === expenseId
+              ? { ...expense, ...updatedExpense }
+              : expense
           );
         } else {
-          updatedScenario.oneTimeExpenses = (scenario.oneTimeExpenses || []).map(e => 
-            e.id === expenseId ? { ...e, ...updatedExpense } : e
+          updatedScenario.oneTimeExpenses = scenario.oneTimeExpenses.map(expense =>
+            expense.id === expenseId
+              ? { ...expense, ...updatedExpense }
+              : expense
           );
         }
 
@@ -327,7 +325,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       removeExpense: (scenarioId: string, expenseId: string, type: 'annual' | 'oneTime') => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = { ...scenario };
@@ -344,7 +342,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
 
       // Asset Sale Actions
       addPlannedAssetSale: (scenarioId: string, sale: Omit<PlannedAssetSale, 'id'>): PlannedAssetSale => {
-        const newSale = { ...sale, id: uuid() };
+        const newSale = { ...sale, id: idService.generateId() };
         set((state) => {
           const scenario = findAndValidateScenario(state, scenarioId);
           if (!scenario) return state;
@@ -367,8 +365,10 @@ export const useUserAppState = create<UserAppStateSlice>()(
 
         const updatedScenario = {
           ...scenario,
-          plannedAssetSales: (scenario.plannedAssetSales || []).map(s => 
-            s.id === saleId ? { ...s, ...updatedSale } : s
+          plannedAssetSales: scenario.plannedAssetSales.map(sale =>
+            sale.id === saleId
+              ? { ...sale, ...updatedSale }
+              : sale
           )
         };
 
@@ -378,7 +378,7 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       removePlannedAssetSale: (scenarioId: string, saleId: string) => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
+        const scenario = findAndValidateScenario(state, scenarioId);
         if (!scenario) return state;
 
         const updatedScenario = {
@@ -392,32 +392,70 @@ export const useUserAppState = create<UserAppStateSlice>()(
       }),
 
       // Copy Items Action
-      copyItems: (scenarioId: string, items: any[], type: 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale') => set((state) => {
-        const scenario = state.scenarios.find(s => s.id === scenarioId);
-        if (!scenario) return state;
+      copyItems: (scenarioId: string, items: any[], type: 'incomeSource' | 'annualExpense' | 'oneTimeExpense' | 'plannedAssetSale') => {
+        set((state) => {
+          const scenario = findAndValidateScenario(state, scenarioId);
+          if (!scenario) return state;
 
-        const updatedScenario = { ...scenario };
-        const itemsWithNewIds = items.map(item => ({ ...item, id: uuid() }));
+          const updatedScenario = { ...scenario };
+          const itemsWithNewIds = items.map(item => ({ ...item, id: idService.generateId() }));
 
-        switch (type) {
-          case 'incomeSource':
-            updatedScenario.incomeSources = [...(scenario.incomeSources || []), ...itemsWithNewIds];
-            break;
-          case 'annualExpense':
-            updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), ...itemsWithNewIds];
-            break;
-          case 'oneTimeExpense':
-            updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), ...itemsWithNewIds];
-            break;
-          case 'plannedAssetSale':
-            updatedScenario.plannedAssetSales = [...(scenario.plannedAssetSales || []), ...itemsWithNewIds];
-            break;
-        }
+          switch (type) {
+            case 'incomeSource':
+              updatedScenario.incomeSources = [...(scenario.incomeSources || []), ...(itemsWithNewIds as IncomeSource[])];
+              break;
+            case 'annualExpense':
+              updatedScenario.annualExpenses = [...(scenario.annualExpenses || []), ...(itemsWithNewIds as AnnualExpense[])];
+              break;
+            case 'oneTimeExpense':
+              updatedScenario.oneTimeExpenses = [...(scenario.oneTimeExpenses || []), ...(itemsWithNewIds as OneTimeExpense[])];
+              break;
+            case 'plannedAssetSale':
+              updatedScenario.plannedAssetSales = [...(scenario.plannedAssetSales || []), ...(itemsWithNewIds as PlannedAssetSale[])];
+              break;
+          }
 
-        return {
-          scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
-        };
-      }),
+          return {
+            scenarios: state.scenarios.map(s => s.id === scenarioId ? updatedScenario : s)
+          };
+        });
+      },
+
+      addScenarioAttribute: (scenarioId: string, attribute: Omit<ScenarioQualitativeAttribute, 'id'>) => {
+        set((state) => {
+          const scenario = findAndValidateScenario(state, scenarioId);
+          if (!scenario) return state;
+          const newAttribute = {
+            ...attribute,
+            id: idService.generateId()
+          };
+          scenario.scenarioSpecificAttributes.push(newAttribute);
+          return { scenarios: [...state.scenarios] };
+        });
+      },
+
+      addMultipleScenarioAttributes: (scenarioId: string, attributes: Omit<ScenarioQualitativeAttribute, 'id'>[]) => {
+        set((state) => {
+          const scenario = findAndValidateScenario(state, scenarioId);
+          if (!scenario) return state;
+
+          const newAttributes = attributes.map(attr => ({
+            ...attr,
+            id: idService.generateId()
+          }));
+
+          const updatedScenario = {
+            ...scenario,
+            scenarioSpecificAttributes: [...scenario.scenarioSpecificAttributes, ...newAttributes]
+          };
+
+          return {
+            scenarios: state.scenarios.map(s => 
+              s.id === scenarioId ? updatedScenario : s
+            )
+          };
+        });
+      },
     }),
     {
       name: 'tax-scenarios-app-state',

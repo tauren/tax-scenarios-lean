@@ -6,7 +6,6 @@ import type { ScenarioValidationErrors } from '@/types/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { v4 as uuidv4 } from 'uuid';
 import { IncomeSourceDialog } from '@/components/dialogs/IncomeSourceDialog';
 import { ExpenseDialog } from '@/components/dialogs/ExpenseDialog';
 import { CopyItemsDialog } from '@/components/dialogs/CopyItemsDialog';
@@ -101,7 +100,7 @@ const validationRules: ValidationRule[] = [
 export function ScenarioEditorView() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { updateScenario, scenarios, initialAssets, userQualitativeGoals, addIncomeSource, updateIncomeSource, removeIncomeSource, addExpense, updateExpense, removeExpense, addPlannedAssetSale, updatePlannedAssetSale, removePlannedAssetSale } = useUserAppState();
+  const { updateScenario, scenarios, initialAssets, userQualitativeGoals, addIncomeSource, updateIncomeSource, removeIncomeSource, addExpense, updateExpense, removeExpense, addPlannedAssetSale, updatePlannedAssetSale, removePlannedAssetSale, addMultipleScenarioAttributes } = useUserAppState();
   const { setScenarioResults } = useCalculationState();
   
   // Get the current scenario from the store
@@ -330,25 +329,21 @@ export function ScenarioEditorView() {
     if (!id) return;
 
     const newAttributes = attributes.map(attr => ({
-      id: uuidv4(),
-      scenarioId: id,
-      text: attr.description,
+      name: attr.description,
       goalId: attr.goalId,
       significance: "Low" as const,
       sentiment: "Neutral" as const,
       mappedGoalId: attr.goalId
     }));
 
-    const updatedScenario = {
-      ...scenario!,
-      scenarioSpecificAttributes: [...(scenario!.scenarioSpecificAttributes || []), ...newAttributes]
-    };
-
-    updateScenario(id, updatedScenario);
+    addMultipleScenarioAttributes(id, newAttributes);
 
     // Recalculate and update scenario results
-    const results = calculateScenarioResults(updatedScenario, initialAssets, userQualitativeGoals);
-    setScenarioResults(id, results);
+    const updatedScenario = scenarios.find(s => s.id === id);
+    if (updatedScenario) {
+      const results = calculateScenarioResults(updatedScenario, initialAssets, userQualitativeGoals);
+      setScenarioResults(id, results);
+    }
   };
 
   const handlePlannedAssetSaleDialogClose = () => {

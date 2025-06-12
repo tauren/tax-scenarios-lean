@@ -20,7 +20,7 @@ export function QualitativeAttributesContainer({
   disabled = false,
   onQuickAdd,
 }: QualitativeAttributesContainerProps) {
-  const { scenarios, userQualitativeGoals = [], updateScenarioAttribute, deleteScenarioAttribute } = useUserAppState();
+  const { scenarios, userQualitativeGoals = [], updateScenarioAttribute, deleteScenarioAttribute, addScenarioAttribute } = useUserAppState();
   const scenario = scenarios.find(s => s.id === scenarioId);
   const attributes = scenario?.scenarioSpecificAttributes || [];
 
@@ -55,7 +55,7 @@ export function QualitativeAttributesContainer({
 
     if (!editingAttribute) {
       // Adding new attribute
-      updateScenarioAttribute(scenarioId, { ...updatedAttribute, id: crypto.randomUUID() });
+      addScenarioAttribute(scenarioId, updatedAttribute);
     } else {
       // Updating existing attribute
       updateScenarioAttribute(scenarioId, updatedAttribute);
