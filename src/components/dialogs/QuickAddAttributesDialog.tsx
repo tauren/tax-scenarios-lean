@@ -57,9 +57,9 @@ export function QuickAddAttributesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Quick Add Attributes</DialogTitle>
+          <DialogTitle>Add Impressions for this Location</DialogTitle>
           <DialogDescription>
-            Add pros and cons for each location objective. Type a brief description and press Enter to add multiple attributes for each goal. Click the X on any attribute to remove it.
+            For each priority listed, describe something notable about this location and how it affects your decision. Press enter to add multiple impressions for each priority. For example: "Low cost of living", "Great healthcare system", or "Limited English proficiency".
           </DialogDescription>
         </DialogHeader>
 
@@ -73,7 +73,7 @@ export function QuickAddAttributesDialog({
                   hideError
                 >
                   <Input
-                    placeholder="Type an attribute and press Enter"
+                    placeholder="Type an impression and press Enter"
                     onKeyDown={(e) => handleKeyDown(goal.id, e)}
                   />
                 </FormField>
@@ -104,7 +104,7 @@ export function QuickAddAttributesDialog({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={!hasAttributes}>
-            Save Attributes
+            Save Impressions
           </Button>
         </DialogFooter>
       </DialogContent>

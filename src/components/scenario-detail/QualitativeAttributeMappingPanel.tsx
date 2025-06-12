@@ -84,9 +84,9 @@ const CardView: React.FC<{
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-2">
-                <h4 className="font-medium text-sm">Not Linked to Location Objective</h4>
+                <h4 className="font-medium text-sm">Unlinked</h4>
                 <p className="text-sm text-muted-foreground">
-                  This consideration isn't linked to any of your location objectives yet. Link it to an objective to track its impact on your priorities.
+                  Link this impression to one of your priorities to see how it affects your Lifestyle Fit.
                 </p>
               </div>
             </PopoverContent>
@@ -104,7 +104,7 @@ const CardView: React.FC<{
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-2">
-                <h4 className="font-medium text-sm">Linked to Location Objective</h4>
+                <h4 className="font-medium text-sm">Linked:</h4>
                 <p className="text-sm text-muted-foreground">{mappedGoal.name}</p>
               </div>
             </PopoverContent>
@@ -203,8 +203,8 @@ const TableView: React.FC<{
           <tr className="border-b bg-gray-50">
             <th className="text-left py-2 px-4">Type</th>
             <th className="text-left py-2 px-4">Importance</th>
-            <th className="text-left py-2 px-4">Consideration</th>
-            <th className="text-center py-2 px-4">Objective</th>
+            <th className="text-left py-2 px-4">Impression</th>
+            <th className="text-center py-2 px-4">Linked</th>
           </tr>
         </thead>
         <tbody>
@@ -281,7 +281,7 @@ const TableView: React.FC<{
                       </PopoverTrigger>
                       <PopoverContent className="w-80">
                         <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Linked to Location Objective</h4>
+                          <h4 className="font-medium text-sm">Linked to:</h4>
                           <p className="text-sm text-muted-foreground">{mappedGoal.name}</p>
                         </div>
                       </PopoverContent>
@@ -297,9 +297,9 @@ const TableView: React.FC<{
                       </PopoverTrigger>
                       <PopoverContent className="w-80">
                         <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Not Linked to Location Objective</h4>
+                          <h4 className="font-medium text-sm">Unlinked</h4>
                           <p className="text-sm text-muted-foreground">
-                            This consideration isn't linked to any of your location objectives yet. Link it to an objective to track its impact on your priorities.
+                            Link this impression to one of your priorities to see how it affects your Lifestyle Fit.
                           </p>
                         </div>
                       </PopoverContent>
@@ -325,7 +325,7 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
   return (
     <div className="border rounded-lg p-4 mb-2">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Location Considerations</h2>
+        <h2 className="text-lg font-semibold">My Impressions of this Location</h2>
         <div className="flex gap-2">
           <Button
             variant={viewMode === 'cards' ? 'default' : 'outline'}
@@ -347,7 +347,7 @@ const QualitativeAttributeMappingPanel: React.FC<QualitativeAttributeMappingPane
       </div>
       
       {attributes.length === 0 ? (
-        <div className="text-muted-foreground">No location considerations defined for this scenario.</div>
+        <div className="text-muted-foreground">No impressions recorded yet. Add one to get started!</div>
       ) : viewMode === 'cards' ? (
         <CardView attributes={attributes} goals={goals} />
       ) : (

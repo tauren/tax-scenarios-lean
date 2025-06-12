@@ -55,7 +55,7 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
             </div>
             {alignment.contributingAttributes && alignment.contributingAttributes.length > 0 && (
               <div className="text-xs text-muted-foreground">
-                <div className="font-medium mb-1">Contributing Attributes:</div>
+                <div className="font-medium mb-1">Linked Impressions:</div>
                 <ul className="list-disc ml-4 space-y-0.5">
                   {alignment.contributingAttributes.map((attr) => {
                     return (
@@ -79,7 +79,7 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
   return (
     <div className="border rounded-lg p-4 mb-2">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Assessment of Location Objectives</h2>
+        <h2 className="text-lg font-semibold">Analyzing Your Priorities</h2>
         <ScoreBreakdownDialog
           score={results.qualitativeFitScore}
           attributes={attributes}
@@ -89,12 +89,12 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
       </div>
       
       {alignments.length === 0 ? (
-        <div className="text-muted-foreground">No location objectives or alignments.</div>
+        <div className="text-muted-foreground">Link impressions to your priorities to see your Lifestyle Fit.</div>
       ) : (
         <div className="space-y-6">
           {alignedGoals.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-green-600 mb-3">Aligned Location Objectives</h3>
+              <h3 className="text-sm font-medium text-green-600 mb-3">What Aligns</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {alignedGoals.map(renderGoalCard)}
               </div>
@@ -103,7 +103,7 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
           
           {notAlignedGoals.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-red-600 mb-3">Not Aligned Location Objectives</h3>
+              <h3 className="text-sm font-medium text-red-600 mb-3">What Doesn't Align</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {notAlignedGoals.map(renderGoalCard)}
               </div>
@@ -112,12 +112,12 @@ const QualitativeAssessmentPanel: React.FC<QualitativeAssessmentPanelProps> = ({
 
           {unmappedGoals.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Unmapped Location Objectives</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Priorities without Impressions (Unscored)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {unmappedGoals.map(goal => (
                   <div key={goal.id} className="p-4 rounded-lg border bg-muted">
                     <div className="font-semibold text-sm mb-1">{goal.name}</div>
-                    <div className="text-xs text-muted-foreground">No attributes mapped to this objective.</div>
+                    <div className="text-xs text-muted-foreground">Link impressions to Score</div>
                   </div>
                 ))}
               </div>

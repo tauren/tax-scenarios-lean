@@ -24,7 +24,7 @@ const ScenarioSummaryHeader: React.FC<ScenarioSummaryHeaderProps> = ({ scenario,
           <span className="text-lg font-bold">${results.totalNetFinancialOutcomeOverPeriod?.toLocaleString() || 0}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold">Qualitative Fit:</span>
+          <span className="text-lg font-semibold">Lifestyle Fit:</span>
           <Badge className="text-lg px-3 py-1">{results.qualitativeFitScore || 0}/100</Badge>
         </div>
       </div>

@@ -107,13 +107,13 @@ export function QualitativeAttributeDialog({
   const getDialogTitle = () => {
     switch (mode) {
       case 'add':
-        return 'Add Location Consideration';
+        return 'Add Impression';
       case 'edit':
-        return 'Edit Location Consideration';
+        return 'Edit Impression';
       case 'duplicate':
-        return 'Duplicate Location Consideration';
+        return 'Duplicate Impression';
       default:
-        return 'Location Consideration';
+        return 'Impression';
     }
   };
 
@@ -122,9 +122,9 @@ export function QualitativeAttributeDialog({
       case 'add':
         return 'Describe something notable about this location and how it affects your decision. For example: "Low cost of living", "Great healthcare system", or "Limited English proficiency".';
       case 'edit':
-        return 'Update the details of this location consideration.';
+        return 'Update the details of this impression.';
       case 'duplicate':
-        return 'Create a copy of this location consideration.';
+        return 'Create a copy of this impression.';
       default:
         return '';
     }

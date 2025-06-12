@@ -41,7 +41,7 @@ export function PlanNavigationCards({ assetsCount, objectivesCount, scenariosCou
     <div className="grid gap-6 md:grid-cols-3">
       {renderNavigationCard(
         Layers,
-        "Total Scenarios",
+        "My Scenarios",
         scenariosCount,
         "scenario created",
         "scenarios created",
@@ -49,21 +49,21 @@ export function PlanNavigationCards({ assetsCount, objectivesCount, scenariosCou
       )}
 
       {renderNavigationCard(
+        Target,
+        "My Priorities",
+        objectivesCount,
+        "priority defined",
+        "priorities defined",
+        "/priorities"
+      )}
+
+      {renderNavigationCard(
         Building2,
-        "Total Assets",
+        "My Assets",
         assetsCount,
         "asset in your plan",
         "assets in your plan",
         "/assets"
-      )}
-
-      {renderNavigationCard(
-        Target,
-        "Location Objectives",
-        objectivesCount,
-        "objective defined",
-        "objectives defined",
-        "/objectives"
       )}
     </div>
   );

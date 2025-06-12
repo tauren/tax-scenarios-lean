@@ -141,14 +141,14 @@ export function ScenarioSummaryCard({
 
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Qualitative Fit:</span>
+          <span className="text-sm text-muted-foreground">Lifestyle Fit:</span>
           <Badge variant={getScoreBadgeVariant(results.qualitativeFitScore)}>
             {results.qualitativeFitScore}/100
           </Badge>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Est. CGT:</span>
+          <span className="text-sm text-muted-foreground">Estimated CGT:</span>
           <span className="text-sm font-medium">
             {formatCurrency(results.estimatedCapitalGainsTax)}
           </span>

@@ -3,8 +3,8 @@ import type { ExamplePlan } from '@/types';
 export const examplePlans: ExamplePlan[] = [
   {
     id: "blank",
-    name: "Start with a Blank Plan",
-    description: "Build your financial and lifestyle plan from scratch.",
+    name: "Start with a Blank Comparison",
+    description: "Build your financial and lifestyle comparison from scratch.",
     planDataParam: "N4IghgxgLglgbgUwAoBswDsCS6oIE7pgoByYAtgiAFwgCq6hFAJgASoYgA0IM6MsRAIIBnYQijDqAbQC63YRASE8MAPaSqs7jGEARGHigBPagDMiYgL5A"
   },
   {

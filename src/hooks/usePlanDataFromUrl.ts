@@ -23,7 +23,7 @@ export function usePlanDataFromUrl(): UserAppState | null {
     try {
       return parseShareableString(encodedData);
     } catch (error) {
-      console.error('Error parsing plan data from URL:', error);
+      console.error('Error parsing comparison data from URL:', error);
       return null;
     }
   }, [encodedData]); 

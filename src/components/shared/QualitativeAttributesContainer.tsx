@@ -130,7 +130,7 @@ export function QualitativeAttributesContainer({
 
       {/* 2. Qualitative Attributes Row */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Location Considerations</h2>
+        <h2 className="text-lg font-semibold">Impressions of this Location</h2>
         <div className="flex gap-2">
           {onQuickAdd && (
             <Button onClick={onQuickAdd} variant="outline" disabled={disabled}>
@@ -138,7 +138,7 @@ export function QualitativeAttributesContainer({
             </Button>
           )}
           <Button onClick={() => handleOpenDialog()} disabled={disabled}>
-            Add Consideration
+            Add Impression
           </Button>
         </div>
       </div>

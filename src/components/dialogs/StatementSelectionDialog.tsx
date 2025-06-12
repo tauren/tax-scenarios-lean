@@ -57,12 +57,10 @@ export function StatementSelectionDialog({ open, onOpenChange, onConfirm }: Stat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Location Objectives from Examples</DialogTitle>
+          <DialogTitle>Add Priorities from Examples</DialogTitle>
           <DialogDescription>
-            Select one or more examples to create location objectives.  
-            Pick examples that match or are similar to your location objectives. 
-            You can modify the example to better match your actual objective once your location objective is created.
-            You can choose multiple examples from different categories.
+              Select one or more examples below. These will be added to your list of core priorities.
+              Pick examples that are similar to your own goals, and you can edit them later to be a perfect match.
           </DialogDescription>
         </DialogHeader>
 
@@ -109,7 +107,7 @@ export function StatementSelectionDialog({ open, onOpenChange, onConfirm }: Stat
             onClick={handleConfirm}
             disabled={selectedStatements.size === 0}
           >
-            Add Selected Objectives
+            Add Selected Priorities
           </Button>
         </DialogFooter>
       </DialogContent>

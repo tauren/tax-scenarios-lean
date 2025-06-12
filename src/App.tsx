@@ -132,7 +132,7 @@ export function App() {
     if (location.pathname !== '/' && location.pathname !== '/overview') {
       // Use setTimeout to ensure the toast shows after state update
       setTimeout(() => {
-        toast.info("You're viewing a shared plan section. Click 'Overview' in the navigation to see the full plan.", {
+        toast.info("You're viewing a sub-section of a shared comparison. Click 'Overview' in the navigation to see the full comparison.", {
           duration: 6000,
           action: {
             label: 'Go to Overview',
@@ -182,9 +182,9 @@ export function App() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Overwrite Existing Plan</AlertDialogTitle>
+            <AlertDialogTitle>Overwrite Existing Comparison</AlertDialogTitle>
             <AlertDialogDescription>
-              You already have a plan saved. Loading a new plan will overwrite your existing plan.
+              You already have a comparison saved. Loading a new comparison will overwrite your existing comparison.
               Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>

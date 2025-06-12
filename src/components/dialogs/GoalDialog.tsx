@@ -132,11 +132,11 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editingGoal ? "Edit Location Objective" : "Add New Location Objective"}</DialogTitle>
+          <DialogTitle>{editingGoal ? "Edit Priority" : "Add New Priority"}</DialogTitle>
           <DialogDescription>
             {editingGoal
-              ? "Modify your location objective details below."
-              : "Create a new location objective by selecting a category and customizing it to your needs."}
+              ? "Modify your priority details below."
+              : "Create a new priority by selecting a category and customizing it to your needs."}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +152,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
           <div className="space-y-4 py-4">
             <FormField
               id="concept"
-              label="Objective Category"
+              label="Priority Category"
               error={errors.conceptId}
             >
               <Select
@@ -177,7 +177,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
 
             <FormField
               id="name"
-              label="Objective Name"
+              label="Priority Name"
               error={errors.name}
             >
               <Input
@@ -189,7 +189,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                   setFieldError('name', validateName(value))
                 }}
                 onBlur={() => setFieldError('name', validateName(formData.name))}
-                placeholder="Enter a name for your location objective"
+                placeholder="Enter a name for your priority"
                 className={errors.name ? 'border-destructive' : ''}
               />
             </FormField>
@@ -205,14 +205,14 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
                   const value = e.target.value
                   setFormData(prev => ({ ...prev, description: value }))
                 }}
-                placeholder="Describe your location objective (optional)"
+                placeholder="Describe your priority (optional)"
               />
             </FormField>
 
             <FormField
               id="weight"
               error={errors.weight}
-              label="Importance"
+              label="How important is this priority to you?"
             >
               <WeightSelector
                 value={formData.weight}
@@ -227,7 +227,7 @@ export function GoalDialog({ open, onOpenChange, editingGoal, onSave }: GoalDial
               Cancel
             </Button>
             <Button type="submit">
-              {editingGoal ? "Save Changes" : "Add Objective"}
+              {editingGoal ? "Save Changes" : "Add Priority"}
             </Button>
           </DialogFooter>
         </form>

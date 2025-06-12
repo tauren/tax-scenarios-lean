@@ -42,7 +42,7 @@ export function GetStartedView() {
               >
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span>Continue with Current Plan</span>
+                    <span>Continue with Current Comparison</span>
                     <ArrowRight className="h-5 w-5" />
                   </CardTitle>
                 </CardHeader>
@@ -69,7 +69,7 @@ export function GetStartedView() {
         {/* Example Plans Section */}
         <div className="mb-8">
           <p className="text-lg text-muted-foreground text-center mb-6">
-            Choose a pre-built example to explore the features...
+            Choose from pre-built example comparisons to explore the features...
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -122,7 +122,7 @@ export function GetStartedView() {
         {/* Additional Help Text */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            Don't worry - you can always modify your plan or switch between examples later.
+            Don't worry - you can always modify your comparison or switch between examples later.
           </p>
         </div>
       </div>

@@ -30,35 +30,6 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
   goals,
   goalAlignments = [],
 }) => {
-  const getWeightValue = (weight: UserQualitativeGoal['weight']): number => {
-    switch (weight) {
-      case 'Critical': return 4;
-      case 'High': return 3;
-      case 'Medium': return 2;
-      case 'Low': return 1;
-      default: return 1;
-    }
-  };
-
-  const getSignificanceValue = (significance: ScenarioQualitativeAttribute['significance']): number => {
-    switch (significance) {
-      case 'Critical': return 4;
-      case 'High': return 3;
-      case 'Medium': return 2;
-      case 'Low': return 1;
-      default: return 1;
-    }
-  };
-
-  const getSentimentValue = (sentiment: ScenarioQualitativeAttribute['sentiment']): number => {
-    switch (sentiment) {
-      case 'Positive': return 1;
-      case 'Neutral': return 0.5;
-      case 'Negative': return 0;
-      default: return 0.5;
-    }
-  };
-
   // Sort goals by alignment score (highest to lowest)
   const sortedGoalAlignments = [...goalAlignments].sort((a, b) => b.alignmentScore - a.alignmentScore);
 
@@ -74,7 +45,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BarChart className="h-5 w-5" />
-            Qualitative Fit Score Breakdown
+            Lifestyle Fit Score Breakdown
           </DialogTitle>
         </DialogHeader>
 
@@ -95,20 +66,20 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                       <PopoverContent className="w-80">
                         <div className="space-y-2 text-sm text-gray-600">
                           <h4 className="font-medium text-gray-900">How the Score is Calculated</h4>
-                          <p>1. Each attribute is assigned a base score based on its sentiment:</p>
+                          <p>1. Each impression is assigned a base score based on its sentiment:</p>
                           <ul className="list-inside list-disc pl-4">
                             <li>Positive: 100%</li>
                             <li>Neutral: 50%</li>
                             <li>Negative: 0%</li>
                           </ul>
-                          <p>2. The base score is weighted by the attribute's significance:</p>
+                          <p>2. The base score is then weighted by the impression's significance:</p>
                           <ul className="list-inside list-disc pl-4">
                             <li>Critical: 4x</li>
                             <li>High: 3x</li>
                             <li>Medium: 2x</li>
                             <li>Low: 1x</li>
                           </ul>
-                          <p>3. The weighted scores are then normalized by the goal's importance:</p>
+                          <p>3. The weighted scores are further adjusted by the importance of the priority it's linked to:</p>
                           <ul className="list-inside list-disc pl-4">
                             <li>Critical: 4x</li>
                             <li>High: 3x</li>
@@ -121,7 +92,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                     </Popover>
                   </div>
                   <p className="text-sm text-gray-500">
-                    This score represents how well this scenario aligns with your location objectives, weighted by importance.
+                    This score represents how well this scenario aligns with your priorities, weighted by importance.
                   </p>
                 </div>
                 <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
@@ -132,7 +103,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
 
             {/* Goal Alignments */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Location Objectives Alignment</h3>
+              <h3 className="text-lg font-medium">Priorities Alignment</h3>
               <div className="space-y-4">
                 {sortedGoalAlignments.length > 0 ? (
                   sortedGoalAlignments.map((alignment) => {
@@ -160,7 +131,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                         {/* Contributing Attributes */}
                         {alignment.contributingAttributes && alignment.contributingAttributes.length > 0 && (
                           <div className="mt-4 space-y-2">
-                            <h5 className="text-sm font-medium text-gray-700">Contributing Attributes</h5>
+                            <h5 className="text-sm font-medium text-gray-700">Linked Impressions</h5>
                             <div className="space-y-2">
                               {alignment.contributingAttributes.map((attr) => {
                                 const attribute = attributes.find(a => a.id === attr.attributeId);
@@ -198,7 +169,7 @@ export const ScoreBreakdownDialog: React.FC<ScoreBreakdownDialogProps> = ({
                     );
                   })
                 ) : (
-                  <p className="text-sm text-gray-500">No location objective alignments available.</p>
+                  <p className="text-sm text-gray-500">No priorities alignments available.</p>
                 )}
               </div>
             </div>

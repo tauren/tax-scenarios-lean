@@ -16,7 +16,7 @@ export interface QualitativeFitScore {
 }
 
 /**
- * Calculates a qualitative fit score for a scenario based on mapped attributes and goals
+ * Calculates a qualitative lifestyle fit for a scenario based on mapped attributes and goals
  * @param scenario The scenario to calculate the score for
  * @param userGoals The user's qualitative goals
  * @returns An object containing the score, detailed breakdown, and goal alignments

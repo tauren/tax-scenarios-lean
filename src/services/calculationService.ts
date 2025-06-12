@@ -60,7 +60,7 @@ export const calculateScenarioResults = (
     totalNetFinancialOutcomeOverPeriod += yearlyProjection.netFinancialOutcome;
   }
 
-  // Calculate qualitative fit score using the new service
+  // Calculate qualitative lifestyle fit using the new service
   const { score: qualitativeFitScore, details, goalAlignments } = qualitativeScoringService.calculateQualitativeScore(scenario, userGoals);
 
   return {

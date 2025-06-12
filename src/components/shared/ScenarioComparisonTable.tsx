@@ -60,7 +60,7 @@ export function ScenarioComparisonTable({ selectedScenarioIds }: ScenarioCompari
     { key: 'totalExpenses' as SortKey, label: 'Total Expenses', format: formatCurrency },
     { key: 'estimatedCapitalGainsTax' as SortKey, label: 'Est. Capital Gains Tax', format: formatCurrency, highlight: true },
     { key: 'netFinancialOutcome' as SortKey, label: 'Net Financial Outcome', format: formatCurrency },
-    { key: 'qualitativeFitScore' as SortKey, label: 'Qualitative Fit Score', format: (val: number) => `${val}/100` },
+    { key: 'qualitativeFitScore' as SortKey, label: 'Lifestyle Fit', format: (val: number) => `${val}/100` },
   ];
 
   const handleSort = (key: SortKey) => {

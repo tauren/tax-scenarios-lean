@@ -40,12 +40,12 @@ export function Breadcrumbs() {
       });
     } else if (pathSegments[0] === 'assets') {
       items.push({
-        label: 'Assets',
+        label: 'My Assets',
         path: '/assets',
       });
-    } else if (pathSegments[0] === 'objectives') {
+    } else if (pathSegments[0] === 'priorities') {
       items.push({
-        label: 'Location Objectives',
+        label: 'My Priorities',
         isCurrentPage: true,
       });
     } else if (pathSegments[0] === 'scenarios') {

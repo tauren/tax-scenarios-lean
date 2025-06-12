@@ -61,11 +61,11 @@ export function SharePlanDialog({ isOpen, onClose, overviewUrl, deepLinkUrl, cur
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className={isOverviewTypePage ? "max-w-xl" : "max-w-2xl"}>
         <AlertDialogHeader>
-          <AlertDialogTitle>Share Your Plan</AlertDialogTitle>
+          <AlertDialogTitle>Share Your Comparison</AlertDialogTitle>
           <AlertDialogDescription>
             {isOverviewTypePage 
-              ? "Copy the link below to share your plan with others. Anyone with this link can view and load your plan."
-              : "Choose how you want to share your plan. The overview link takes recipients to the main plan page, while the deep link takes them directly to this specific page."
+              ? "Copy the link below to share your comparison with others. Anyone with this link can view and load your comparison."
+              : "Choose how you want to share your comparison. The overview link takes recipients to the main comparison page, while the deep link takes them directly to this specific page."
             }
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -76,10 +76,10 @@ export function SharePlanDialog({ isOpen, onClose, overviewUrl, deepLinkUrl, cur
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Home className="h-4 w-4 text-primary" />
-                <h4 className="font-medium">Share Plan</h4>
+                <h4 className="font-medium">Share Comparison</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Recipients will be taken to the plan overview page.
+                Recipients will be taken to the comparison overview page.
               </p>
               <div className="flex items-center space-x-2">
                 <Input
@@ -107,11 +107,11 @@ export function SharePlanDialog({ isOpen, onClose, overviewUrl, deepLinkUrl, cur
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Home className="h-4 w-4 text-primary" />
-                  <h4 className="font-medium">Plan Overview (Recommended)</h4>
+                  <h4 className="font-medium">Comparison Overview (Recommended)</h4>
                   <span className="text-xs text-muted-foreground bg-primary/10 px-2 py-1 rounded">Default</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Best for sharing the full plan. Recipients will see the overview page first.
+                  Best for sharing the full comparison. Recipients will see the overview page first.
                 </p>
                 <div className="flex items-center space-x-2">
                   <Input

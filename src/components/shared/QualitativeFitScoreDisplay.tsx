@@ -19,7 +19,7 @@ export const QualitativeFitScoreDisplay: React.FC<QualitativeFitScoreDisplayProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Qualitative Fit Score</h3>
+        <h3 className="text-lg font-medium">Lifestyle Fit</h3>
         <div className="flex items-center gap-4">
           <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
             {score}%

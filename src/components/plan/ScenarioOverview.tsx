@@ -74,7 +74,7 @@ export function ScenarioOverview({
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Scenario Overview</h2>
+        <h2 className="text-xl font-semibold">My Scenarios</h2>
         <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
           <PlusCircle className="h-4 w-4" />
           Add New Scenario

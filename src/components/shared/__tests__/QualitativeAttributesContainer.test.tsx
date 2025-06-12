@@ -84,18 +84,18 @@ describe('QualitativeAttributesContainer', () => {
     (qualitativeAttributeService.calculateQualitativeFitScore as any).mockReturnValue(mockFitScore);
   });
 
-  it('renders the container with add button and fit score display', () => {
+  it('renders the container with add button and lifestyle fit display', () => {
     render(
       <QualitativeAttributesContainer
         scenarioId={mockScenarioId}
       />
     );
 
-    expect(screen.getByText('Location Considerations')).toBeInTheDocument();
-    expect(screen.getByText('Add Consideration')).toBeInTheDocument();
+    expect(screen.getByText('Impressions of this Location')).toBeInTheDocument();
+    expect(screen.getByText('Add Impression')).toBeInTheDocument();
     expect(screen.getByText('Test attribute 1')).toBeInTheDocument();
     expect(screen.getByText('Test attribute 2')).toBeInTheDocument();
-    expect(screen.getByText('Qualitative Fit Score')).toBeInTheDocument();
+    expect(screen.getByText('Lifestyle Fit')).toBeInTheDocument();
   });
 
   it('opens dialog when clicking Add Consideration button', () => {
@@ -105,10 +105,10 @@ describe('QualitativeAttributesContainer', () => {
       />
     );
 
-    const addButton = screen.getByText('Add Consideration');
+    const addButton = screen.getByRole('button', { name: 'Add Impression' });
     fireEvent.click(addButton);
 
-    expect(screen.getByText('Add Consideration')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('disables add button when disabled prop is true', () => {
@@ -119,7 +119,7 @@ describe('QualitativeAttributesContainer', () => {
       />
     );
 
-    const addButton = screen.getByText('Add Consideration');
+    const addButton = screen.getByText('Add Impression');
     expect(addButton).toBeDisabled();
   });
 
@@ -155,8 +155,8 @@ describe('QualitativeAttributesContainer', () => {
     );
 
     // Should still render the container structure
-    expect(screen.getByText('Location Considerations')).toBeInTheDocument();
-    expect(screen.getByText('Add Consideration')).toBeInTheDocument();
+    expect(screen.getByText('Impressions of this Location')).toBeInTheDocument();
+    expect(screen.getByText('Add Impression')).toBeInTheDocument();
   });
 
   it('displays quick add button when onQuickAdd prop is provided', () => {
@@ -175,7 +175,7 @@ describe('QualitativeAttributesContainer', () => {
     expect(onQuickAdd).toHaveBeenCalled();
   });
 
-  it('calculates and displays fit score using the service', () => {
+  it('calculates and displays lifestyle fit using the service', () => {
     render(
       <QualitativeAttributesContainer
         scenarioId={mockScenarioId}

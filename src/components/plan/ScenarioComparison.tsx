@@ -21,7 +21,7 @@ export function ScenarioComparison({ selectedScenarioIds }: ScenarioComparisonPr
     <div className="mb-8 space-y-6">
       <h2 className="text-xl font-semibold mb-4">Scenario Comparison</h2>
       <ScenarioComparisonTable selectedScenarioIds={new Set(selectedScenarioIds)} />
-      <h3 className="text-lg font-semibold mt-8 mb-4">Location Objectives Comparison</h3>
+      <h3 className="text-lg font-semibold mt-8 mb-4">Lifestyle Fit Comparison</h3>
       <LocationObjectivesComparisonTable selectedScenarioIds={new Set(selectedScenarioIds)} />
     </div>
   );

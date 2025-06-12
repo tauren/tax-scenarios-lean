@@ -1,4 +1,4 @@
-// Shared color and badge logic for qualitative fit scores
+// Shared color and badge logic for lifestyle fit
 
 export function getScoreColor(score: number): string {
   if (score < 0) return 'text-red-600';

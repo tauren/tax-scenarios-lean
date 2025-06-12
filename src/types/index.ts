@@ -265,6 +265,7 @@ export function convertFormScenarioToScenario(formScenario: FormScenario): Scena
 export interface QualitativeConcept {
   id: string;
   name: string;
+  shortName?: string;
   description: string;
   aspects?: string[];
 }

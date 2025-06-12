@@ -355,7 +355,7 @@ export function ScenarioEditorView() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Edit Scenario</h1>
+          <h1 className="text-3xl font-bold">{scenario?.name || 'Edit Scenario'}</h1>
           <p className="text-muted-foreground mt-2">
             Configure your scenario details and settings
           </p>
@@ -380,7 +380,7 @@ export function ScenarioEditorView() {
       <Tabs defaultValue="basic" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="qualitative">Considerations</TabsTrigger>
+          <TabsTrigger value="qualitative">Impressions</TabsTrigger>
           <TabsTrigger value="assets">Asset Sales</TabsTrigger>
           <TabsTrigger value="annual">Annual Expenses</TabsTrigger>
           <TabsTrigger value="oneTime">One-Time Expenses</TabsTrigger>

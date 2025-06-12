@@ -41,7 +41,7 @@ export function ScenarioSummaryDashboard() {
         onClick={() => bestQualitativeFitScenario && navigate(`/scenarios/${bestQualitativeFitScenario.id}/view`)}
       >
         <BadgeCheck className="h-6 w-6 text-muted-foreground mb-2" />
-        <span className="text-sm text-muted-foreground">Best Qualitative Fit</span>
+        <span className="text-sm text-muted-foreground">Best Lifestyle Fit</span>
         <span className="text-lg font-bold">{bestQualitativeFitScenario?.name || '—'}</span>
         <span className={`text-md ${
           bestQualitativeScore >= 80 ? 'text-green-600' :
