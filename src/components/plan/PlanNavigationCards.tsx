@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Target, Layers } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface PlanNavigationCardsProps {
   assetsCount: number;
@@ -11,58 +12,59 @@ interface PlanNavigationCardsProps {
 export function PlanNavigationCards({ assetsCount, objectivesCount, scenariosCount }: PlanNavigationCardsProps) {
   const navigate = useNavigate();
 
+  const renderNavigationCard = (
+    Icon: LucideIcon,
+    title: string,
+    count: number,
+    singularLabel: string,
+    pluralLabel: string,
+    path: string
+  ) => (
+    <Card 
+      className="hover:shadow-lg transition-shadow cursor-pointer border-muted"
+      onClick={() => navigate(path)}
+    >
+      <CardContent className="pt-2">
+        <div className="flex flex-col items-center text-center">
+          <Icon className="h-8 w-8 text-muted-foreground mb-2" />
+          <div className="text-sm font-medium">{title}</div>
+          <div className="text-2xl font-bold">{count}</div>
+          <p className="text-xs text-muted-foreground">
+            {count === 1 ? singularLabel : pluralLabel}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      {/* Scenarios Card */}
-      <Card 
-        className="hover:shadow-lg transition-shadow cursor-pointer border-muted"
-        onClick={() => navigate('/scenarios')}
-      >
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center">
-            <Layers className="h-8 w-8 text-muted-foreground mb-2" />
-            <div className="text-sm font-medium">Total Scenarios</div>
-            <div className="text-2xl font-bold">{scenariosCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {scenariosCount === 1 ? 'scenario' : 'scenarios'} created
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {renderNavigationCard(
+        Layers,
+        "Total Scenarios",
+        scenariosCount,
+        "scenario created",
+        "scenarios created",
+        "/overview"
+      )}
 
-      {/* Assets Card */}
-      <Card 
-        className="hover:shadow-lg transition-shadow cursor-pointer border-muted"
-        onClick={() => navigate('/assets')}
-      >
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center">
-            <Building2 className="h-8 w-8 text-muted-foreground mb-2" />
-            <div className="text-sm font-medium">Total Assets</div>
-            <div className="text-2xl font-bold">{assetsCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {assetsCount === 1 ? 'asset' : 'assets'} in your plan
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {renderNavigationCard(
+        Building2,
+        "Total Assets",
+        assetsCount,
+        "asset in your plan",
+        "assets in your plan",
+        "/assets"
+      )}
 
-      {/* Location Objectives Card */}
-      <Card 
-        className="hover:shadow-lg transition-shadow cursor-pointer border-muted"
-        onClick={() => navigate('/objectives')}
-      >
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center">
-            <Target className="h-8 w-8 text-muted-foreground mb-2" />
-            <div className="text-sm font-medium">Location Objectives</div>
-            <div className="text-2xl font-bold">{objectivesCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {objectivesCount === 1 ? 'objective' : 'objectives'} defined
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {renderNavigationCard(
+        Target,
+        "Location Objectives",
+        objectivesCount,
+        "objective defined",
+        "objectives defined",
+        "/objectives"
+      )}
     </div>
   );
 } 

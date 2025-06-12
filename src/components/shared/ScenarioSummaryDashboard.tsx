@@ -43,7 +43,11 @@ export function ScenarioSummaryDashboard() {
         <BadgeCheck className="h-6 w-6 text-muted-foreground mb-2" />
         <span className="text-sm text-muted-foreground">Best Qualitative Fit</span>
         <span className="text-lg font-bold">{bestQualitativeFitScenario?.name || '—'}</span>
-        <span className="text-md">{bestQualitativeScore}/100</span>
+        <span className={`text-md ${
+          bestQualitativeScore >= 80 ? 'text-green-600' :
+          bestQualitativeScore >= 50 ? 'text-yellow-500' :
+          'text-red-600'
+        }`}>{bestQualitativeScore}/100</span>
         <div className="w-full mt-2 h-2 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-yellow-400 transition-all"

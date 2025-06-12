@@ -2,8 +2,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface ViewActionsProps {
-  onEdit: any;
-  onBack: any;
+  onEdit: () => void;
+  onBack: () => void;
 }
 
 const ViewActions: React.FC<ViewActionsProps> = ({ onEdit, onBack }) => (
