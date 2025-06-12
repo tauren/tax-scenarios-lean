@@ -6,16 +6,19 @@ interface FormFieldProps {
   label: string;
   children: ReactNode;
   error?: string;
+  hideError?: boolean;
 }
 
-export function FormField({ id, label, children, error }: FormFieldProps) {
+export function FormField({ id, label, children, error, hideError }: FormFieldProps) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
-      <div className="min-h-[1.25rem] text-sm text-destructive">
-        {error}
-      </div>
+      {!hideError && (
+        <div className="min-h-[1.25rem] text-sm text-destructive">
+          {error}
+        </div>
+      )}
     </div>
   );
 } 

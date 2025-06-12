@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FormField } from '@/components/shared/FormField';
 import type { UserQualitativeGoal } from '@/types';
 
 interface QuickAddAttributesDialogProps {
@@ -50,47 +51,59 @@ export function QuickAddAttributesDialog({
     onOpenChange(false);
   };
 
+  const hasAttributes = Object.values(goalAttributes).some(descriptions => descriptions.length > 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Quick Add Attributes</DialogTitle>
+          <DialogDescription>
+            Add pros and cons for each location objective. Type a brief description and press Enter to add multiple attributes for each goal. Click the X on any attribute to remove it.
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-6 py-4">
-          {goals.map(goal => (
-            <div key={goal.id} className="space-y-2">
-              <Label className="text-lg font-semibold">{goal.name}</Label>
-              <Input
-                placeholder="Type an attribute and press Enter"
-                onKeyDown={(e) => handleKeyDown(goal.id, e)}
-              />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {(goalAttributes[goal.id] || []).map((attribute, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="flex items-center gap-1 px-3 py-1"
-                  >
-                    {attribute}
-                    <button
-                      onClick={() => removeAttribute(goal.id, index)}
-                      className="ml-1 hover:text-destructive"
+
+        <ScrollArea className="max-h-[calc(80vh-8rem)] -mx-6">
+          <div className="space-y-6 px-6">
+            {goals.map(goal => (
+              <div key={goal.id} className="space-y-2">
+                <FormField
+                  id={`goal-${goal.id}`}
+                  label={goal.name}
+                  hideError
+                >
+                  <Input
+                    placeholder="Type an attribute and press Enter"
+                    onKeyDown={(e) => handleKeyDown(goal.id, e)}
+                  />
+                </FormField>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {(goalAttributes[goal.id] || []).map((attribute, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1 px-3 py-1"
                     >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
+                      {attribute}
+                      <button
+                        onClick={() => removeAttribute(goal.id, index)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={!hasAttributes}>
             Save Attributes
           </Button>
         </DialogFooter>
