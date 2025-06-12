@@ -1,7 +1,7 @@
 import type { Scenario, Asset, ScenarioResults, CalculationError, CapitalGainsData, TaxBreakdown } from '@/types';
 import type { UserQualitativeGoal } from '@/types/qualitative';
 import { dateService } from './dateService';
-import { QualitativeScoringService } from './qualitativeScoringService';
+import { qualitativeScoringService } from './qualitativeScoringService';
 
 /**
  * Calculates the results for a given scenario
@@ -61,8 +61,7 @@ export const calculateScenarioResults = (
   }
 
   // Calculate qualitative fit score using the new service
-  const scoringService = new QualitativeScoringService();
-  const { score: qualitativeFitScore, details, goalAlignments } = scoringService.calculateScore(scenario, userGoals);
+  const { score: qualitativeFitScore, details, goalAlignments } = qualitativeScoringService.calculateQualitativeScore(scenario, userGoals);
 
   return {
     yearlyProjections,

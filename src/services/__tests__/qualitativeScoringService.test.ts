@@ -1,25 +1,19 @@
-import { QualitativeScoringService } from '../qualitativeScoringService';
+import { qualitativeScoringService } from '../qualitativeScoringService';
 import {
   createBasicScenario,
   createTestGoals,
   createTestAttributes
 } from '@/test/scenarioBuilder';
 
-describe('QualitativeScoringService', () => {
-  let service: QualitativeScoringService;
-
-  beforeEach(() => {
-    service = new QualitativeScoringService();
-  });
-
-  describe('calculateScore', () => {
+describe('qualitativeScoringService', () => {
+  describe('calculateQualitativeScore', () => {
     it('should calculate correct score with mapped attributes', () => {
       const scenario = createBasicScenario({
         scenarioSpecificAttributes: createTestAttributes('test-scenario')
       });
       const goals = createTestGoals();
       
-      const result = service.calculateScore(scenario, goals);
+      const result = qualitativeScoringService.calculateQualitativeScore(scenario, goals);
 
       expect(result.score).toBeDefined();
       expect(result.score).toBeGreaterThanOrEqual(0);
@@ -33,7 +27,7 @@ describe('QualitativeScoringService', () => {
       const scenario = createBasicScenario();
       const goals = createTestGoals();
       
-      const result = service.calculateScore(scenario, goals);
+      const result = qualitativeScoringService.calculateQualitativeScore(scenario, goals);
 
       expect(result.score).toBe(50); // Default neutral score
       expect(result.details.mappedAttributesCount).toBe(0);
@@ -45,7 +39,7 @@ describe('QualitativeScoringService', () => {
         scenarioSpecificAttributes: createTestAttributes('test-scenario')
       });
       
-      const result = service.calculateScore(scenario, []);
+      const result = qualitativeScoringService.calculateQualitativeScore(scenario, []);
 
       expect(result.score).toBe(50); // Default neutral score
       expect(result.details.mappedAttributesCount).toBe(0);
@@ -58,7 +52,7 @@ describe('QualitativeScoringService', () => {
       });
       const goals = createTestGoals();
       
-      const result = service.calculateScore(scenario, goals);
+      const result = qualitativeScoringService.calculateQualitativeScore(scenario, goals);
 
       expect(result.goalAlignments).toHaveLength(2);
       
@@ -75,55 +69,31 @@ describe('QualitativeScoringService', () => {
       expect(goal2Alignment?.alignmentScore).toBeLessThan(50);
     });
 
-    it('should cache results and return cached value', () => {
+    it('should include components in the result', () => {
       const scenario = createBasicScenario({
         scenarioSpecificAttributes: createTestAttributes('test-scenario')
       });
       const goals = createTestGoals();
       
-      const result1 = service.calculateScore(scenario, goals);
-      const result2 = service.calculateScore(scenario, goals);
+      const result = qualitativeScoringService.calculateQualitativeScore(scenario, goals);
 
-      expect(result1).toBe(result2); // Should return same object reference
-    });
-  });
-
-  describe('getScoreBreakdown', () => {
-    it('should return empty array for unknown scenario', () => {
-      const breakdown = service.getScoreBreakdown('unknown-scenario');
-      expect(breakdown).toEqual([]);
+      expect(result.components).toHaveLength(2);
+      expect(result.components[0]).toHaveProperty('attributeId');
+      expect(result.components[0]).toHaveProperty('goalId');
+      expect(result.components[0]).toHaveProperty('baseScore');
+      expect(result.components[0]).toHaveProperty('weight');
+      expect(result.components[0]).toHaveProperty('finalContribution');
     });
 
-    it('should return components for known scenario', () => {
+    it('should include lastUpdated in the result', () => {
       const scenario = createBasicScenario({
         scenarioSpecificAttributes: createTestAttributes('test-scenario')
       });
       const goals = createTestGoals();
       
-      service.calculateScore(scenario, goals);
-      const breakdown = service.getScoreBreakdown(scenario.id);
+      const result = qualitativeScoringService.calculateQualitativeScore(scenario, goals);
 
-      expect(breakdown).toHaveLength(2);
-      expect(breakdown[0]).toHaveProperty('attributeId');
-      expect(breakdown[0]).toHaveProperty('goalId');
-      expect(breakdown[0]).toHaveProperty('baseScore');
-      expect(breakdown[0]).toHaveProperty('weight');
-      expect(breakdown[0]).toHaveProperty('finalContribution');
-    });
-  });
-
-  describe('invalidateCache', () => {
-    it('should invalidate cached results', () => {
-      const scenario = createBasicScenario({
-        scenarioSpecificAttributes: createTestAttributes('test-scenario')
-      });
-      const goals = createTestGoals();
-      
-      const result1 = service.calculateScore(scenario, goals);
-      service.invalidateCache(scenario.id);
-      const result2 = service.calculateScore(scenario, goals);
-
-      expect(result1).not.toBe(result2); // Should return different object references
+      expect(result.lastUpdated).toBeInstanceOf(Date);
     });
   });
 }); 

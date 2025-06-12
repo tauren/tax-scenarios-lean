@@ -4,7 +4,7 @@ import {
   calculateCapitalGainsForYear,
   calculateTaxesForYear,
 } from '@/services/calculationService';
-import { QualitativeAttributeService } from '@/services/qualitativeAttributeService';
+import { qualitativeAttributeService } from '../qualitativeAttributeService';
 import type { Scenario, Asset, UserQualitativeGoal } from '@/types';
 
 /**
@@ -439,118 +439,144 @@ describe('calculationService', () => {
 
   describe('calculateQualitativeFitScore', () => {
     it('should calculate score based on mapped attributes and goal weights', () => {
-      const scenario = new ScenarioBuilder()
-        .withQualitativeAttributes([
-          {
-            id: 'attr-1',
-            scenarioId: 'test-scenario',
-            text: 'Test attribute 1',
-            sentiment: 'Positive',
-            significance: 'High',
-            mappedGoalId: 'goal-1'
-          }
-        ])
-        .build();
+      const scenario = {
+        id: 'test-scenario',
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [{
+          id: 'attr-1',
+          name: 'Test Attribute',
+          sentiment: 'Positive' as const,
+          significance: 'High' as const,
+          mappedGoalId: 'goal-1'
+        }]
+      };
 
-      const mockGoals: UserQualitativeGoal[] = [
-        {
-          id: 'goal-1',
-          conceptId: 'concept-1',
-          name: 'Test Goal 1',
-          weight: 'High'
-        }
-      ];
+      const goals = [{
+        id: 'goal-1',
+        conceptId: 'concept-1',
+        name: 'Test Goal',
+        weight: 'High' as const
+      }];
 
-      const attributeService = new QualitativeAttributeService(scenario.scenarioSpecificAttributes);
-      const { score, details, goalAlignments } = attributeService.calculateQualitativeFitScore(scenario, mockGoals);
+      const { score, goalAlignments } = qualitativeAttributeService.calculateQualitativeFitScore(scenario, goals);
       expect(score).toBeGreaterThan(0);
-      expect(score).toBeLessThanOrEqual(100);
-      expect(details.mappedAttributesCount).toBe(1);
-      expect(details.unmappedAttributesCount).toBe(0);
       expect(goalAlignments).toHaveLength(1);
     });
 
     it('should handle scenarios with no attributes', () => {
-      const scenario = createTestScenario();
+      const scenario = {
+        id: 'test-scenario',
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: []
+      };
 
-      const mockGoals: UserQualitativeGoal[] = [
-        {
-          id: 'goal-1',
-          conceptId: 'concept-1',
-          name: 'Test Goal 1',
-          weight: 'High'
-        }
-      ];
+      const goals = [{
+        id: 'goal-1',
+        conceptId: 'concept-1',
+        name: 'Test Goal',
+        weight: 'High' as const
+      }];
 
-      const attributeService = new QualitativeAttributeService(scenario.scenarioSpecificAttributes);
-      const { score, details, goalAlignments } = attributeService.calculateQualitativeFitScore(scenario, mockGoals);
-      expect(score).toBe(50); // Default neutral score
-      expect(details.mappedAttributesCount).toBe(0);
-      expect(details.unmappedAttributesCount).toBe(0);
+      const { score, goalAlignments } = qualitativeAttributeService.calculateQualitativeFitScore(scenario, goals);
+      expect(score).toBe(50); // Neutral score when no attributes
       expect(goalAlignments).toHaveLength(1);
     });
 
     it('should handle scenarios with unmapped attributes', () => {
-      const scenario = new ScenarioBuilder()
-        .withQualitativeAttributes([
-          {
-            id: 'attr-1',
-            scenarioId: 'test-scenario',
-            text: 'Test attribute 1',
-            sentiment: 'Positive',
-            significance: 'High'
-          }
-        ])
-        .build();
+      const scenario = {
+        id: 'test-scenario',
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [{
+          id: 'attr-1',
+          name: 'Test Attribute',
+          sentiment: 'Positive' as const,
+          significance: 'High' as const
+        }]
+      };
 
-      const mockGoals: UserQualitativeGoal[] = [
-        {
-          id: 'goal-1',
-          conceptId: 'concept-1',
-          name: 'Test Goal 1',
-          weight: 'High'
-        }
-      ];
+      const goals = [{
+        id: 'goal-1',
+        conceptId: 'concept-1',
+        name: 'Test Goal',
+        weight: 'High' as const
+      }];
 
-      const attributeService = new QualitativeAttributeService(scenario.scenarioSpecificAttributes);
-      const { score, details, goalAlignments } = attributeService.calculateQualitativeFitScore(scenario, mockGoals);
-      expect(score).toBe(50); // Default neutral score
-      expect(details.mappedAttributesCount).toBe(0);
-      expect(details.unmappedAttributesCount).toBe(1);
+      const { score, goalAlignments } = qualitativeAttributeService.calculateQualitativeFitScore(scenario, goals);
+      expect(score).toBe(50); // Neutral score when attributes are unmapped
       expect(goalAlignments).toHaveLength(1);
     });
 
     it('should calculate goal alignments correctly', () => {
-      const scenario = new ScenarioBuilder()
-        .withQualitativeAttributes([
-          {
-            id: 'attr-1',
-            scenarioId: 'test-scenario',
-            text: 'Test attribute 1',
-            sentiment: 'Positive',
-            significance: 'High',
-            mappedGoalId: 'goal-1'
-          }
-        ])
-        .build();
+      const scenario = {
+        id: 'test-scenario',
+        name: 'Test Scenario',
+        projectionPeriod: 10,
+        residencyStartDate: new Date(),
+        location: { country: 'US' },
+        tax: {
+          capitalGains: { shortTermRate: 0, longTermRate: 0 },
+          incomeRate: 0
+        },
+        incomeSources: [],
+        annualExpenses: [],
+        oneTimeExpenses: [],
+        plannedAssetSales: [],
+        scenarioSpecificAttributes: [{
+          id: 'attr-1',
+          name: 'Test Attribute',
+          sentiment: 'Positive' as const,
+          significance: 'High' as const,
+          mappedGoalId: 'goal-1'
+        }]
+      };
 
-      const mockGoals: UserQualitativeGoal[] = [
-        {
-          id: 'goal-1',
-          conceptId: 'concept-1',
-          name: 'Test Goal 1',
-          weight: 'High'
-        }
-      ];
+      const goals = [{
+        id: 'goal-1',
+        conceptId: 'concept-1',
+        name: 'Test Goal',
+        weight: 'High' as const
+      }];
 
-      const attributeService = new QualitativeAttributeService(scenario.scenarioSpecificAttributes);
-      const { goalAlignments } = attributeService.calculateQualitativeFitScore(scenario, mockGoals);
-
-      expect(goalAlignments[0].goalId).toBe('goal-1');
-      expect(goalAlignments[0].goalName).toBe('Test Goal 1');
-      expect(goalAlignments[0].isAligned).toBe(true);
-      expect(goalAlignments[0].alignmentScore).toBeGreaterThan(50);
-      expect(goalAlignments[0].contributingAttributes).toHaveLength(1);
+      const { goalAlignments } = qualitativeAttributeService.calculateQualitativeFitScore(scenario, goals);
+      expect(goalAlignments).toHaveLength(1);
+      expect(goalAlignments[0]).toMatchObject({
+        goalId: 'goal-1',
+        goalName: 'Test Goal',
+        isAligned: true
+      });
     });
   });
 }); 

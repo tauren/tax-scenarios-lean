@@ -1,50 +1,18 @@
-import type { ScenarioQualitativeAttribute, UserQualitativeGoal, QualitativeGoalAlignment } from '@/types/qualitative';
 import type { Scenario } from '@/types';
+import type { 
+  UserQualitativeGoal, 
+  QualitativeGoalAlignment
+} from '@/types/qualitative';
+import { getWeightValue, getSentimentValue, getSignificanceValue } from '@/utils/qualitativeConversions';
 
-/**
- * Converts a weight string to a numeric value
- */
-function getWeightValue(weight: UserQualitativeGoal['weight']): number {
-  switch (weight) {
-    case "Critical": return 1.0;
-    case "High": return 0.75;
-    case "Medium": return 0.5;
-    case "Low": return 0.25;
-    default: return 0;
-  }
-}
-
-/**
- * Converts a sentiment string to a numeric value
- */
-function getSentimentValue(sentiment: ScenarioQualitativeAttribute['sentiment']): number {
-  switch (sentiment) {
-    case 'Positive':
-      return 1;
-    case 'Negative':
-      return -1;
-    case 'Neutral':
-    default:
-      return 0;
-  }
-}
-
-/**
- * Converts a significance string to a numeric value
- */
-function getSignificanceValue(significance: ScenarioQualitativeAttribute['significance']): number {
-  switch (significance) {
-    case 'Critical':
-      return 1;
-    case 'High':
-      return 0.75;
-    case 'Medium':
-      return 0.5;
-    case 'Low':
-      return 0.25;
-    default:
-      return 0;
-  }
+export interface QualitativeFitScore {
+  score: number;
+  details: {
+    mappedAttributesCount: number;
+    unmappedAttributesCount: number;
+    goalContributions: { goalId: string; contribution: number }[];
+  };
+  goalAlignments: QualitativeGoalAlignment[];
 }
 
 /**
@@ -56,15 +24,7 @@ function getSignificanceValue(significance: ScenarioQualitativeAttribute['signif
 export function calculateQualitativeFitScore(
   scenario: Scenario,
   userGoals: UserQualitativeGoal[]
-): { 
-  score: number; 
-  details: {
-    mappedAttributesCount: number;
-    unmappedAttributesCount: number;
-    goalContributions: { goalId: string; contribution: number }[];
-  };
-  goalAlignments: QualitativeGoalAlignment[];
-} {
+): QualitativeFitScore {
   // Initialize tracking variables
   let totalWeightedScoreContribution = 0;
   let sumOfMaxPossibleGoalContributions = 0;
@@ -73,6 +33,17 @@ export function calculateQualitativeFitScore(
   let unmappedAttributesCount = 0;
   const goalAlignments: QualitativeGoalAlignment[] = [];
 
+  // Get all attributes
+  const allAttributes = scenario.scenarioSpecificAttributes || [];
+
+  // Count unmapped attributes (those without a mappedGoalId or with a mappedGoalId that doesn't exist in goals)
+  const validGoalIds = new Set(userGoals.map(g => g.id));
+  unmappedAttributesCount = allAttributes.filter(attr => 
+    !attr.mappedGoalId || 
+    attr.mappedGoalId.trim() === '' || 
+    !validGoalIds.has(attr.mappedGoalId)
+  ).length;
+
   // Process each goal
   for (const goal of userGoals) {
     // Convert weight to numeric value
@@ -80,9 +51,9 @@ export function calculateQualitativeFitScore(
     if (goalWeight === 0) continue;
 
     // Find mapped attributes for this goal
-    const mappedAttributes = scenario.scenarioSpecificAttributes?.filter(
+    const mappedAttributes = allAttributes.filter(
       attr => attr.mappedGoalId === goal.id
-    ) || [];
+    );
 
     // Track attribute counts
     if (mappedAttributes.length > 0) {
@@ -98,16 +69,18 @@ export function calculateQualitativeFitScore(
       // Convert sentiment and significance to numeric values
       const sentimentValue = getSentimentValue(attr.sentiment);
       const significanceValue = getSignificanceValue(attr.significance);
-      // Calculate attribute's contribution (always include, even if zero)
+      
+      // Calculate attribute's contribution
       const attributeContribution = sentimentValue * significanceValue * goalWeight;
       goalContribution += attributeContribution;
-      // Track raw contributions for normalization (always include)
+
+      // Track raw contributions for normalization
       rawContributions.push({
         attributeId: attr.id,
         name: attr.name,
         raw: Math.abs(attributeContribution),
         signed: attributeContribution,
-        maxPossiblePercent: goalWeight > 0 ? (attributeContribution / (goalWeight * 1 * 1)) * 100 : 0
+        maxPossiblePercent: goalWeight > 0 ? (attributeContribution / (goalWeight * 2 * 2)) * 100 : 0
       });
     }
 
@@ -123,12 +96,21 @@ export function calculateQualitativeFitScore(
     }
 
     // Calculate alignment score (0-100)
-    const alignmentScore = (goalContribution / (goalWeight * 1 * 1)) * 100;
+    // For a positive sentiment * high significance * high weight, we expect:
+    // 1 * 1.5 * 1.5 = 2.25 contribution
+    // Max possible is 2 * 2 * 2 = 8
+    // So alignment score would be (2.25 / 8) * 100 = 28.125
+    // We need to adjust this to make it more intuitive
+    const maxPossibleContribution = goalWeight * 2 * 2; // Max possible contribution
+    const alignmentScore = mappedAttributes.length > 0 
+      ? ((goalContribution + maxPossibleContribution) / (2 * maxPossibleContribution)) * 100
+      : 50; // Default to neutral if no attributes
+
     const isAligned = alignmentScore >= 50;
 
     // Add to total contributions
     totalWeightedScoreContribution += goalContribution;
-    sumOfMaxPossibleGoalContributions += goalWeight * 1 * 1; // Max possible contribution (positive sentiment * high significance)
+    sumOfMaxPossibleGoalContributions += maxPossibleContribution;
 
     // Track goal contribution
     goalContributions.push({
@@ -149,11 +131,6 @@ export function calculateQualitativeFitScore(
       }))
     });
   }
-
-  // Count unmapped attributes
-  unmappedAttributesCount = (scenario.scenarioSpecificAttributes?.filter(
-    attr => !attr.mappedGoalId
-  ) || []).length;
 
   // Calculate final score
   let score = 50; // Default neutral score
