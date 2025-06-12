@@ -10,7 +10,7 @@ export const idService = {
    * @returns A unique ID string
    */
   generateId: (): string => {
-    return nanoid();
+    return nanoid(8);
   },
 
   /**
